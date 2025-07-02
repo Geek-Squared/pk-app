@@ -10,6 +10,9 @@
     "serve:ssr:pk-app": "node dist/pk-app/server/server.mjs"
   },
   "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
     "@angular/cdk": "^20.0.3",
     "@angular/common": "^20.0.0",
