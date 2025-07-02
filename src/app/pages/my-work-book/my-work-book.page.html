@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      My Work Book
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Mobile Content -->
+  <router-outlet></router-outlet>
+ <!--  <ion-list>
+    <div *ngFor="let item of (workbook)">
+      <ng-container *ngFor="let element of item?.content |keyvalue">
+        <h4>{{element?.value?.questionNarrative}}</h4>
+        <small>{{element?.value?.postName}}</small><br />
+        <ion-text>{{element?.value?.response}}</ion-text>
+      </ng-container>
+
+      <hr />
+      <br />
+    </div>
+  </ion-list> -->
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">My Work Book</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="book-outline"></ion-icon>
+        <h1>My Work Book</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="workbook-content">
+      <p class="page-description">Your personal journey and progress through the interventions</p>
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</ion-content>

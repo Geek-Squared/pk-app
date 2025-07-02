@@ -1,0 +1,174 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title> Dashboard </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-grid
+    style="
+      background-color: green;
+      height: 100%;
+      padding: 0;
+      display: flex;
+      flex-flow: column;
+    "
+  >
+    <ion-row style="flex-grow: 0.2">
+      <ion-col>
+        <div class="card-banner">
+          <div class="overlay"></div>
+          <img src="assets/images/logo.png" style="margin: 3%; width: 40%" />
+        </div>
+      </ion-col>
+    </ion-row>
+    <ion-row style="flex-grow: 1">
+      <ion-col size="6">
+        <ion-card
+          class="ion-padding pink-card"
+          button="true"
+          routerLink="/interventions"
+        >
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="library" size="large"></ion-icon>
+            <br />
+            <h3>Interventions</h3>
+          </ion-card-content>
+        </ion-card></ion-col
+      >
+
+      <ion-col size="6">
+        <ion-card
+          class="ion-padding blue-card-light"
+          button="true"
+          routerLink="/my-work-book"
+        >
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="book" size="large"></ion-icon>
+            <br />
+            <h3>My WorkBook</h3>
+          </ion-card-content>
+        </ion-card></ion-col
+      >
+
+      <ion-col size="6">
+        <ion-card
+          class="ion-padding blue-card"
+          button="true"
+          routerLink="/messages"
+        >
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="mail" size="large"></ion-icon>
+            <br />
+            <h3>Messages</h3>
+          </ion-card-content>
+        </ion-card></ion-col
+      >
+
+      <ion-col size="6">
+        <ion-card
+          class="ion-padding purple-card"
+          button="true"
+          routerLink="/feedback"
+        >
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="chatbubbles" size="large"></ion-icon>
+            <br />
+            <h3>Feedback</h3>
+          </ion-card-content>
+        </ion-card></ion-col
+      >
+    </ion-row>
+  </ion-grid>
+
+  <!-- Desktop Dashboard - Only shows on desktop -->
+  <div class="desktop-dashboard">
+    <div class="dashboard-header">
+      <div class="header-content">
+        <h1>Welcome to Your Dashboard</h1>
+        <p>Manage your positive connections and track your progress</p>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div class="dashboard-grid">
+      
+
+        <!-- Action Cards -->
+        <div class="actions-section">
+          <h2>Quick Actions</h2>
+          <div class="actions-grid">
+            <div class="action-card" routerLink="/interventions">
+              <div class="action-header">
+                <ion-icon name="library-outline"></ion-icon>
+                <h3>Start Interventions</h3>
+              </div>
+              <p>Begin your therapeutic journey with guided interventions designed to support your mental health.</p>
+              <div class="action-footer">
+                <span class="action-btn">Get Started</span>
+              </div>
+            </div>
+
+            <div class="action-card" routerLink="/my-work-book">
+              <div class="action-header">
+                <ion-icon name="book-outline"></ion-icon>
+                <h3>My Workbook</h3>
+              </div>
+              <p>Review your progress, update your journal, and track your personal development goals.</p>
+              <div class="action-footer">
+                <span class="action-btn">View Workbook</span>
+              </div>
+            </div>
+
+            <div class="action-card" routerLink="/messages">
+              <div class="action-header">
+                <ion-icon name="mail-outline"></ion-icon>
+                <h3>Messages</h3>
+              </div>
+              <p>Connect with your support network and communicate with your care team.</p>
+              <div class="action-footer">
+                <span class="action-btn">Open Messages</span>
+              </div>
+            </div>
+
+            <div class="action-card" routerLink="/feedback">
+              <div class="action-header">
+                <ion-icon name="chatbubbles-outline"></ion-icon>
+                <h3>Feedback</h3>
+              </div>
+              <p>Share your thoughts and help us improve your experience on the platform.</p>
+              <div class="action-footer">
+                <span class="action-btn">Give Feedback</span>
+              </div>
+            </div>
+
+            <div class="action-card" routerLink="/referrals">
+              <div class="action-header">
+                <ion-icon name="people-outline"></ion-icon>
+                <h3>Referrals</h3>
+              </div>
+              <p>Access professional referrals and connect with additional resources for support.</p>
+              <div class="action-footer">
+                <span class="action-btn">View Referrals</span>
+              </div>
+            </div>
+
+            <div class="action-card" routerLink="/bookings">
+              <div class="action-header">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <h3>Bookings</h3>
+              </div>
+              <p>Schedule appointments and manage your upcoming sessions with care providers.</p>
+              <div class="action-footer">
+                <span class="action-btn">Manage Bookings</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

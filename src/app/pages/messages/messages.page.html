@@ -1,0 +1,144 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Messages
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Mobile Content -->
+  <ion-toolbar>
+    <ion-segment value="all" (ionChange)="change($event)" value="chats">
+      <ion-segment-button value="chats">Chats</ion-segment-button>
+      <ion-segment-button value="group">Group Chats</ion-segment-button>
+    </ion-segment>
+    <br />
+
+    <div *ngIf="displayView === 'chats'">
+      <div *ngIf=" auth.user$ | async as user;">
+        <ion-button
+          *ngIf="(userChats$ | async)?.length < 1"
+          (click)="createChat()"
+          >Create Chat</ion-button
+        >
+        <ion-list>
+          <ion-item *ngFor="let chat of userChats$ | async">
+            <ion-label [routerLink]="'chat/' + chat.id">
+              Private chat -
+              <ion-badge
+                [attr.color]="getTotalUnread(chat) > 0 ? 'secondary' : 'transparent'"
+                >{{ getTotalUnread(chat) }}</ion-badge
+              >
+              Unread Messages
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+    </div>
+
+    <div class="login" *ngIf="displayView === 'group'">
+      <div *ngIf=" auth.user$ | async as user;">
+        <ion-list>
+          <ion-item *ngFor="let chat of groupChats$ | async">
+            <ion-label [routerLink]="['chat/' + chat.id,{chatType:'group'}]">
+              {{ chat?.displayName | titlecase }} -
+              <ion-badge
+                [attr.color]="getTotalUnread(chat) > 0 ? 'secondary' : 'transparent'"
+                >{{ getTotalUnread(chat) }}</ion-badge
+              >
+              Unread Messages
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+    </div>
+  </ion-toolbar>
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">Messages</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <h1>Messages</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="messages-content">
+      <div class="chat-tabs">
+        <ion-segment value="all" (ionChange)="change($event)" value="chats">
+          <ion-segment-button value="chats">
+            <ion-icon name="person-outline"></ion-icon>
+            Private Chats
+          </ion-segment-button>
+          <ion-segment-button value="group">
+            <ion-icon name="people-outline"></ion-icon>
+            Group Chats
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <div class="chats-section" *ngIf="displayView === 'chats'">
+        <div *ngIf=" auth.user$ | async as user;">
+          <div class="empty-state" *ngIf="(userChats$ | async)?.length < 1">
+            <ion-icon name="chatbubble-outline"></ion-icon>
+            <p>No private chats yet</p>
+            <ion-button (click)="createChat()" fill="solid" color="primary">
+              <ion-icon name="add-outline" slot="start"></ion-icon>
+              Create Chat
+            </ion-button>
+          </div>
+          
+          <div class="chats-grid" *ngIf="(userChats$ | async)?.length > 0">
+            <div class="chat-card" *ngFor="let chat of userChats$ | async" [routerLink]="'chat/' + chat.id">
+              <div class="chat-icon">
+                <ion-icon name="person-circle-outline"></ion-icon>
+              </div>
+              <div class="chat-info">
+                <h3>Private Chat</h3>
+                <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
+                  <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
+                  <span>Unread Messages</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chats-section" *ngIf="displayView === 'group'">
+        <div *ngIf=" auth.user$ | async as user;">
+          <div class="chats-grid">
+            <div class="chat-card" *ngFor="let chat of groupChats$ | async" [routerLink]="['chat/' + chat.id,{chatType:'group'}]">
+              <div class="chat-icon">
+                <ion-icon name="people-circle-outline"></ion-icon>
+              </div>
+              <div class="chat-info">
+                <h3>{{ chat?.displayName | titlecase }}</h3>
+                <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
+                  <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
+                  <span>Unread Messages</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

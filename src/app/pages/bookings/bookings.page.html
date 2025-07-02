@@ -1,0 +1,177 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Bookings
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Mobile Content -->
+  <ion-grid style="height: 100%">
+    <ion-row
+      class="ion-align-items-center ion-justify-content-center"
+      style="height: 100%"
+    >
+      <ion-card>
+        <ion-card-header style="font-size: 2em">
+          <h5><ion-icon name="file-tray-full"></ion-icon> Submit Booking</h5>
+          <p>All fields are required</p>
+        </ion-card-header>
+        <ion-card-content>
+          <form [formGroup]="bookingsForm">
+            <ion-item>
+              <!-- <ion-label position="fixed">Name</ion-label> -->
+              <ion-input
+                type="text"
+                formControlName="fullName"
+                placeholder="Enter Full Name"
+              ></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-input
+                type="text"
+                formControlName="phoneNumber"
+                placeholder="Phone"
+              ></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-input
+                type="email"
+                formControlName="email"
+                placeholder="Email Address"
+              ></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-input
+                type="date"
+                formControlName="bookingDate"
+                placeholder="Booking Date"
+              ></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-input
+                name="message"
+                formControlName="message"
+                placeholder="Message"
+              ></ion-input>
+            </ion-item>
+
+            <ion-button
+              color="primary"
+              expand="block"
+              (click)="onSubmit()"
+              [disabled]="bookingsForm.invalid"
+              >Submit</ion-button
+            >
+          </form>
+        </ion-card-content>
+      </ion-card>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">Bookings</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <h1>Submit Booking</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="booking-content">
+      <div class="booking-card">
+        <div class="card-header">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <h2>Schedule an Appointment</h2>
+          <p>Fill in your details to book a consultation session</p>
+        </div>
+        
+        <form [formGroup]="bookingsForm" class="booking-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Full Name *</label>
+              <ion-input
+                type="text"
+                formControlName="fullName"
+                placeholder="Enter your full name"
+                fill="outline"
+              ></ion-input>
+            </div>
+
+            <div class="form-group">
+              <label for="phoneNumber">Phone Number *</label>
+              <ion-input
+                type="text"
+                formControlName="phoneNumber"
+                placeholder="Enter your phone number"
+                fill="outline"
+              ></ion-input>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <ion-input
+                type="email"
+                formControlName="email"
+                placeholder="Enter your email address"
+                fill="outline"
+              ></ion-input>
+            </div>
+
+            <div class="form-group">
+              <label for="bookingDate">Preferred Date *</label>
+              <ion-input
+                type="date"
+                formControlName="bookingDate"
+                fill="outline"
+              ></ion-input>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="message">Additional Message</label>
+            <ion-input
+              name="message"
+              formControlName="message"
+              placeholder="Any additional information or special requests"
+              fill="outline"
+            ></ion-input>
+          </div>
+
+          <ion-button
+            color="primary"
+            size="large"
+            (click)="onSubmit()"
+            [disabled]="bookingsForm.invalid"
+            class="submit-btn"
+          >
+            <ion-icon name="calendar-outline" slot="start"></ion-icon>
+            Submit Booking
+          </ion-button>
+        </form>
+      </div>
+    </div>
+  </div>
+</ion-content>

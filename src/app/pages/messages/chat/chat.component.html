@@ -1,0 +1,78 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Chat
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content #content>
+  <ng-container>
+    <div class="chat">
+      <ng-container
+        *ngFor="
+          let msg of chat?.messages;
+          index as index;
+          trackBy: trackByCreated
+        "
+      >
+        <div class="ion-text-center date">
+          <br />
+          <span *ngIf="isDifferentDay(index)">{{
+            msg?.createdAt | date : 'mediumDate'
+          }}</span>
+        </div>
+
+        <div class="msg">
+          <div class="user">
+            <img [src]="msg.user?.photoURL" />
+            <span
+              id="profileImage"
+              *ngIf="!msg.user?.photoURL"
+              [innerHTML]="getInitials(msg?.user?.displayName)"
+            ></span>
+          </div>
+          <div>
+            <strong class="name">{{ msg.user?.displayName }}</strong>
+            <br />
+
+            <p class="ion-text-justify" *ngIf="msg?.type !== 'audio'">
+              {{ msg?.content }}<br />
+              <i style="color: steelblue">{{
+                msg?.createdAt | date : 'shortTime'
+              }}</i>
+            </p>
+
+            <div class="audio-container" *ngIf="msg?.type === 'audio'">
+              <audio controls preload="auto">
+                <source type="audio/mpeg" [src]="msg?.content" />
+                [unable to load audio]
+              </audio>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="form">
+      <input
+        [(ngModel)]="newMsg"
+        placeholder="Hold the record button for voice messages"
+        (keydown.enter)="submit(chat)"
+      />
+
+      <button (click)="submit(chat)">
+        <ion-icon name="send"></ion-icon>
+      </button>
+      <ion-button fill="clear" #recordBtn (click)="selectedChat = chat">
+        <ion-icon name="mic-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div> </ng-container
+></ion-content>
+
+{{ recordBtn }}

@@ -1,0 +1,12 @@
+<span>Chapters</span> / <span>Posts</span>
+
+<ion-list>
+  <ion-item
+    button
+    detail
+    *ngFor="let post of posts"
+    routerLink="../../questionAnswers/{{ post.postId }}"
+  >
+    <ion-label>{{ post?.title }}</ion-label>
+  </ion-item>
+</ion-list>

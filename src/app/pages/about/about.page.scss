@@ -1,0 +1,104 @@
+h2 {
+    display: block;
+    border-left: 5px solid rgb(59, 156, 194);
+    padding-left: 3px;
+    margin: 15px 0;
+}
+
+// Desktop-only styles
+@media (min-width: 768px) {
+  // Hide mobile content on desktop
+  ion-card {
+    display: none !important;
+  }
+
+  .about-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .hero-section {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
+      padding: 2rem;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+      .hero-image {
+        width: 200px;
+        height: auto;
+        border-radius: 12px;
+        flex-shrink: 0;
+      }
+
+      .hero-text {
+        flex: 1;
+
+        h2 {
+          font-size: 2rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 1rem 0;
+          border: none;
+          padding: 0;
+        }
+
+        .hero-description {
+          color: #64748b;
+          font-size: 1.1rem;
+          line-height: 1.6;
+          margin: 0;
+        }
+      }
+    }
+
+    .content-sections {
+      display: grid;
+      gap: 2rem;
+
+      .section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+
+        h3 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 1rem 0;
+          padding-left: 0;
+          border-left: 4px solid #2d72ad;
+          padding-left: 1rem;
+        }
+
+        p {
+          color: #4b5563;
+          line-height: 1.7;
+          margin: 0 0 1rem 0;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          strong {
+            color: #1e293b;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Hide desktop content on mobile
+@media (max-width: 767px) {
+  .desktop-nav,
+  .desktop-content {
+    display: none !important;
+  }
+}

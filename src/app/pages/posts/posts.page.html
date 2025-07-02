@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Stories
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!--<ion-list>
+    <ion-item
+      button
+      detail
+      *ngFor="let post of posts"
+      (click)="presentModal(post)"
+    >
+      <ion-label
+        ><span *ngIf="checkProgress(post?.postId)"
+          ><ion-icon name="checkmark-circle" color="success"></ion-icon
+          >&nbsp;</span
+        >{{post?.title}}</ion-label
+      >
+    </ion-item>
+  </ion-list>-->
+
+  <ion-grid>
+    <ion-row class="ion-text-center">
+      <ion-col size="4" button detail *ngFor="let post of posts" (click)="presentModal(post)">
+        <ion-icon name="folder-open" size="large"></ion-icon>
+        <br>
+        <span *ngIf="checkProgress(post?.postId)"
+          ><ion-icon name="checkmark-circle" color="success"></ion-icon
+          >&nbsp;</span
+        >
+        <p>{{post?.title}}</p>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-content>

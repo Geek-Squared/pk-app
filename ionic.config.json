@@ -1,0 +1,8 @@
+{
+  "name": "Positive Konnections",
+  "integrations": {
+    "capacitor": {},
+    "cordova": {}
+  },
+  "type": "angular"
+}

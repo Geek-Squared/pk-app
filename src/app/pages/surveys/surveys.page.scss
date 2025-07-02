@@ -1,0 +1,122 @@
+// Desktop-only styles
+@media (min-width: 768px) {
+  // Hide mobile content on desktop
+  ion-list {
+    display: none !important;
+  }
+
+  .surveys-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .page-description {
+      text-align: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 3rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .surveys-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+
+      .survey-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+          border-color: #2d72ad;
+        }
+
+        .survey-icon {
+          text-align: center;
+          margin-bottom: 1rem;
+
+          ion-icon {
+            font-size: 3rem;
+            color: #2d72ad;
+            background: linear-gradient(135deg, rgba(45, 114, 173, 0.1), rgba(79, 195, 247, 0.15));
+            padding: 1.5rem;
+            border-radius: 50%;
+            display: inline-block;
+          }
+        }
+
+        .survey-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          text-align: center;
+
+          h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 1rem 0;
+            line-height: 1.4;
+          }
+
+          p {
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0 0 1.5rem 0;
+            flex: 1;
+          }
+
+          .survey-footer {
+            display: flex;
+            justify-content: center;
+            margin-top: auto;
+
+            .take-btn {
+              background: linear-gradient(135deg, #2d72ad, #4fc3f7);
+              color: white;
+              padding: 0.75rem 1.5rem;
+              border-radius: 8px;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              transition: all 0.3s ease;
+              font-size: 0.9rem;
+
+              ion-icon {
+                font-size: 1rem;
+              }
+
+              &:hover {
+                background: linear-gradient(135deg, #1e4f78, #2d72ad);
+                transform: translateX(2px);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Hide desktop content on mobile
+@media (max-width: 767px) {
+  .desktop-nav,
+  .desktop-content {
+    display: none !important;
+  }
+}

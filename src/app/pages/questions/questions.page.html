@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Questions</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngFor="let question of filteredQuestions">
+    <h3>{{question?.narrative}}</h3>
+
+    <ion-item>
+      <ion-textarea
+        rows="7"
+        placeholder="Enter your response here..."
+        [(ngModel)]="questionResponse"
+      ></ion-textarea>
+    </ion-item>
+    <br />
+    <ion-button
+      color="light"
+      *ngIf="pager.index > 0"
+      (click)="goTo(pager.index - 1)"
+      >Prev</ion-button
+    >
+    <ion-button
+      *ngIf="!checkPosition()"
+      (click)="goTo(pager.index + 1,question)"
+      >Next</ion-button
+    >
+    <ion-button
+      color="success"
+      *ngIf="checkPosition()"
+      (click)="saveQuestionResponses(question)"
+      >Complete</ion-button
+    >
+  </div>
+
+  <div class="ion-text-center" *ngIf=" questions?.length === 0">
+    <ion-icon name="search-outline" style="font-size: 3.2em"></ion-icon><br />
+    <p>No Questions Available!</p>
+  </div>
+</ion-content>

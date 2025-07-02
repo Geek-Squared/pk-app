@@ -1,0 +1,128 @@
+h2 {
+    display: block;
+    border-left: 5px solid rgb(59, 156, 194);
+    padding-left: 3px;
+    margin: 15px 0;
+}
+ion-avatar {
+    background: #3ab2d9;
+    text-align: center;
+    vertical-align: unset;
+    padding: 8px 0 0px 0;
+    margin: 0 10px 0 0;
+    font-weight: bold;
+    color: #fff;
+}
+strong {
+    color: rgb(46, 128, 182);
+}
+
+// Desktop-only styles
+@media (min-width: 768px) {
+  // Hide mobile content on desktop
+  ion-card {
+    display: none !important;
+  }
+
+  .referrals-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .page-description {
+      text-align: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 3rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .referrals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+
+      .referral-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+          border-color: #2d72ad;
+        }
+
+        .referral-avatar {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: #2d72ad;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 1rem;
+          flex-shrink: 0;
+
+          span {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+          }
+        }
+
+        .referral-info {
+          flex: 1;
+
+          h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0 0 0.75rem 0;
+          }
+
+          .address,
+          .phone {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: #64748b;
+            font-size: 0.9rem;
+
+            ion-icon {
+              color: #2d72ad;
+              font-size: 1rem;
+            }
+          }
+        }
+
+        .referral-actions {
+          margin-left: 1rem;
+
+          ion-button {
+            --border-radius: 8px;
+            --padding-start: 1rem;
+            --padding-end: 1rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Hide desktop content on mobile
+@media (max-width: 767px) {
+  .desktop-nav,
+  .desktop-content {
+    display: none !important;
+  }
+}

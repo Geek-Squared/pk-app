@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Chapters
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Mobile Content -->
+  <ion-searchbar
+    showCancelButton="focus"
+    debounce="500"
+    (ionChange)="search($event?.detail?.value)"
+  ></ion-searchbar>
+
+  <ion-grid>
+    <ion-row class="ion-text-center">
+      <ion-col size="4" button detail *ngFor="let chapter of chapters" routerLink="/posts/{{ chapter.id }}">
+        <ion-icon name="folder-open" size="large"></ion-icon>
+        <br>
+        <p>{{chapter?.title}}</p>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/interventions" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Interventions</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">Chapters</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="folder-open-outline"></ion-icon>
+        <h1>Chapters</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="search-section">
+      <ion-searchbar
+        placeholder="Search chapters..."
+        showCancelButton="focus"
+        debounce="500"
+        (ionChange)="search($event?.detail?.value)"
+      ></ion-searchbar>
+    </div>
+
+    <div class="chapters-grid">
+      <div 
+        class="chapter-card"
+        *ngFor="let chapter of chapters"
+        routerLink="/posts/{{ chapter.id }}"
+      >
+        <div class="chapter-icon">
+          <ion-icon name="folder-open-outline"></ion-icon>
+        </div>
+        <div class="chapter-content">
+          <h3>{{ chapter?.title }}</h3>
+          <div class="chapter-footer">
+            <span class="read-btn">
+              Open Chapter
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

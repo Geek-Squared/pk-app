@@ -1,0 +1,30 @@
+<!--<ion-list>
+  <ion-item
+    button
+    detail
+    *ngFor="let chapter of chapters"
+    routerLink="../posts/{{ chapter.id }}"
+  >
+    <ion-label>{{ chapter?.title }}</ion-label>
+  </ion-item>
+</ion-list>-->
+
+<ion-grid>
+  <ion-row class="ion-text-center">
+    <ng-container *ngFor="let chapter of chapters; let i = index">
+      <ng-container *ngIf="userQuestionResponses$ | async as res">
+        <ion-col
+          size="4"
+          button
+          detail
+          routerLink="../posts/{{ chapter.id }}"
+          *ngIf="res[0]?.responses.length > i - 1 || i == 0"
+        >
+          <ion-icon name="folder-open" size="large"></ion-icon>
+          <br />
+          <p>{{ chapter?.title }}</p>
+        </ion-col>
+      </ng-container></ng-container
+    >
+  </ion-row>
+</ion-grid>

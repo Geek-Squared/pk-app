@@ -1,0 +1,184 @@
+ion-content {
+    --ion-background-color: rgb(40, 91, 167, 1);
+    --ion-background-color: linear-gradient(
+      90deg,
+      rgb(103, 154, 202) 0%,
+      rgb(40, 91, 167) 100%
+    );
+  }
+  
+  img {
+    max-width: 100px;
+    border: 0;
+    margin: 0 auto;
+  }
+
+  p {
+    font-size: 15px;
+  }
+  
+  ion-card {
+    background: #ffffff;
+    border-top-left-radius: 0px;
+    // border-bottom-left-radius: 25px;
+    // border-top-right-radius: 25px;
+    border-bottom-right-radius: 0px;
+    padding-bottom: 50px;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 100% !important;
+    max-width: 400px;
+  }
+  ion-card-header {
+    display: block;
+    h5 {
+      ion-icon {
+        position: relative;
+        top: 3px;
+      }
+    }
+  }
+  ion-label {
+    font-size: 0.9em !important;
+    color: #666 !important;
+  }
+  
+  .item-label {
+    font-size: 13px;
+  }
+  
+  .ioninput {
+    input {
+      height: 30px;
+    }
+  }
+  
+  ion-item {
+    --ion-background-color: #f5f5f5;
+    --border-width: 0 0 0 0;
+    --min-height: 35px;
+    margin: 0 0 8px 0;
+    border-radius: 5px;
+  }
+  
+  ion-item:focus {
+    --highlight-color-focused: #cccccc;
+  }
+
+// Desktop-only styles
+@media (min-width: 768px) {
+  ion-content {
+    --ion-background-color: #f8fafc;
+  }
+
+  // Hide mobile content on desktop
+  ion-grid {
+    display: none !important;
+  }
+
+  .booking-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .booking-card {
+      background: white;
+      border-radius: 16px;
+      padding: 3rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+
+      .card-header {
+        text-align: center;
+        margin-bottom: 3rem;
+
+        ion-icon {
+          font-size: 4rem;
+          color: #2d72ad;
+          margin-bottom: 1rem;
+        }
+
+        h2 {
+          font-size: 2rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 1rem 0;
+        }
+
+        p {
+          color: #64748b;
+          font-size: 1.1rem;
+          line-height: 1.6;
+          margin: 0;
+        }
+      }
+
+      .booking-form {
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
+
+          @media (max-width: 900px) {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .form-group {
+          &.full-width {
+            grid-column: 1 / -1;
+          }
+
+          label {
+            display: block;
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+
+          ion-input {
+            --background: #f9fafb;
+            --border-color: #d1d5db;
+            --border-radius: 8px;
+            --border-width: 1px;
+            --color: #1f2937;
+            --placeholder-color: #9ca3af;
+            --padding-start: 1rem;
+            --padding-end: 1rem;
+            --padding-top: 0.75rem;
+            --padding-bottom: 0.75rem;
+
+            &:focus-within {
+              --border-color: #2d72ad;
+            }
+          }
+        }
+
+        .submit-btn {
+          --border-radius: 12px;
+          --padding-start: 2rem;
+          --padding-end: 2rem;
+          --padding-top: 1rem;
+          --padding-bottom: 1rem;
+          width: 100%;
+          margin-top: 1rem;
+          font-weight: 600;
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+}
+
+// Hide desktop content on mobile
+@media (max-width: 767px) {
+  .desktop-nav,
+  .desktop-content {
+    display: none !important;
+  }
+}
+  

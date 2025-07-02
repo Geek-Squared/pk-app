@@ -1,0 +1,50 @@
+<ion-header translucent>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Close</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h3 class="ion-text-center">{{ story?.title }}</h3>
+  <br />
+  <div class="card-img clr-col">
+    <img src="{{ story?.imageUrl }}" />
+  </div>
+  <br />
+
+  <h4 class="ion-text-center">Play Online Video</h4>
+  <ion-button
+    expand="full"
+    fill="outline"
+    [href]="story?.videoUrl"
+    target="_blank"
+    >Online Video</ion-button
+  >
+  <br />
+
+  <ng-container *ngIf="story?.audio">
+    <div class="audio-container">
+      <audio controls="false" preload="none">
+        <source type="audio/mpeg" [src]="story?.audio" />
+        [unable to load audio]
+      </audio>
+    </div>
+
+    <br />
+  </ng-container>
+
+  <span>{{ story?.description }}</span>
+
+  <br /><br />
+  <ion-button
+    *ngIf="!checkProgress()"
+    expand="full"
+    routerLink="/questions/{{ story?.postId }}"
+    (click)="dismiss()"
+    >Answer story questions &nbsp;<ion-icon
+      name="arrow-forward-outline"
+    ></ion-icon
+  ></ion-button>
+</ion-content>

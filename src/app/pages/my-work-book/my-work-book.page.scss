@@ -1,0 +1,32 @@
+// Desktop-only styles
+@media (min-width: 768px) {
+  .workbook-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .page-description {
+      text-align: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    router-outlet {
+      display: block;
+      margin-top: 2rem;
+    }
+  }
+}
+
+// Hide desktop content on mobile
+@media (max-width: 767px) {
+  .desktop-nav,
+  .desktop-content {
+    display: none !important;
+  }
+}

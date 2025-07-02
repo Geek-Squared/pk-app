@@ -1,0 +1,86 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Interventions
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Mobile Content -->
+  <ion-card>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row class="ion-text-center">
+          <p class="intro">Select an Intervention of your choice:</p>
+          <br />
+        </ion-row>
+
+        <ion-row class="ion-text-center" *ngIf="interventions$ | async as interventions">
+          <ion-col
+            *ngFor="let intervention of interventions"
+            [routerLink]="['/chapters', intervention.id]"
+            sizeLg="4"
+            sizeMd="4"
+            sizeXs="6"
+          >
+            <ion-icon name="folder-outline" size="large"></ion-icon>
+            <br />
+            {{ intervention?.name }}
+          </ion-col>
+        </ion-row>        
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">Interventions</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="library-outline"></ion-icon>
+        <h1>Interventions</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="page-description">
+      <p>Choose from our evidence-based therapeutic interventions designed to support your mental health journey.</p>
+    </div>
+
+    <div class="interventions-grid" *ngIf="interventions$ | async as interventions">
+      <div 
+        class="intervention-card"
+        *ngFor="let intervention of interventions"
+        [routerLink]="['/chapters', intervention.id]"
+      >
+        <div class="intervention-icon">
+          <ion-icon name="library-outline"></ion-icon>
+        </div>
+        <div class="intervention-content">
+          <h3>{{ intervention?.name }}</h3>
+          <p>Explore this therapeutic intervention to enhance your wellbeing and develop coping strategies.</p>
+          <div class="intervention-footer">
+            <span class="start-btn">
+              Start Intervention
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

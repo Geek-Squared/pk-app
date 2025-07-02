@@ -1,0 +1,162 @@
+h3 {
+    font-size: 16px;
+    background: #eee;
+    padding: 12px 7px;
+    box-shadow: 1px 1px 4px #ccc;
+}
+ion-label {
+    font-size: 14px !important;
+    padding: 14px 0;
+    margin: 0 !important;
+}
+ion-list {
+    box-shadow: 0px 0px 5px #ccc;
+}
+ion-badge {
+    padding: 3px 2px 2px 2px;
+    position: relative;
+    top: 4px;
+    border-radius: 100%;
+    min-width: 19px;
+}
+
+// Desktop-only styles
+@media (min-width: 768px) {
+  // Hide mobile content on desktop
+  ion-toolbar:first-of-type {
+    display: none !important;
+  }
+
+  .messages-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .chat-tabs {
+      margin-bottom: 2rem;
+      
+      ion-segment {
+        max-width: 500px;
+        margin: 0 auto;
+        --background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+        ion-segment-button {
+          --color: #64748b;
+          --color-checked: #2d72ad;
+          --background-checked: linear-gradient(135deg, rgba(45, 114, 173, 0.1), rgba(79, 195, 247, 0.15));
+          --indicator-color: transparent;
+          --border-radius: 8px;
+          margin: 4px;
+          font-weight: 500;
+
+          ion-icon {
+            margin-right: 0.5rem;
+          }
+        }
+      }
+    }
+
+    .chats-section {
+      .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+        ion-icon {
+          font-size: 4rem;
+          color: #94a3b8;
+          margin-bottom: 1rem;
+        }
+
+        p {
+          color: #64748b;
+          font-size: 1.1rem;
+          margin-bottom: 2rem;
+        }
+
+        ion-button {
+          --border-radius: 12px;
+          --padding-start: 2rem;
+          --padding-end: 2rem;
+        }
+      }
+
+      .chats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+
+        .chat-card {
+          background: white;
+          border-radius: 16px;
+          padding: 1.5rem;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+          border: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          text-decoration: none;
+          color: inherit;
+          transition: all 0.3s ease;
+
+          &:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            border-color: #2d72ad;
+          }
+
+          .chat-icon {
+            margin-right: 1rem;
+
+            ion-icon {
+              font-size: 3rem;
+              color: #2d72ad;
+            }
+          }
+
+          .chat-info {
+            flex: 1;
+
+            h3 {
+              font-size: 1.25rem;
+              font-weight: 600;
+              color: #1e293b;
+              margin: 0 0 0.5rem 0;
+              background: none;
+              padding: 0;
+              box-shadow: none;
+            }
+
+            .unread-badge {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+
+              ion-badge {
+                position: static;
+                top: auto;
+              }
+
+              span {
+                color: #64748b;
+                font-size: 0.9rem;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Hide desktop content on mobile
+@media (max-width: 767px) {
+  .desktop-nav,
+  .desktop-content {
+    display: none !important;
+  }
+}

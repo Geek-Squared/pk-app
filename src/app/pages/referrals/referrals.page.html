@@ -1,0 +1,84 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Referrals
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Mobile Content -->
+  <ion-card>
+    <ion-card-content>
+
+      <ion-list>
+        <h2>PK Referrals</h2>
+      
+        <ion-item *ngFor="let referral of referrals let i = index">
+          <ion-avatar slot="start">
+            {{ referral.name.charAt(0) }}
+          </ion-avatar>
+          <ion-label>
+            <h3><strong>{{ referral.name }}</strong></h3>
+            <h3>Address: {{ referral.address }}</h3>
+            <p>Tel: {{ referral.phoneNumber }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">Referrals</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="people-outline"></ion-icon>
+        <h1>PK Referrals</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="referrals-content">
+      <p class="page-description">Connect with trusted professionals and resources in our network</p>
+      
+      <div class="referrals-grid">
+        <div class="referral-card" *ngFor="let referral of referrals let i = index">
+          <div class="referral-avatar">
+            <span>{{ referral.name.charAt(0) }}</span>
+          </div>
+          <div class="referral-info">
+            <h3>{{ referral.name }}</h3>
+            <div class="address">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ referral.address }}</span>
+            </div>
+            <div class="phone">
+              <ion-icon name="call-outline"></ion-icon>
+              <span>{{ referral.phoneNumber }}</span>
+            </div>
+          </div>
+          <div class="referral-actions">
+            <ion-button fill="outline" color="primary">
+              <ion-icon name="call-outline" slot="start"></ion-icon>
+              Call
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

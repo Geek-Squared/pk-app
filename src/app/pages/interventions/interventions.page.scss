@@ -1,0 +1,144 @@
+ion-card.md.hydrated {
+  height: 100%;
+
+  p {
+    border: 1px solid #eee;
+    padding: 5px;
+    width: 100%;
+  }
+  ion-col.no-style {
+    border: 0px !important;
+  }
+  ion-col {
+    border: 1px solid #eeee;
+    height: 125px;
+    padding-top: 15px;
+
+    ion-icon {
+      color: #3a7ecc;
+      background-color: #b8e3ff;
+      padding: 8px;
+      border-radius: 30px;
+      width: 35px;
+      height: 35px;
+      border: 1px solid #eee;
+    }
+  }
+}
+
+// Desktop-only styles - only show on desktop
+@media (min-width: 768px) {
+  // Hide mobile card on desktop
+  ion-card {
+    display: none !important;
+  }
+
+  .page-description {
+    margin-bottom: 2rem;
+    text-align: center;
+
+    p {
+      color: #64748b;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  }
+
+  .interventions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 1.5rem;
+
+    .intervention-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        border-color: #2d72ad;
+      }
+
+      .intervention-icon {
+        text-align: center;
+        margin-bottom: 1rem;
+
+        ion-icon {
+          font-size: 3rem;
+          color: #2d72ad;
+          background: linear-gradient(135deg, rgba(45, 114, 173, 0.1), rgba(79, 195, 247, 0.15));
+          padding: 1.5rem;
+          border-radius: 50%;
+          display: inline-block;
+        }
+      }
+
+      .intervention-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+
+        h3 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 1rem 0;
+        }
+
+        p {
+          color: #64748b;
+          line-height: 1.6;
+          margin: 0 0 1.5rem 0;
+          flex: 1;
+        }
+
+        .intervention-footer {
+          display: flex;
+          justify-content: center;
+
+          .start-btn {
+            background: linear-gradient(135deg, #2d72ad, #4fc3f7);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+
+            ion-icon {
+              font-size: 1rem;
+            }
+
+            &:hover {
+              background: linear-gradient(135deg, #1e4f78, #2d72ad);
+              transform: translateX(2px);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Hide desktop content on mobile - ensure mobile card shows
+@media (max-width: 767px) {
+  .desktop-nav,
+  .desktop-content {
+    display: none !important;
+  }
+}

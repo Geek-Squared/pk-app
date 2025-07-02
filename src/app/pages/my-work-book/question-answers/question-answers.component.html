@@ -1,0 +1,22 @@
+<span>Chapters</span> / <span>Posts</span> / <span>Question Answers</span>
+
+<ion-list>
+  <div *ngFor="let item of workbook">
+    <ng-container *ngFor="let element of item?.content | keyvalue">
+      <ng-container
+        *ngIf="element?.value.postId === route.snapshot.paramMap.get('postId')"
+      >
+        <ion-list>
+          <ion-item-divider>
+            <ion-label> {{ element?.value?.questionNarrative }} </ion-label>
+          </ion-item-divider>
+          <ion-item>
+            <ion-text>{{ element?.value?.response }}</ion-text>
+          </ion-item></ion-list
+        >
+      </ng-container>
+    </ng-container>
+    <hr />
+    <br />
+  </div>
+</ion-list>

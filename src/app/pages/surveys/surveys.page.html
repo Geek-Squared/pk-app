@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Surveys
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Mobile Content -->
+  <ion-list>
+    <ion-item
+      *ngFor="let survey of surveys"
+      [routerLink]="'./take-survey/' + survey.id"
+    >
+      <ion-label>{{survey.title}}</ion-label>
+      <p>{{survey.description}}</p>
+    </ion-item>
+  </ion-list>
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">Surveys</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="analytics-outline"></ion-icon>
+        <h1>Surveys</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="surveys-content">
+      <p class="page-description">Participate in surveys to help us improve our services and understand your needs better</p>
+      
+      <div class="surveys-grid">
+        <div class="survey-card" *ngFor="let survey of surveys" [routerLink]="'./take-survey/' + survey.id">
+          <div class="survey-icon">
+            <ion-icon name="analytics-outline"></ion-icon>
+          </div>
+          <div class="survey-content">
+            <h3>{{ survey.title }}</h3>
+            <p>{{ survey.description }}</p>
+            <div class="survey-footer">
+              <span class="take-btn">
+                Take Survey
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

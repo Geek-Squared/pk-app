@@ -1,0 +1,124 @@
+<ion-app>
+  <ion-menu side="end" menuId="first" contentId="main">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Positive Konnections</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list class="side-menu">
+        <ion-menu-toggle>
+          <ion-item routerLink="/"
+            ><ion-icon name="chevron-forward"></ion-icon> Dashboard</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/introduction"
+            ><ion-icon name="chevron-forward"></ion-icon> Introduction</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/about"
+            ><ion-icon name="chevron-forward"></ion-icon> About Positive
+            Konnections</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/my-work-book"
+            ><ion-icon name="chevron-forward"></ion-icon> My Workbook</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/messages"
+            ><ion-icon name="chevron-forward"></ion-icon> Messages</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/feedback"
+            ><ion-icon name="chevron-forward"></ion-icon> Feedback</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/referrals"
+            ><ion-icon name="chevron-forward"></ion-icon> Referrals</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/bookings"
+            ><ion-icon name="chevron-forward"></ion-icon> Bookings</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle>
+          <ion-item routerLink="/surveys"
+            ><ion-icon name="chevron-forward"></ion-icon> Surveys</ion-item
+          >
+        </ion-menu-toggle>
+        <ion-menu-toggle class="logout">
+          <ion-item (click)="logOut()"
+            ><ion-icon name="log-out-outline"></ion-icon> Logout</ion-item
+          >
+        </ion-menu-toggle>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main"></ion-router-outlet>
+
+  <!-- Desktop Sidebar - Only appears on desktop -->
+  <div class="desktop-sidebar">
+    <div class="sidebar-header">
+      <img src="assets/images/logo.png" alt="Positive Konnections" class="sidebar-logo" />
+      <h2>Positive Konnections</h2>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+        <ion-icon name="grid-outline"></ion-icon>
+        <span>Dashboard</span>
+      </a>
+      <a routerLink="/introduction" routerLinkActive="active" class="nav-item">
+        <ion-icon name="play-circle-outline"></ion-icon>
+        <span>Introduction</span>
+      </a>
+      <a routerLink="/about" routerLinkActive="active" class="nav-item">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>About</span>
+      </a>
+      <a routerLink="/interventions" routerLinkActive="active" class="nav-item">
+        <ion-icon name="library-outline"></ion-icon>
+        <span>Interventions</span>
+      </a>
+      <a routerLink="/my-work-book" routerLinkActive="active" class="nav-item">
+        <ion-icon name="book-outline"></ion-icon>
+        <span>My Workbook</span>
+      </a>
+      <a routerLink="/messages" routerLinkActive="active" class="nav-item">
+        <ion-icon name="mail-outline"></ion-icon>
+        <span>Messages</span>
+      </a>
+      <a routerLink="/feedback" routerLinkActive="active" class="nav-item">
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <span>Feedback</span>
+      </a>
+      <a routerLink="/referrals" routerLinkActive="active" class="nav-item">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>Referrals</span>
+      </a>
+      <a routerLink="/bookings" routerLinkActive="active" class="nav-item">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Bookings</span>
+      </a>
+      <a routerLink="/surveys" routerLinkActive="active" class="nav-item">
+        <ion-icon name="clipboard-outline"></ion-icon>
+        <span>Surveys</span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <button (click)="logOut()" class="logout-btn">
+        <ion-icon name="log-out-outline"></ion-icon>
+        <span>Logout</span>
+      </button>
+    </div>
+  </div>
+</ion-app>

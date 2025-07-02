@@ -1,0 +1,140 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+      Feedback
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Mobile Content -->
+  <ion-grid style="height: 100%">
+    <ion-row
+      class="ion-align-items-center ion-justify-content-center"
+      style="height: 100%"
+    >
+      <ion-card>
+        <ion-card-header style="font-size: 2em">
+          <h5><ion-icon name="mail"></ion-icon> Get in touch</h5>
+        </ion-card-header>
+        <ion-card-content>
+          <form [formGroup]="feedbackForm">
+            <ion-item>
+              <!-- <ion-label position="fixed">Name</ion-label> -->
+              <ion-input
+                type="text"
+                formControlName="name"
+                placeholder="Name"
+              ></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <!-- <ion-label position="fixed">Phone</ion-label> -->
+              <ion-input
+                type="text"
+                formControlName="phoneNumber"
+                placeholder="Phone"
+              ></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <!-- <ion-label position="fixed">Message</ion-label> -->
+              <ion-textarea
+                name="message"
+                formControlName="message"
+                placeholder="Message"
+              ></ion-textarea>
+            </ion-item>
+
+            <ion-button
+              color="primary"
+              expand="block"
+              (click)="onSubmit()"
+              [disabled]="feedbackForm.invalid"
+              >Submit</ion-button
+            >
+          </form>
+        </ion-card-content>
+      </ion-card>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Desktop Navigation & Content -->
+  <div class="desktop-nav">
+    <div class="nav-content">
+      <div class="breadcrumb">
+        <a routerLink="/" class="back-btn">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+        <span class="separator">/</span>
+        <span class="current-page">Feedback</span>
+      </div>
+      <div class="page-title">
+        <ion-icon name="mail-outline"></ion-icon>
+        <h1>Get in Touch</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="desktop-content">
+    <div class="feedback-content">
+      <div class="feedback-card">
+        <div class="card-header">
+          <ion-icon name="mail-outline"></ion-icon>
+          <h2>Send us your feedback</h2>
+          <p>We'd love to hear from you. Share your thoughts, suggestions, or questions with us.</p>
+        </div>
+        
+        <form [formGroup]="feedbackForm" class="feedback-form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <ion-input
+              type="text"
+              formControlName="name"
+              placeholder="Enter your full name"
+              fill="outline"
+            ></ion-input>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <ion-input
+              type="text"
+              formControlName="phoneNumber"
+              placeholder="Enter your phone number"
+              fill="outline"
+            ></ion-input>
+          </div>
+
+          <div class="form-group">
+            <label for="message">Message</label>
+            <ion-textarea
+              name="message"
+              formControlName="message"
+              placeholder="Share your feedback, questions, or suggestions..."
+              rows="6"
+              fill="outline"
+            ></ion-textarea>
+          </div>
+
+          <ion-button
+            color="primary"
+            size="large"
+            (click)="onSubmit()"
+            [disabled]="feedbackForm.invalid"
+            class="submit-btn"
+          >
+            <ion-icon name="send-outline" slot="start"></ion-icon>
+            Send Feedback
+          </ion-button>
+        </form>
+      </div>
+    </div>
+  </div>
+</ion-content>
