@@ -66,12 +66,14 @@ export class QuestionsPage implements OnInit {
   }
 
   async goTo(index: number, questionId?: string) {
-    // Validate current question with AI before proceeding
-    const currentQuestion = this.filteredQuestions[0];
-    const isValid = await this.validateResponseWithAI(currentQuestion);
-    
-    if (!isValid) {
-      return; // Validation failed, don't proceed
+    // Only validate when moving forward (index > current index)
+    if (index > this.pager.index) {
+      const currentQuestion = this.filteredQuestions[0];
+      const isValid = await this.validateResponseWithAI(currentQuestion);
+      
+      if (!isValid) {
+        return; // Validation failed, don't proceed forward
+      }
     }
     
     if (questionId) this.saveAnswerSheet(questionId);
@@ -195,6 +197,8 @@ export class QuestionsPage implements OnInit {
     this.validationFeedback = 'Checking response quality...';
 
     try {
+      console.log('Starting AI validation for response:', this.questionResponse);
+      
       // Use AI validation service
       const result = await this.aiValidationService.validateResponse(
         question?.narrative || 'Reflection question',
@@ -202,8 +206,28 @@ export class QuestionsPage implements OnInit {
         'Story about resilience and strength in HIV journey'
       ).toPromise();
 
-      // Parse the result
-      this.lastValidationResult = this.aiValidationService.parseOpenAIResponse(result);
+      console.log('AI validation result received:', result);
+
+      // Check if this is an OpenAI API response or enhanced validation response
+      if (result && (result as any).choices && (result as any).choices[0]) {
+        // This is an OpenAI API response, parse it
+        console.log('Parsing OpenAI API response');
+        this.lastValidationResult = this.aiValidationService.parseOpenAIResponse(result);
+      } else if (result && typeof (result as any).score === 'number') {
+        // This is already a ValidationResult from enhanced validation
+        console.log('Using enhanced validation result directly');
+        this.lastValidationResult = result as ValidationResult;
+      } else {
+        // Unexpected format, use fallback
+        console.log('Unexpected result format, using fallback');
+        this.lastValidationResult = {
+          score: 6,
+          is_valid: true,
+          feedback: 'Response accepted (validation format issue)'
+        };
+      }
+      
+      console.log('Final validation result:', this.lastValidationResult);
       
       this.isValidating = false;
 
@@ -225,7 +249,13 @@ export class QuestionsPage implements OnInit {
         return false;
       }
     } catch (error) {
-      console.error('AI validation error:', error);
+      console.error('AI validation error in questions page:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText,
+        error: error.error
+      });
       this.isValidating = false;
       
       // Fallback to basic validation if AI fails

@@ -8,6 +8,7 @@ import { WorkbookService } from 'src/app/services/workbook.service';
   selector: 'app-chapters',
   templateUrl: './chapters.component.html',
   styleUrls: ['./chapters.component.scss'],
+  standalone: false
 })
 export class ChaptersComponent implements OnInit {
   public chapters: Chapter[];

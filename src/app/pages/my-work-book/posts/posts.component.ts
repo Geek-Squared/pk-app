@@ -8,6 +8,7 @@ import { UtilitiesService } from 'src/app/services/utilities.service';
   selector: 'app-posts',
   templateUrl: './posts.component.html',
   styleUrls: ['./posts.component.scss'],
+  standalone: false
 })
 export class PostsComponent implements OnInit {
   public selectedPost: any;

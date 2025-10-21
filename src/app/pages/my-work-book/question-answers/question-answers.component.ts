@@ -9,6 +9,7 @@ import { WorkbookService } from 'src/app/services/workbook.service';
   selector: 'app-question-answers',
   templateUrl: './question-answers.component.html',
   styleUrls: ['./question-answers.component.scss'],
+  standalone: false
 })
 export class QuestionAnswersComponent implements OnInit {
   public workbook = [];
