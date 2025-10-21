@@ -19,6 +19,23 @@
         [(ngModel)]="questionResponse"
       ></ion-textarea>
     </ion-item>
+    
+    <!-- Validation feedback -->
+    <div *ngIf="isValidating" class="validation-status">
+      <ion-spinner name="dots"></ion-spinner>
+      <span>{{ validationFeedback }}</span>
+    </div>
+    
+    <div *ngIf="validationFeedback && !isValidating" class="validation-feedback" 
+         [ngClass]="{'success-feedback': lastValidationResult?.score >= 8, 
+                     'warning-feedback': lastValidationResult?.score >= 5 && lastValidationResult?.score < 8,
+                     'error-feedback': lastValidationResult?.score < 5}">
+      <ion-icon [name]="lastValidationResult?.score >= 8 ? 'checkmark-circle' : 
+                        lastValidationResult?.score >= 5 ? 'information-circle' : 'alert-circle'">
+      </ion-icon>
+      {{ validationFeedback }}
+    </div>
+    
     <br />
     <ion-button
       color="light"
@@ -28,14 +45,14 @@
     >
     <ion-button
       *ngIf="!checkPosition()"
-      [disabled]="!isCurrentQuestionValid()"
+      [disabled]="!isCurrentQuestionValid() || isValidating"
       (click)="goTo(pager.index + 1,question)"
       >Next</ion-button
     >
     <ion-button
       color="success"
       *ngIf="checkPosition()"
-      [disabled]="!isAllQuestionsValid()"
+      [disabled]="!isCurrentQuestionValid() || isValidating"
       (click)="saveQuestionResponses(question)"
       >Complete</ion-button
     >

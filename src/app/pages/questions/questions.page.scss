@@ -1,0 +1,69 @@
+// Validation feedback styles
+.validation-status {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #f0f8ff;
+  border-left: 4px solid #007bff;
+  border-radius: 4px;
+  
+  ion-spinner {
+    margin-right: 10px;
+  }
+  
+  span {
+    font-size: 14px;
+    color: #007bff;
+  }
+}
+
+.validation-feedback {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  
+  ion-icon {
+    margin-right: 8px;
+    font-size: 18px;
+  }
+}
+
+.success-feedback {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
+  
+  ion-icon {
+    color: #28a745;
+  }
+}
+
+.warning-feedback {
+  background-color: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffc107;
+  
+  ion-icon {
+    color: #ffc107;
+  }
+}
+
+.error-feedback {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+  
+  ion-icon {
+    color: #dc3545;
+  }
+}
+
+// Button styling when disabled
+ion-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

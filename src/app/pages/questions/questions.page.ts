@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { QuestionsService } from 'src/app/services/questions.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
+import { AiValidationService, ValidationResult } from 'src/app/services/ai-validation.service';
 
 @Component({
   selector: 'app-questions',
@@ -20,13 +21,17 @@ export class QuestionsPage implements OnInit {
   public questionResponse: string;
   public questionAnswers = [];
   public workBook: any;
+  public isValidating = false;
+  public validationFeedback: string = '';
+  public lastValidationResult: ValidationResult | null = null;
 
   constructor(
     private questionsService: QuestionsService,
     private route: ActivatedRoute,
     private workbookService: WorkbookService,
     private router: Router,
-    private utilsService: UtilitiesService
+    private utilsService: UtilitiesService,
+    private aiValidationService: AiValidationService
   ) {}
 
   ngOnInit() {
@@ -60,11 +65,13 @@ export class QuestionsPage implements OnInit {
       : [];
   }
 
-  goTo(index: number, questionId?: string) {
-    // Validate current question has text before proceeding
-    if (!this.isCurrentQuestionValid()) {
-      this.utilsService.presentToast('Please enter your response before proceeding.');
-      return;
+  async goTo(index: number, questionId?: string) {
+    // Validate current question with AI before proceeding
+    const currentQuestion = this.filteredQuestions[0];
+    const isValid = await this.validateResponseWithAI(currentQuestion);
+    
+    if (!isValid) {
+      return; // Validation failed, don't proceed
     }
     
     if (questionId) this.saveAnswerSheet(questionId);
@@ -106,11 +113,12 @@ export class QuestionsPage implements OnInit {
     return this.pager.index + 1 == this.pager.count;
   }
 
-  saveQuestionResponses(question) {
-    // Validate all questions are answered before completing
-    if (!this.isAllQuestionsValid()) {
-      this.utilsService.presentToast('Please answer all questions before completing.');
-      return;
+  async saveQuestionResponses(question) {
+    // Validate final question with AI before completing
+    const isValid = await this.validateResponseWithAI(question);
+    
+    if (!isValid) {
+      return; // Validation failed, don't complete
     }
 
     this.saveAnswerSheet(question);
@@ -157,7 +165,7 @@ export class QuestionsPage implements OnInit {
     );
   }
 
-  // Validation method: Check if current question has valid text
+  // Validation method: Check if current question has valid text (basic check)
   isCurrentQuestionValid(): boolean {
     return this.questionResponse && this.questionResponse.trim().length > 0;
   }
@@ -172,5 +180,64 @@ export class QuestionsPage implements OnInit {
     // Must have answered all questions (total questions = answered questions + current question)
     const totalQuestionsAnswered = this.questionAnswers.length + 1; // +1 for current question
     return totalQuestionsAnswered === this.questions.length;
+  }
+
+  // AI Validation method
+  async validateResponseWithAI(question: any): Promise<boolean> {
+    // First check basic validation
+    if (!this.isCurrentQuestionValid()) {
+      this.utilsService.presentToast('Please enter your response before proceeding.');
+      return false;
+    }
+
+    // Show loading indicator
+    this.isValidating = true;
+    this.validationFeedback = 'Checking response quality...';
+
+    try {
+      // Use AI validation service
+      const result = await this.aiValidationService.validateResponse(
+        question?.narrative || 'Reflection question',
+        this.questionResponse,
+        'Story about resilience and strength in HIV journey'
+      ).toPromise();
+
+      // Parse the result
+      this.lastValidationResult = this.aiValidationService.parseOpenAIResponse(result);
+      
+      this.isValidating = false;
+
+      // Check if response is valid
+      if (this.lastValidationResult.is_valid && this.lastValidationResult.score >= 5) {
+        this.validationFeedback = this.lastValidationResult.feedback;
+        if (this.lastValidationResult.score >= 8) {
+          this.utilsService.presentToast('Great reflection! Thank you for sharing your thoughts.');
+        }
+        return true;
+      } else {
+        // Response needs improvement
+        this.validationFeedback = this.lastValidationResult.feedback;
+        if (this.lastValidationResult.suggestions) {
+          this.validationFeedback += '. ' + this.lastValidationResult.suggestions;
+        }
+        
+        this.utilsService.presentToast(this.validationFeedback);
+        return false;
+      }
+    } catch (error) {
+      console.error('AI validation error:', error);
+      this.isValidating = false;
+      
+      // Fallback to basic validation if AI fails
+      this.validationFeedback = 'AI validation unavailable, using basic check.';
+      const basicResult = this.aiValidationService.basicValidation(this.questionResponse);
+      
+      if (!basicResult.valid) {
+        this.utilsService.presentToast(basicResult.reason || 'Please provide a more thoughtful response.');
+        return false;
+      }
+      
+      return true; // Accept if basic validation passes and AI is unavailable
+    }
   }
 }

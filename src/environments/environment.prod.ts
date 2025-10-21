@@ -12,4 +12,5 @@ export const environment = {
     serverKey:
       'AAAAuwqfTzw:APA91bGu-BT7iIo5hGk9_H-mPBp52aA1_zxzqu_ZPIwXUfDyQ7sk6FHMIMiKhSBCqyq2NFKsqnA00pZNIzSJpMqq50m9ZnB9Jf6mtw5V6OUBsHwyhykGh83DEGNiH9_A3ka2fh1XRhkc',
   },
+  openaiApiKey: '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',
 };
