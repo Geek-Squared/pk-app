@@ -28,12 +28,14 @@
     >
     <ion-button
       *ngIf="!checkPosition()"
+      [disabled]="!isCurrentQuestionValid()"
       (click)="goTo(pager.index + 1,question)"
       >Next</ion-button
     >
     <ion-button
       color="success"
       *ngIf="checkPosition()"
+      [disabled]="!isAllQuestionsValid()"
       (click)="saveQuestionResponses(question)"
       >Complete</ion-button
     >

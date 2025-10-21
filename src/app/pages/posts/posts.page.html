@@ -30,14 +30,25 @@
 
   <ion-grid>
     <ion-row class="ion-text-center">
-      <ion-col size="4" button detail *ngFor="let post of posts" (click)="presentModal(post)">
-        <ion-icon name="folder-open" size="large"></ion-icon>
+      <ion-col size="4" button detail *ngFor="let post of posts; let i = index" 
+               [ngClass]="{'locked-story': !isStoryUnlocked(i)}"
+               (click)="handleStoryClick(post, i)">
+        <ion-icon 
+          [name]="getStoryIcon(post?.postId, i)" 
+          [color]="getStoryIconColor(post?.postId, i)"
+          size="large">
+        </ion-icon>
         <br>
         <span *ngIf="checkProgress(post?.postId)"
           ><ion-icon name="checkmark-circle" color="success"></ion-icon
           >&nbsp;</span
         >
-        <p>{{post?.title}}</p>
+        <span *ngIf="!isStoryUnlocked(i)" class="lock-indicator">
+          <ion-icon name="lock-closed" color="medium" size="small"></ion-icon>
+          &nbsp;
+        </span>
+        <p [ngClass]="{'locked-text': !isStoryUnlocked(i)}">{{post?.title}}</p>
+        <p *ngIf="!isStoryUnlocked(i)" class="unlock-hint">Complete previous story to unlock</p>
       </ion-col>
     </ion-row>
   </ion-grid>

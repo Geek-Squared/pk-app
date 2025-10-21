@@ -59,11 +59,60 @@ export class PostsPage implements OnInit {
     const { data } = await modal.onWillDismiss();
   }
 
+  // Handle story click with lock validation
+  handleStoryClick(post: UPost, index: number) {
+    if (this.isStoryUnlocked(index)) {
+      this.presentModal(post);
+    } else {
+      this.utilsService.presentToast('Please complete the previous story to unlock this one.');
+    }
+  }
+
   checkProgress(postId: string) {
     return this.workBook
       ? Object?.values(this.workBook[0]?.responses).find(
           (element: any) => element?.postId === postId
         )
       : null;
+  }
+
+  // Check if a story is unlocked (can be accessed)
+  isStoryUnlocked(index: number): boolean {
+    // First story is always unlocked
+    if (index === 0) {
+      return true;
+    }
+
+    // Check if all previous stories are completed
+    for (let i = 0; i < index; i++) {
+      const previousPost = this.posts[i];
+      if (!this.checkProgress(previousPost?.postId)) {
+        return false; // Previous story not completed
+      }
+    }
+
+    return true; // All previous stories completed
+  }
+
+  // Get appropriate icon based on story status
+  getStoryIcon(postId: string, index: number): string {
+    if (this.checkProgress(postId)) {
+      return 'folder-open'; // Completed story
+    } else if (this.isStoryUnlocked(index)) {
+      return 'folder-open'; // Available story
+    } else {
+      return 'folder'; // Locked story
+    }
+  }
+
+  // Get appropriate icon color based on story status
+  getStoryIconColor(postId: string, index: number): string {
+    if (this.checkProgress(postId)) {
+      return 'success'; // Completed story - green
+    } else if (this.isStoryUnlocked(index)) {
+      return 'primary'; // Available story - blue
+    } else {
+      return 'medium'; // Locked story - gray
+    }
   }
 }

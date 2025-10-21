@@ -11,3 +11,34 @@ ion-list {
   ion-icon {
     color: #3374d6;
   }
+
+  // Locked story styles
+  .locked-story {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f8f8f8;
+    border-color: #ddd;
+    
+    &:hover {
+      background-color: #f8f8f8;
+    }
+  }
+
+  .locked-text {
+    color: #888;
+    font-weight: normal;
+  }
+
+  .unlock-hint {
+    font-size: 11px !important;
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+  }
+
+  .lock-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+  }

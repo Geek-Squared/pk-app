@@ -61,6 +61,12 @@ export class QuestionsPage implements OnInit {
   }
 
   goTo(index: number, questionId?: string) {
+    // Validate current question has text before proceeding
+    if (!this.isCurrentQuestionValid()) {
+      this.utilsService.presentToast('Please enter your response before proceeding.');
+      return;
+    }
+    
     if (questionId) this.saveAnswerSheet(questionId);
     if (index >= 0 && index < this.pager.count) {
       this.pager.index = index;
@@ -101,6 +107,12 @@ export class QuestionsPage implements OnInit {
   }
 
   saveQuestionResponses(question) {
+    // Validate all questions are answered before completing
+    if (!this.isAllQuestionsValid()) {
+      this.utilsService.presentToast('Please answer all questions before completing.');
+      return;
+    }
+
     this.saveAnswerSheet(question);
     const obj = Object.assign({
       ...this.questionAnswers.map((item) => ({
@@ -143,5 +155,22 @@ export class QuestionsPage implements OnInit {
     return (this.workBook[0]?.responses).some(
       (element: any) => element?.postId === postId
     );
+  }
+
+  // Validation method: Check if current question has valid text
+  isCurrentQuestionValid(): boolean {
+    return this.questionResponse && this.questionResponse.trim().length > 0;
+  }
+
+  // Validation method: Check if all questions have been answered with valid text
+  isAllQuestionsValid(): boolean {
+    // Must have current question response
+    if (!this.isCurrentQuestionValid()) {
+      return false;
+    }
+
+    // Must have answered all questions (total questions = answered questions + current question)
+    const totalQuestionsAnswered = this.questionAnswers.length + 1; // +1 for current question
+    return totalQuestionsAnswered === this.questions.length;
   }
 }
