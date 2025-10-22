@@ -31,7 +31,6 @@ export class ChaptersComponent implements OnInit {
             ...e.payload.doc.data(),
           };
         });
-        console.log(this.chapters);
 
         this.utilsService.dismissLoader();
       },
