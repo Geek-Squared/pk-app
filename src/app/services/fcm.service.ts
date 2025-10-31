@@ -35,9 +35,6 @@ export class FcmService {
     });
 
     PushNotifications.addListener('registration', (token: any) => {
-      console.log('My token: ' + JSON.stringify(token));
-      console.log('uid =>', uid);
-
       this.usersService
         .updateDeviceId(uid, token)
         .then(() => {
