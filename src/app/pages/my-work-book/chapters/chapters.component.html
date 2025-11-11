@@ -1,15 +1,28 @@
-<!--<ion-list>
-  <ion-item
-    button
-    detail
-    *ngFor="let chapter of chapters"
-    routerLink="../posts/{{ chapter.id }}"
-  >
-    <ion-label>{{ chapter?.title }}</ion-label>
-  </ion-item>
-</ion-list>-->
+<!-- Mobile List View -->
+<div class="mobile-list">
+  <ng-container *ngFor="let chapter of chapters; let i = index">
+    <ng-container *ngIf="userQuestionResponses$ | async as res">
+      <button
+        type="button"
+        class="mobile-item"
+        [routerLink]="['../posts', chapter.id]"
+        *ngIf="res[0]?.responses.length > i - 1 || i == 0"
+      >
+        <div class="item-icon">
+          <ion-icon name="folder-open-outline"></ion-icon>
+        </div>
+        <div class="item-content">
+          <h2>{{ chapter?.title }}</h2>
+          <p>Tap to explore this chapter's content and exercises.</p>
+        </div>
+        <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
+      </button>
+    </ng-container>
+  </ng-container>
+</div>
 
-<ion-grid>
+<!-- Desktop Grid View -->
+<ion-grid class="desktop-grid">
   <ion-row class="ion-text-center">
     <ng-container *ngFor="let chapter of chapters; let i = index">
       <ng-container *ngIf="userQuestionResponses$ | async as res">
@@ -17,14 +30,14 @@
           size="4"
           button
           detail
-          routerLink="../posts/{{ chapter.id }}"
+          [routerLink]="['../posts', chapter.id]"
           *ngIf="res[0]?.responses.length > i - 1 || i == 0"
         >
           <ion-icon name="folder-open" size="large"></ion-icon>
           <br />
           <p>{{ chapter?.title }}</p>
         </ion-col>
-      </ng-container></ng-container
-    >
+      </ng-container>
+    </ng-container>
   </ion-row>
 </ion-grid>

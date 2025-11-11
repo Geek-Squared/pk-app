@@ -1,13 +1,109 @@
-ion-list {
-  padding-right: 10px;
+// Mobile List Styling
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
 }
-p {
-  font-size: 13px;
+
+.mobile-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(45, 114, 173, 0.12);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(45, 114, 173, 0.12);
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(45, 114, 173, 0.35);
+    outline-offset: 2px;
+  }
+
+  .item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.18), rgba(45, 114, 173, 0.26));
+
+    ion-icon {
+      font-size: 1.6rem;
+      color: #2d72ad;
+    }
+  }
+
+  .item-content {
+    flex: 1;
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #1d2a44;
+    }
+
+    p {
+      margin: 0.3rem 0 0;
+      font-size: 0.85rem;
+      color: rgba(29, 42, 68, 0.68);
+      line-height: 1.4;
+    }
+  }
+
+  .item-caret {
+    font-size: 1.25rem;
+    color: rgba(45, 114, 173, 0.6);
+  }
 }
-ion-col {
-  border: 1px solid #eee;
-  padding: 18px 3px 5px 3px;
+
+// Desktop Grid Styling
+.desktop-grid {
+  display: none;
 }
-ion-icon {
-  color: #3374d6;
+
+@media (min-width: 768px) {
+  // Hide mobile list on desktop
+  .mobile-list {
+    display: none;
+  }
+
+  // Show desktop grid
+  .desktop-grid {
+    display: block;
+  }
+
+  ion-col {
+    border: 1px solid #eee;
+    padding: 18px 3px 5px 3px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: #2d72ad;
+    }
+
+    ion-icon {
+      color: #3374d6;
+    }
+
+    p {
+      font-size: 13px;
+      margin: 0;
+    }
+  }
 }

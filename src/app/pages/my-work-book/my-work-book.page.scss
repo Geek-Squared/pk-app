@@ -1,7 +1,45 @@
+.workbook-content {
+  --ion-background-color: #f6f7fb;
+}
+
+// Mobile Hero Section
+.mobile-hero {
+  display: block;
+  background: linear-gradient(135deg, rgba(45, 114, 173, 0.95), rgba(115, 194, 251, 0.85));
+  color: #fff;
+  border-radius: 24px;
+  padding: 1.4rem 1.5rem;
+  margin: 1.25rem 1.25rem 0;
+  box-shadow: 0 18px 32px rgba(45, 114, 173, 0.25);
+
+  .hero-eyebrow {
+    margin: 0;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  h1 {
+    margin: 0.4rem 0 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    margin: 0.8rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    opacity: 0.92;
+  }
+}
+
 .page-shell {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  padding: 1.25rem;
 }
 
 .page-body {
@@ -14,6 +52,15 @@
 }
 
 @media (min-width: 768px) {
+  // Hide mobile hero on desktop
+  .mobile-hero {
+    display: none;
+  }
+
+  .page-shell {
+    padding: 0;
+  }
+
   .page-body {
     max-width: 1200px;
     margin: 0 auto;
