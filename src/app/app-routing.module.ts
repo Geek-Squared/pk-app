@@ -50,6 +50,13 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'ai-assistant',
+        loadChildren: () =>
+          import('./pages/ai-assistant/ai-assistant.module').then(
+            (m) => m.AiAssistantPageModule
+          ),
+      },
+      {
         path: 'posts/:chapterId',
         loadChildren: () =>
           import('./pages/posts/posts.module').then((m) => m.PostsPageModule),

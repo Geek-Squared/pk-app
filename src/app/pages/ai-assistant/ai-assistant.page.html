@@ -1,0 +1,91 @@
+<ion-header class="assistant-header">
+  <ion-toolbar class="header-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" text=""></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>AI Chat</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="assistant-content">
+  <div class="assistant-shell">
+
+
+    <section class="support-card">
+      <div class="support-copy">
+        <h2>We are here for you</h2>
+        <p>
+          Choose a starter prompt or type anything on your mind. Your wellbeing companion responds in moments with empathetic, practical guidance.
+        </p>
+        <ion-note color="medium">
+          The assistant provides peer-style support and is not a substitute for emergency services.
+        </ion-note>
+      </div>
+
+      <div class="suggestions" *ngIf="suggestions.length">
+        <button
+          type="button"
+          class="suggestion-chip"
+          *ngFor="let suggestion of suggestions"
+          (click)="useSuggestion(suggestion)"
+        >
+          <ion-icon name="sparkles-outline"></ion-icon>
+          <span>{{ suggestion }}</span>
+        </button>
+      </div>
+    </section>
+
+      <div class="chat-thread">
+        <div
+          *ngFor="let message of messages; trackBy: trackByTimestamp"
+          class="bubble"
+          [ngClass]="{
+            'from-user': message.role === 'user',
+            'from-assistant': message.role === 'assistant'
+          }"
+        >
+          <p>{{ message.content }}</p>
+        </div>
+
+        <div class="bubble typing" *ngIf="pending">
+          <ion-spinner name="dots"></ion-spinner>
+          <span>Assistant is thinking...</span>
+        </div>
+      </div>
+  </div>
+</ion-content>
+
+<ion-footer class="composer-footer">
+  <ion-toolbar>
+    <form class="composer-form" [formGroup]="form" (ngSubmit)="sendMessage()">
+      <ion-item lines="none" class="composer-item">
+        <ion-textarea
+          #composer
+          autoGrow="true"
+          rows="1"
+          placeholder="Ask anything - press Enter to send"
+          formControlName="prompt"
+          (keydown)="handleKeydown($event)"
+          [disabled]="pending"
+        ></ion-textarea>
+        <ion-buttons slot="end">
+          <ion-button
+            color="primary"
+            type="submit"
+            [disabled]="!canSend"
+          >
+            <ion-icon slot="icon-only" name="send"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-item>
+    </form>
+    <ion-text color="danger" *ngIf="errorMessage" class="status-text">
+      {{ errorMessage }}
+    </ion-text>
+    <ion-text color="medium" class="status-text">
+      For emergencies please contact your healthcare provider or local support
+      services immediately.
+    </ion-text>
+  </ion-toolbar>
+</ion-footer>
