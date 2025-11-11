@@ -1,36 +1,144 @@
-ion-card.md.hydrated {
-  height: 100%;
+.interventions-content {
+  --ion-background-color: #f6f7fb;
+}
 
-  p {
-    border: 1px solid #eee;
-    padding: 5px;
-    width: 100%;
-  }
-  ion-col.no-style {
-    border: 0px !important;
-  }
-  ion-col {
-    border: 1px solid #eeee;
-    height: 125px;
-    padding-top: 15px;
+.mobile-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.25rem 4.5rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
 
-    ion-icon {
-      color: #3a7ecc;
-      background-color: #b8e3ff;
-      padding: 8px;
-      border-radius: 30px;
-      width: 35px;
-      height: 35px;
-      border: 1px solid #eee;
-    }
+.mobile-hero {
+  background: linear-gradient(135deg, rgba(45, 114, 173, 0.95), rgba(115, 194, 251, 0.85));
+  color: #fff;
+  border-radius: 24px;
+  padding: 1.4rem 1.5rem;
+  box-shadow: 0 18px 32px rgba(45, 114, 173, 0.25);
+
+  .hero-eyebrow {
+    margin: 0;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  h1 {
+    margin: 0.4rem 0 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    margin: 0.8rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    opacity: 0.92;
   }
 }
 
-// Desktop-only styles - only show on desktop
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.mobile-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(45, 114, 173, 0.12);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(45, 114, 173, 0.12);
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(45, 114, 173, 0.35);
+    outline-offset: 2px;
+  }
+
+  .item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.18), rgba(45, 114, 173, 0.26));
+
+    ion-icon {
+      font-size: 1.6rem;
+      color: #2d72ad;
+    }
+  }
+
+  .item-content {
+    flex: 1;
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #1d2a44;
+    }
+
+    p {
+      margin: 0.3rem 0 0;
+      font-size: 0.85rem;
+      color: rgba(29, 42, 68, 0.68);
+      line-height: 1.4;
+    }
+  }
+
+  .item-caret {
+    font-size: 1.25rem;
+    color: rgba(45, 114, 173, 0.6);
+  }
+}
+
+.mobile-loading,
+.mobile-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  border-radius: 18px;
+  background: rgba(45, 114, 173, 0.06);
+  color: rgba(29, 42, 68, 0.75);
+
+  ion-icon {
+    font-size: 2rem;
+    color: #2d72ad;
+  }
+
+  span,
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+}
+
 @media (min-width: 768px) {
-  // Hide mobile card on desktop
-  ion-card {
-    display: none !important;
+  .mobile-wrapper {
+    display: none;
   }
 
   .page-description {
@@ -43,7 +151,8 @@ ion-card.md.hydrated {
       line-height: 1.6;
       margin: 0;
       max-width: 600px;
-      margin: 0 auto;
+      margin-left: auto;
+      margin-right: auto;
     }
   }
 
@@ -53,7 +162,7 @@ ion-card.md.hydrated {
     gap: 1.5rem;
 
     .intervention-card {
-      background: white;
+      background: #fff;
       border-radius: 16px;
       padding: 1.5rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -78,7 +187,11 @@ ion-card.md.hydrated {
         ion-icon {
           font-size: 3rem;
           color: #2d72ad;
-          background: linear-gradient(135deg, rgba(45, 114, 173, 0.1), rgba(79, 195, 247, 0.15));
+          background: linear-gradient(
+            135deg,
+            rgba(45, 114, 173, 0.1),
+            rgba(79, 195, 247, 0.15)
+          );
           padding: 1.5rem;
           border-radius: 50%;
           display: inline-block;
@@ -95,13 +208,13 @@ ion-card.md.hydrated {
           font-size: 1.5rem;
           font-weight: 600;
           color: #1e293b;
-          margin: 0 0 1rem 0;
+          margin: 0 0 1rem;
         }
 
         p {
           color: #64748b;
           line-height: 1.6;
-          margin: 0 0 1.5rem 0;
+          margin: 0 0 1.5rem;
           flex: 1;
         }
 
@@ -111,7 +224,7 @@ ion-card.md.hydrated {
 
           .start-btn {
             background: linear-gradient(135deg, #2d72ad, #4fc3f7);
-            color: white;
+            color: #fff;
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
             font-weight: 500;
@@ -135,7 +248,6 @@ ion-card.md.hydrated {
   }
 }
 
-// Hide desktop content on mobile - ensure mobile card shows
 @media (max-width: 767px) {
   .desktop-nav,
   .desktop-content {

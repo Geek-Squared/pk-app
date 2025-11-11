@@ -1,131 +1,141 @@
-ion-list {
-  padding-right: 10px;
-}
-p {
-  font-size: 13px;
-}
-ion-col {
-  border: 1px solid #eee;
-  padding: 18px 3px 5px 3px;
-}
-ion-icon {
-  color: #3374d6;
+.chapters-content {
+  --ion-background-color: #f6f7fb;
 }
 
-// Desktop-only styles
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.25rem 4.5rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1d2a44;
+  }
+
+  ion-searchbar {
+    --background: #fff;
+    --border-radius: 14px;
+    --box-shadow: 0 8px 18px rgba(29, 42, 68, 0.08);
+    --color: #1d2a44;
+    --placeholder-color: rgba(29, 42, 68, 0.5);
+    --icon-color: rgba(29, 42, 68, 0.5);
+  }
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chapter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(29, 42, 68, 0.08);
+  box-shadow: 0 10px 20px rgba(29, 42, 68, 0.08);
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(79, 195, 247, 0.35);
+    outline-offset: 2px;
+  }
+}
+
+.item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.18), rgba(107, 44, 145, 0.2));
+  color: #2d72ad;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.item-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1d2a44;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(29, 42, 68, 0.6);
+  }
+}
+
+.item-caret {
+  font-size: 1.2rem;
+  color: rgba(29, 42, 68, 0.45);
+}
+
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  border-radius: 18px;
+  background: rgba(107, 44, 145, 0.08);
+  color: rgba(29, 42, 68, 0.7);
+  text-align: center;
+  margin: 2rem 1.25rem;
+
+  ion-spinner,
+  ion-icon {
+    font-size: 1.9rem;
+    color: #6b2c91;
+  }
+
+  span,
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
 @media (min-width: 768px) {
-  // Hide mobile elements on desktop
-  ion-searchbar:first-of-type,
-  ion-grid {
-    display: none !important;
+  .page-shell {
+    padding: 2rem 0 4rem;
   }
 
-  .search-section {
-    margin-bottom: 2rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-
-    ion-searchbar {
-      --background: white;
-      --border-radius: 12px;
-      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      --color: #1e293b;
-      --placeholder-color: #64748b;
-    }
-  }
-
-  .chapters-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-
-    .chapter-card {
-      background: white;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      transition: all 0.3s ease;
-
-      &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-        border-color: #2d72ad;
-      }
-
-      .chapter-icon {
-        text-align: center;
-        margin-bottom: 1rem;
-
-        ion-icon {
-          font-size: 2.5rem;
-          color: #2d72ad;
-          background: linear-gradient(135deg, rgba(45, 114, 173, 0.1), rgba(79, 195, 247, 0.15));
-          padding: 1rem;
-          border-radius: 50%;
-          display: inline-block;
-        }
-      }
-
-      .chapter-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-
-        h3 {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #1e293b;
-          margin: 0 0 1.5rem 0;
-          line-height: 1.4;
-        }
-
-        .chapter-footer {
-          display: flex;
-          justify-content: center;
-          margin-top: auto;
-
-          .read-btn {
-            background: linear-gradient(135deg, #2d72ad, #4fc3f7);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-
-            ion-icon {
-              font-size: 1rem;
-              color: white;
-              background: none;
-              padding: 0;
-            }
-
-            &:hover {
-              background: linear-gradient(135deg, #1e4f78, #2d72ad);
-              transform: translateX(2px);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-// Hide desktop content on mobile
-@media (max-width: 767px) {
-  .desktop-nav,
-  .desktop-content {
-    display: none !important;
+  .chapter-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(29, 42, 68, 0.12);
   }
 }

@@ -10,6 +10,7 @@ import { Intervention } from 'src/app/models/intervention.interface';
   selector: 'app-interventions',
   templateUrl: './interventions.page.html',
   styleUrls: ['./interventions.page.scss'],
+  standalone: false,
 })
 export class InterventionsPage implements OnInit {
   interventions$: Observable<Intervention[]> | undefined;

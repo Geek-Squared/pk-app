@@ -11,32 +11,53 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="interventions-content">
   <!-- Mobile Content -->
-  <ion-card>
-    <ion-card-content>
-      <ion-grid>
-        <ion-row class="ion-text-center">
-          <p class="intro">Select an Intervention of your choice:</p>
-          <br />
-        </ion-row>
+  <div class="mobile-wrapper">
+    <section class="mobile-hero">
+      <p class="hero-eyebrow">Interventions</p>
+      <h1>Choose your next step</h1>
+      <p class="hero-subtitle">
+        Work through guided practices designed to support and empower your wellbeing journey.
+      </p>
+    </section>
 
-        <ion-row class="ion-text-center" *ngIf="interventions$ | async as interventions">
-          <ion-col
+    <ng-container *ngIf="interventions$ | async as interventions; else loadingState">
+      <ng-container *ngIf="interventions.length; else emptyState">
+        <div class="mobile-list">
+          <button
+            type="button"
+            class="mobile-item"
             *ngFor="let intervention of interventions"
             [routerLink]="['/chapters', intervention.id]"
-            sizeLg="4"
-            sizeMd="4"
-            sizeXs="6"
           >
-            <ion-icon name="folder-outline" size="large"></ion-icon>
-            <br />
-            {{ intervention?.name }}
-          </ion-col>
-        </ion-row>        
-      </ion-grid>
-    </ion-card-content>
-  </ion-card>
+            <div class="item-icon">
+              <ion-icon name="library-outline"></ion-icon>
+            </div>
+            <div class="item-content">
+              <h2>{{ intervention?.name }}</h2>
+              <p>Tap to explore chapters, exercises, and reflections tailored for you.</p>
+            </div>
+            <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <ng-template #loadingState>
+      <div class="mobile-loading">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Loading interventions…</span>
+      </div>
+    </ng-template>
+
+    <ng-template #emptyState>
+      <div class="mobile-empty">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <p>No interventions are available right now. Please check back later.</p>
+      </div>
+    </ng-template>
+  </div>
 
   <!-- Desktop Navigation & Content -->
   <div class="desktop-nav">

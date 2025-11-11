@@ -11,46 +11,40 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <!--<ion-list>
-    <ion-item
-      button
-      detail
-      *ngFor="let post of posts"
-      (click)="presentModal(post)"
-    >
-      <ion-label
-        ><span *ngIf="checkProgress(post?.postId)"
-          ><ion-icon name="checkmark-circle" color="success"></ion-icon
-          >&nbsp;</span
-        >{{post?.title}}</ion-label
+<ion-content class="posts-content">
+  <div class="page-shell">
+    <div class="page-header">
+      <h1>Stories</h1>
+      <p class="page-note">Complete each story to unlock the next.</p>
+    </div>
+
+    <div class="story-list">
+      <button
+        type="button"
+        class="story-item"
+        *ngFor="let post of posts; let i = index"
+        [class.is-locked]="!isStoryUnlocked(i)"
+        (click)="handleStoryClick(post, i)"
       >
-    </ion-item>
-  </ion-list>-->
-
-  <ion-grid>
-    <ion-row class="ion-text-center">
-      <ion-col size="4" button detail *ngFor="let post of posts; let i = index" 
-               [ngClass]="{'locked-story': !isStoryUnlocked(i)}"
-               (click)="handleStoryClick(post, i)">
-        <ion-icon 
-          [name]="getStoryIcon(post?.postId, i)" 
-          [color]="getStoryIconColor(post?.postId, i)"
-          size="large">
-        </ion-icon>
-        <br>
-        <span *ngIf="checkProgress(post?.postId)"
-          ><ion-icon name="checkmark-circle" color="success"></ion-icon
-          >&nbsp;</span
-        >
-        <span *ngIf="!isStoryUnlocked(i)" class="lock-indicator">
-          <ion-icon name="lock-closed" color="medium" size="small"></ion-icon>
-          &nbsp;
-        </span>
-        <p [ngClass]="{'locked-text': !isStoryUnlocked(i)}">{{post?.title}}</p>
-        <p *ngIf="!isStoryUnlocked(i)" class="unlock-hint">Complete previous story to unlock</p>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
+        <div class="story-icon" [class.completed]="checkProgress(post?.postId)">
+          <span *ngIf="checkProgress(post?.postId); else indexBadge">
+            <ion-icon name="checkmark"></ion-icon>
+          </span>
+          <ng-template #indexBadge>
+            <span>{{ i + 1 }}</span>
+          </ng-template>
+        </div>
+        <div class="story-text">
+          <h2 [class.locked]="!isStoryUnlocked(i)">{{ post?.title }}</h2>
+          <p *ngIf="!isStoryUnlocked(i)">Finish the previous story to unlock.</p>
+        </div>
+        <ion-icon
+          class="story-caret"
+          [class.locked]="!isStoryUnlocked(i)"
+          [name]="isStoryUnlocked(i) ? 'arrow-forward' : 'lock-closed'"
+          aria-hidden="true"
+        ></ion-icon>
+      </button>
+    </div>
+  </div>
 </ion-content>

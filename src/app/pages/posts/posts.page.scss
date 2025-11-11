@@ -1,44 +1,135 @@
-ion-list {
-    padding-right: 10px;
-  }
-  p {
-    font-size: 13px;
-  }
-  ion-col {
-    border: 1px solid #eee;
-    padding: 18px 3px 5px 3px;
-  }
-  ion-icon {
-    color: #3374d6;
+.posts-content {
+  --ion-background-color: #f6f7fb;
+}
+
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.25rem 4.5rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1d2a44;
   }
 
-  // Locked story styles
-  .locked-story {
-    opacity: 0.6;
+  .page-note {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(29, 42, 68, 0.65);
+  }
+}
+
+.story-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.story-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(29, 42, 68, 0.08);
+  box-shadow: 0 10px 20px rgba(29, 42, 68, 0.08);
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(26, 167, 156, 0.35);
+    outline-offset: 2px;
+  }
+
+  &.is-locked {
     cursor: not-allowed;
-    background-color: #f8f8f8;
-    border-color: #ddd;
-    
-    &:hover {
-      background-color: #f8f8f8;
-    }
+    opacity: 0.6;
+  }
+}
+
+.story-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(26, 167, 156, 0.16), rgba(107, 44, 145, 0.18));
+  color: #1aa79c;
+  font-size: 1rem;
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 1.1rem;
+    color: inherit;
   }
 
-  .locked-text {
-    color: #888;
-    font-weight: normal;
+  &.completed {
+    background: linear-gradient(135deg, rgba(30, 198, 145, 0.2), rgba(30, 198, 145, 0.28));
+    color: #1e8c6b;
+  }
+}
+
+.story-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1d2a44;
   }
 
-  .unlock-hint {
-    font-size: 11px !important;
-    color: #666;
-    font-style: italic;
-    margin-top: 5px;
+  h2.locked {
+    color: rgba(29, 42, 68, 0.55);
   }
 
-  .lock-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 5px;
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(29, 42, 68, 0.55);
   }
+}
+
+.story-caret {
+  font-size: 1.2rem;
+  color: rgba(29, 42, 68, 0.45);
+
+  &.locked {
+    color: rgba(29, 42, 68, 0.35);
+  }
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding: 2rem 0 4rem;
+  }
+
+  .story-item:not(.is-locked):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(29, 42, 68, 0.12);
+  }
+}

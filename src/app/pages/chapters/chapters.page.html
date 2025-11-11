@@ -11,71 +11,51 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <!-- Mobile Content -->
-  <ion-searchbar
-    showCancelButton="focus"
-    debounce="500"
-    (ionChange)="search($event?.detail?.value)"
-  ></ion-searchbar>
-
-  <ion-grid>
-    <ion-row class="ion-text-center">
-      <ion-col size="4" button detail *ngFor="let chapter of chapters" routerLink="/posts/{{ chapter.id }}">
-        <ion-icon name="folder-open" size="large"></ion-icon>
-        <br>
-        <p>{{chapter?.title}}</p>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
-  <!-- Desktop Navigation & Content -->
-  <div class="desktop-nav">
-    <div class="nav-content">
-      <div class="breadcrumb">
-        <a routerLink="/interventions" class="back-btn">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-          <span>Interventions</span>
-        </a>
-        <span class="separator">/</span>
-        <span class="current-page">Chapters</span>
-      </div>
-      <div class="page-title">
-        <ion-icon name="folder-open-outline"></ion-icon>
-        <h1>Chapters</h1>
-      </div>
-    </div>
-  </div>
-
-  <div class="desktop-content">
-    <div class="search-section">
+<ion-content class="chapters-content">
+  <div class="page-shell">
+    <div class="page-header">
+      <h1>Chapters</h1>
       <ion-searchbar
-        placeholder="Search chapters..."
-        showCancelButton="focus"
-        debounce="500"
+        placeholder="Search"
+        debounce="350"
         (ionChange)="search($event?.detail?.value)"
       ></ion-searchbar>
     </div>
 
-    <div class="chapters-grid">
-      <div 
-        class="chapter-card"
-        *ngFor="let chapter of chapters"
-        routerLink="/posts/{{ chapter.id }}"
-      >
-        <div class="chapter-icon">
-          <ion-icon name="folder-open-outline"></ion-icon>
+    <ng-container *ngIf="!isLoading; else loadingState">
+      <ng-container *ngIf="filteredChapters.length; else emptyState">
+        <div class="chapter-list">
+          <button
+            type="button"
+            class="chapter-item"
+            *ngFor="let chapter of filteredChapters; let i = index"
+            routerLink="/posts/{{ chapter.id }}"
+          >
+            <div class="item-icon">
+              <span>{{ i + 1 }}</span>
+            </div>
+            <div class="item-text">
+              <h2>{{ chapter?.title }}</h2>
+              <p *ngIf="chapter?.tagline">{{ chapter?.tagline }}</p>
+            </div>
+            <ion-icon class="item-caret" name="arrow-forward" aria-hidden="true"></ion-icon>
+          </button>
         </div>
-        <div class="chapter-content">
-          <h3>{{ chapter?.title }}</h3>
-          <div class="chapter-footer">
-            <span class="read-btn">
-              Open Chapter
-              <ion-icon name="arrow-forward-outline"></ion-icon>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
+      </ng-container>
+    </ng-container>
   </div>
 </ion-content>
+
+<ng-template #loadingState>
+  <div class="state-message">
+    <ion-spinner name="crescent"></ion-spinner>
+    <span>Loading chapters…</span>
+  </div>
+</ng-template>
+
+<ng-template #emptyState>
+  <div class="state-message">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <p>No chapters available yet.</p>
+  </div>
+</ng-template>
