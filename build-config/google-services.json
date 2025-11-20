@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "803337097020",
+    "firebase_url": "https://positive-konnections-42d8a.firebaseio.com",
+    "project_id": "positive-konnections-42d8a",
+    "storage_bucket": "positive-konnections-42d8a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803337097020:android:3af6451205959ecf30d839",
+        "android_client_info": {
+          "package_name": "com.health.positive_konnections"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuG957nlEbHsqJJDau8-RG0GaJ7ZoPK2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803337097020:android:1abdeb3127205bb330d839",
+        "android_client_info": {
+          "package_name": "com.positivekonnections.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuG957nlEbHsqJJDau8-RG0GaJ7ZoPK2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
