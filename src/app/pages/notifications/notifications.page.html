@@ -1,0 +1,19 @@
+<ion-header translucent="true">
+  <ion-toolbar>
+    <ion-title>Notifications</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-list class="notifications-list">
+    <ion-item lines="none" *ngFor="let note of notifications">
+      <ion-icon name="notifications-outline" slot="start"></ion-icon>
+      <ion-label>
+        <h2>{{ note.title }}</h2>
+        <p>{{ note.body }}</p>
+        <small>{{ note.time }}</small>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
+

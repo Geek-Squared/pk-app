@@ -1,0 +1,44 @@
+.bottom-nav-spacer {
+  height: calc(72px + env(safe-area-inset-bottom));
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.35rem 1.5rem calc(env(safe-area-inset-bottom) + 0.35rem);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -10px 25px rgba(20, 24, 50, 0.15);
+  display: flex;
+  justify-content: space-around;
+  z-index: 1000;
+}
+
+.nav-button {
+  border: none;
+  background: transparent;
+  color: #7a80a5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.75rem;
+  gap: 0.2rem;
+
+  ion-icon {
+    font-size: 1.5rem;
+  }
+
+  &.active {
+    color: #3e4fe0;
+  }
+}
+
+@media (min-width: 992px) {
+  .bottom-nav,
+  .bottom-nav-spacer {
+    display: none;
+  }
+}
+

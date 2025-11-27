@@ -1,0 +1,23 @@
+<ng-container *ngIf="show">
+  <div class="bottom-nav-spacer"></div>
+  <nav class="bottom-nav">
+    <button
+      class="nav-button"
+      [routerLink]="['/home']"
+      [class.active]="isActive('/home')"
+    >
+      <ion-icon name="home-outline"></ion-icon>
+      <span>Home</span>
+    </button>
+
+    <button
+      class="nav-button"
+      [routerLink]="['/notifications']"
+      [class.active]="isActive('/notifications')"
+    >
+      <ion-icon name="notifications-outline"></ion-icon>
+      <span>Alerts</span>
+    </button>
+  </nav>
+</ng-container>
+

@@ -50,6 +50,13 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'notifications',
+        loadChildren: () =>
+          import('./pages/notifications/notifications.module').then(
+            (m) => m.NotificationsPageModule
+          ),
+      },
+      {
         path: 'ai-assistant',
         loadChildren: () =>
           import('./pages/ai-assistant/ai-assistant.module').then(

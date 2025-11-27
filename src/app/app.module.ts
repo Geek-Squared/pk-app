@@ -9,6 +9,7 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { BottomNavComponent } from './components/bottom-nav/bottom-nav.component';
 
 import { environment } from 'src/environments/environment';
 import { HttpClientModule } from '@angular/common/http';
@@ -42,6 +43,7 @@ import {
     AngularFireAuthModule,
     AngularFireAnalyticsModule,
     AngularFirePerformanceModule,
+    BottomNavComponent,
   ],
   providers: [
     StatusBar,
