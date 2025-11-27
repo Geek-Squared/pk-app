@@ -3,26 +3,29 @@
     <div class="mobile-card-stack">
       <section class="sereni-header">
         <div class="header-top-row">
-          <div class="brand-pill">
-            <span class="brand-sereni">Peekay</span>
-            <span class="brand-mind">MIND</span>
-          </div>
+          <button
+            type="button"
+            class="menu-pill"
+            aria-label="Open menu"
+            (click)="openMenu()"
+          >
+            <ion-icon name="menu-outline"></ion-icon>
+          </button>
           <div class="header-actions">
-            <button type="button" class="icon-bubble" aria-label="Grid menu">
-              <ion-icon name="grid-outline"></ion-icon>
-            </button>
-            <button type="button" class="icon-bubble" aria-label="Notifications">
+            <button
+              type="button"
+              class="icon-bubble"
+              aria-label="Notifications"
+              routerLink="/notifications"
+            >
               <ion-icon name="notifications-outline"></ion-icon>
-            </button>
-            <button type="button" class="search-pill" aria-label="Search">
-              <ion-icon name="search-outline"></ion-icon>
             </button>
           </div>
         </div>
 
         <div class="header-greeting-row">
           <p class="greet-eyebrow">Hey Good Morning</p>
-          <span class="greet-subtitle">Welcome to Peekay Mind</span>
+          <span class="greet-subtitle">Welcome to Positive Konnections</span>
         </div>
 
         <div class="ai-promo">
@@ -46,7 +49,7 @@
       <div class="service-list">
         <button type="button" class="service-card lavender" routerLink="/interventions">
           <div>
-            <p class="title">Therapy & Counseling</p>
+            <p class="title">Interventions</p>
             <span>Guided interventions curated for you.</span>
           </div>
           <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -62,7 +65,7 @@
 
         <button type="button" class="service-card lime" routerLink="/messages">
           <div>
-            <p class="title">Care Messages</p>
+            <p class="title">Messages</p>
             <span>Stay connected with your coach.</span>
           </div>
           <ion-icon name="arrow-forward-outline"></ion-icon>

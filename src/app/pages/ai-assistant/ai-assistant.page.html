@@ -1,13 +1,13 @@
-<ion-header class="assistant-header">
-  <ion-toolbar class="header-toolbar">
+<ion-header translucent="true">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home" text=""></ion-back-button>
+      <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
-
-    <ion-title>AI Chat</ion-title>
+    <ion-buttons slot="end">
+      <ion-menu-button autoHide="false"></ion-menu-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
-
 <ion-content [fullscreen]="true" class="assistant-content">
   <div class="assistant-shell">
 

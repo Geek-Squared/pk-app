@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Platform } from '@ionic/angular';
+import { MenuController, Platform } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { FcmService } from 'src/app/services/fcm.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
@@ -17,7 +17,8 @@ export class HomePage implements OnInit {
     public workBooksService: WorkbookService,
     public platform: Platform,
     private authService: AuthenticationService,
-    private fcmService: FcmService
+    private fcmService: FcmService,
+    private menuCtrl: MenuController
   ) {}
 
   ngOnInit() {
@@ -56,5 +57,9 @@ export class HomePage implements OnInit {
 
   createNewWorkbook() {
     this.workBooksService.create().then(() => this.saveWorkBookId());
+  }
+
+  openMenu() {
+    this.menuCtrl.open();
   }
 }

@@ -36,29 +36,18 @@
   justify-content: space-between;
 }
 
-.brand-pill {
-  padding: 0.6rem 1.2rem;
-  border-radius: 999px;
-  border: 1px solid #e6ebff;
-  background: #ffffff;
-  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
+.menu-pill {
+  border: none;
+  background: transparent;
+  width: 60px;
+  height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  .brand-sereni {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.35em;
-    color: #1f233f;
-    font-weight: 600;
-  }
-
-  .brand-mind {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #12152c;
-    margin-top: 0.2rem;
+  ion-icon {
+    font-size: 1.9rem;
+    color: #0f1428;
   }
 }
 
@@ -68,28 +57,19 @@
   gap: 0.4rem;
 }
 
-.icon-bubble,
-.search-pill {
+.icon-bubble {
   border: none;
-  width: 42px;
-  height: 42px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 12px 24px rgba(69, 84, 135, 0.2);
+  background: transparent;
+  width: 46px;
+  height: 46px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   ion-icon {
-    font-size: 1.15rem;
-    color: #2f3658;
+    font-size: 1.5rem;
+    color: #0f1428;
   }
-}
-
-.search-pill {
-  border-radius: 999px;
-  padding: 0 1rem;
-  width: auto;
 }
 
 .header-greeting-row {
@@ -120,6 +100,9 @@
   gap: 1rem;
 
   .ai-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     color: #1e2241;
     font-weight: 600;
     flex: 1;
@@ -137,11 +120,32 @@
   }
 
   .ai-art {
-    width: 120px;
+    width: 150px;
     height: 120px;
-    border-radius: 26px;
-    background: url("../../../assets/images/chat-bg.jpg") center/cover no-repeat;
-    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.4);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &::before {
+      content: '';
+      width: 130px;
+      height: 110px;
+      border-radius: 45% 55% 60% 40%;
+      background: linear-gradient(135deg, #8fe4ff, #8aa3ff 60%, #f5a3ff);
+      opacity: 0.95;
+      filter: drop-shadow(0 18px 25px rgba(40, 60, 130, 0.25));
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 55%);
+      opacity: 0.8;
+    }
   }
 }
 
@@ -213,19 +217,19 @@
     }
 
     &.lavender {
-      background: linear-gradient(120deg, #efe1ff, #d8d1ff);
+      background: linear-gradient(135deg, #f4e5ff, #dfc6ff);
     }
 
     &.sky {
-      background: linear-gradient(120deg, #dff1ff, #b9e2ff);
+      background: linear-gradient(135deg, #dff2ff, #a9cbff);
     }
 
     &.lime {
-      background: linear-gradient(120deg, #e8ffc6, #d0ffad);
+      background: linear-gradient(135deg, #e3ffe8, #b4f3c2);
     }
 
     &.magenta {
-      background: linear-gradient(120deg, #ffe0f5, #ffbde4);
+      background: linear-gradient(135deg, #ffe4f7, #ffbde5);
     }
   }
 }
