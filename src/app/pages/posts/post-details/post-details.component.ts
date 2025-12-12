@@ -4,6 +4,7 @@ import { take } from 'rxjs/operators';
 import { UPost } from 'src/app/models/post.interface';
 import { QuestionsService } from 'src/app/services/questions.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
+import { UtilitiesService } from 'src/app/services/utilities.service';
 
 @Component({
   selector: 'app-post-details',
@@ -20,7 +21,8 @@ export class PostDetailsComponent implements OnInit {
   constructor(
     public modalController: ModalController,
     private workbookService: WorkbookService,
-    private questionsService: QuestionsService
+    private questionsService: QuestionsService,
+    private utilsService: UtilitiesService
   ) {}
 
   ngOnInit() {
@@ -46,7 +48,21 @@ export class PostDetailsComponent implements OnInit {
     return entry && this.isMeaningfulResponse(entry);
   }
 
-  handleVideoClick(): void {
+  openVideo(): void {
+    const url = this.resolveVideoUrl();
+    if (!url) {
+      this.utilsService?.presentToast?.('Video link is unavailable for this post.');
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    }
+
+    this.recordVideoCompletion();
+  }
+
+  private recordVideoCompletion(): void {
     if (this.hasQuestions || this.checkProgress() || this.isRecordingVideoCompletion) {
       return;
     }
@@ -98,6 +114,19 @@ export class PostDetailsComponent implements OnInit {
 
   private getStoryId(): string | undefined {
     return this.story?.postId ?? this.story?.id;
+  }
+
+  private resolveVideoUrl(): string | null {
+    const raw = this.story?.videoUrl?.trim();
+    if (!raw) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(raw)) {
+      return raw;
+    }
+
+    return `https://${raw}`;
   }
 
   private isMeaningfulResponse(response: any): boolean {
