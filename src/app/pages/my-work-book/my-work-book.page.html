@@ -1,14 +1,16 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button text="" icon="chevron-back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>My Workbook</ion-title>
     <ion-buttons slot="end">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content class="workbook-content">
+
+<ion-content [fullscreen]="true" class="page-content" class="workbook-content">
   <!-- Mobile Hero (shows only on mobile) -->
   <div class="mobile-hero">
     <p class="hero-eyebrow">My Work Book</p>

@@ -1,17 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QuestionsService } from 'src/app/services/questions.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { AiValidationService, ValidationResult } from 'src/app/services/ai-validation.service';
+import { PostsService } from 'src/app/services/posts.service';
+import { UPost } from 'src/app/models/post.interface';
+import { WorkbookResponseOptions } from 'src/app/models/workbook.interface';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-questions',
   templateUrl: './questions.page.html',
   styleUrls: ['./questions.page.scss'],
-  standalone: false
+  standalone: false,
 })
-export class QuestionsPage implements OnInit {
+export class QuestionsPage implements OnInit, OnDestroy {
   public pager = {
     index: 0,
     size: 1,
@@ -24,6 +28,11 @@ export class QuestionsPage implements OnInit {
   public isValidating = false;
   public validationFeedback: string = '';
   public lastValidationResult: ValidationResult | null = null;
+  public currentPost: UPost | null = null;
+  private chapterPosts: UPost[] = [];
+  private readonly MIN_MEANINGFUL_SCORE = 5;
+  private readonly CHAPTER_COMPLETION_REWARD = 60;
+  private readonly subscriptions = new Subscription();
 
   constructor(
     private questionsService: QuestionsService,
@@ -31,29 +40,71 @@ export class QuestionsPage implements OnInit {
     private workbookService: WorkbookService,
     private router: Router,
     private utilsService: UtilitiesService,
-    private aiValidationService: AiValidationService
+    private aiValidationService: AiValidationService,
+    private postsService: PostsService
   ) {}
 
   ngOnInit() {
     this.utilsService.presentLoading();
-    this.workbookService.getUserWorkbook().subscribe((data) => {
+    const workbookSub = this.workbookService.getUserWorkbook().subscribe((data) => {
       this.workBook = data;
     });
-    this.questionsService
+    this.subscriptions.add(workbookSub);
+
+    const questionsSub = this.questionsService
       .getQuestionsByPostId(this.route.snapshot.paramMap.get('postId'))
       .subscribe((data) => {
         this.questions = data
-          .map((e: any) => {
-            return {
-              id: e.payload.doc.id,
-              ...e.payload.doc.data(),
-            };
-          })
+          .map((e: any) => ({
+            id: e.payload.doc.id,
+            ...e.payload.doc.data(),
+          }))
           .sort((a, b) => (a.order > b.order ? 1 : -1));
 
         this.pager.count = this.questions.length;
         this.utilsService.dismissLoader();
       });
+    this.subscriptions.add(questionsSub);
+
+    this.loadPostMetadata();
+  }
+
+  private loadPostMetadata(): void {
+    const postId = this.route.snapshot.paramMap.get('postId');
+    if (!postId) {
+      return;
+    }
+
+    const postSub = this.postsService.getPostById(postId).subscribe((post) => {
+      if (!post) {
+        return;
+      }
+      this.currentPost = { ...post, postId };
+      if (this.currentPost?.chapterId) {
+        this.loadChapterPosts(this.currentPost.chapterId);
+      }
+    });
+
+    this.subscriptions.add(postSub);
+  }
+
+  private loadChapterPosts(chapterId: string): void {
+    const chapterPostsSub = this.postsService
+      .getPostsByChapterId(chapterId)
+      .subscribe((data) => {
+        this.chapterPosts = data
+          .map((e: any) => ({
+            postId: e.payload.doc.id,
+            ...e.payload.doc.data(),
+          }))
+          .sort((a, b) => (a.order > b.order ? 1 : -1));
+      });
+
+    this.subscriptions.add(chapterPostsSub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   get filteredQuestions() {
@@ -116,14 +167,13 @@ export class QuestionsPage implements OnInit {
   }
 
   async saveQuestionResponses(question) {
-    // Validate final question with AI before completing
     const isValid = await this.validateResponseWithAI(question);
-    
     if (!isValid) {
-      return; // Validation failed, don't complete
+      return;
     }
 
     this.saveAnswerSheet(question);
+    const postId = this.route.snapshot.paramMap.get('postId');
     const obj = Object.assign({
       ...this.questionAnswers.map((item) => ({
         response: item.response,
@@ -132,44 +182,83 @@ export class QuestionsPage implements OnInit {
       })),
     });
 
-    if (this.checkProgress(this.route.snapshot.paramMap.get('postId'))) {
+    if (this.checkProgress(postId)) {
       this.utilsService.presentToast(
         'You have already answered these questions'
       );
       this.router.navigate(['']);
       return;
-    } else {
-      this.utilsService.presentToast(
-        'Please wait while we save your questions.'
-      );
-      this.workbookService
-        .saveQuestionResponses(
-          localStorage.getItem('userWorkbookId'),
-          obj,
-          this.route.snapshot.paramMap.get('postId')
-        )
-        .then(() => {
-          this.utilsService.dismissLoader();
-          this.router.navigate(['/my-work-book']);
-        })
-        .catch((err) => {
-          this.utilsService.dismissLoader();
-          this.utilsService.presentToast(
-            err?.error?.message ? err?.error?.message : 'An error has occurred'
-          );
-        });
     }
+
+    const metadata: WorkbookResponseOptions = {
+      chapterId: this.currentPost?.chapterId ?? null,
+      qualityScore: this.lastValidationResult?.score ?? null,
+      validationFeedback: this.lastValidationResult?.feedback ?? '',
+    };
+
+    const reward = this.calculateChapterReward(postId);
+    if (reward.coins > 0) {
+      metadata.coinsAwarded = reward.coins;
+      metadata.coinReason = reward.reason;
+    }
+
+    this.utilsService.presentToast('Please wait while we save your questions.');
+    this.workbookService
+      .saveQuestionResponses(
+        localStorage.getItem('userWorkbookId'),
+        obj,
+        postId,
+        metadata
+      )
+      .then(() => {
+        this.utilsService.dismissLoader();
+        if (reward.coins > 0) {
+          this.utilsService.presentToast(
+            `Chapter milestone unlocked! ${reward.coins} Luna coins earned.`
+          );
+        }
+        this.router.navigate(['/my-work-book']);
+      })
+      .catch((err) => {
+        this.utilsService.dismissLoader();
+        this.utilsService.presentToast(
+          err?.error?.message ?? 'An error has occurred'
+        );
+      });
   }
 
   checkProgress(postId: string) {
-    return (this.workBook[0]?.responses).some(
+    const entry = this.workBook?.[0]?.responses?.find(
       (element: any) => element?.postId === postId
     );
+    return entry && this.isMeaningfulResponse(entry);
   }
 
   // Validation method: Check if current question has valid text (basic check)
   isCurrentQuestionValid(): boolean {
     return this.questionResponse && this.questionResponse.trim().length > 0;
+  }
+
+  private isMeaningfulResponse(response: any): boolean {
+    if (!response) {
+      return false;
+    }
+
+    if (typeof response?.qualityScore === 'number') {
+      return response.qualityScore >= this.MIN_MEANINGFUL_SCORE;
+    }
+
+    const serialized = JSON.stringify(response?.content ?? '')
+      .replace(/[\n\r]/g, ' ')
+      .trim()
+      .toLowerCase();
+
+    if (!serialized) {
+      return false;
+    }
+
+    const banned = ['x', 'n/a', 'na', 'none', 'nil'];
+    return !banned.includes(serialized);
   }
 
   // Validation method: Check if all questions have been answered with valid text
@@ -269,5 +358,50 @@ export class QuestionsPage implements OnInit {
       
       return true; // Accept if basic validation passes and AI is unavailable
     }
+  }
+
+  private calculateChapterReward(postId?: string): {
+    coins: number;
+    reason: string;
+  } {
+    const responses = (this.workBook?.[0]?.responses ?? []) as any[];
+
+    if (!this.currentPost?.chapterId) {
+      return { coins: 0, reason: '' };
+    }
+
+    const chapterResponses = responses.filter(
+      (response) =>
+        response?.chapterId === this.currentPost?.chapterId &&
+        this.isMeaningfulResponse(response)
+    );
+
+    const alreadyCompleted = chapterResponses.some(
+      (response) => response?.postId === postId
+    );
+
+    if (alreadyCompleted) {
+      return { coins: 0, reason: '' };
+    }
+
+    const totalPosts = this.chapterPosts?.length;
+
+    if (!totalPosts || totalPosts === 0) {
+      return {
+        coins: this.CHAPTER_COMPLETION_REWARD,
+        reason: 'Chapter milestone complete',
+      };
+    }
+
+    const completionCountAfterSave = chapterResponses.length + 1;
+
+    if (completionCountAfterSave >= totalPosts) {
+      return {
+        coins: this.CHAPTER_COMPLETION_REWARD,
+        reason: 'Completed chapter reflection',
+      };
+    }
+
+    return { coins: 0, reason: '' };
   }
 }

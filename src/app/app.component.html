@@ -8,53 +8,53 @@
     <ion-content>
       <ion-list class="side-menu">
         <ion-menu-toggle>
-          <ion-item routerLink="/"
+          <ion-item routerLink="/" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> Dashboard</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/introduction"
+          <ion-item routerLink="/introduction" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> Introduction</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/about"
+          <ion-item routerLink="/about" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> About Positive
             Konnections</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/my-work-book"
+          <ion-item routerLink="/my-work-book" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> My Workbook</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/messages"
+          <ion-item routerLink="/messages" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> Messages</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/ai-assistant"
+          <ion-item routerLink="/ai-assistant" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> AI Assistant</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/feedback"
+          <ion-item routerLink="/feedback" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> Feedback</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/referrals"
+          <ion-item routerLink="/referrals" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> Referrals</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/bookings"
+          <ion-item routerLink="/bookings" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> Bookings</ion-item
           >
         </ion-menu-toggle>
         <ion-menu-toggle>
-          <ion-item routerLink="/surveys"
+          <ion-item routerLink="/surveys" routerDirection="forward"
             ><ion-icon name="chevron-forward"></ion-icon> Surveys</ion-item
           >
         </ion-menu-toggle>
@@ -77,47 +77,47 @@
     </div>
     
     <nav class="sidebar-nav">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+      <a routerLink="/" routerDirection="forward" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
         <ion-icon name="grid-outline"></ion-icon>
         <span>Dashboard</span>
       </a>
-      <a routerLink="/introduction" routerLinkActive="active" class="nav-item">
+      <a routerLink="/introduction" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="play-circle-outline"></ion-icon>
         <span>Introduction</span>
       </a>
-      <a routerLink="/about" routerLinkActive="active" class="nav-item">
+      <a routerLink="/about" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="information-circle-outline"></ion-icon>
         <span>About</span>
       </a>
-      <a routerLink="/interventions" routerLinkActive="active" class="nav-item">
+      <a routerLink="/interventions" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="library-outline"></ion-icon>
         <span>Interventions</span>
       </a>
-      <a routerLink="/my-work-book" routerLinkActive="active" class="nav-item">
+      <a routerLink="/my-work-book" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="book-outline"></ion-icon>
         <span>My Workbook</span>
       </a>
-      <a routerLink="/messages" routerLinkActive="active" class="nav-item">
+      <a routerLink="/messages" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="mail-outline"></ion-icon>
         <span>Messages</span>
       </a>
-      <a routerLink="/ai-assistant" routerLinkActive="active" class="nav-item">
+      <a routerLink="/ai-assistant" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="sparkles-outline"></ion-icon>
         <span>AI Assistant</span>
       </a>
-      <a routerLink="/feedback" routerLinkActive="active" class="nav-item">
+      <a routerLink="/feedback" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="chatbubbles-outline"></ion-icon>
         <span>Feedback</span>
       </a>
-      <a routerLink="/referrals" routerLinkActive="active" class="nav-item">
+      <a routerLink="/referrals" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="people-outline"></ion-icon>
         <span>Referrals</span>
       </a>
-      <a routerLink="/bookings" routerLinkActive="active" class="nav-item">
+      <a routerLink="/bookings" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="calendar-outline"></ion-icon>
         <span>Bookings</span>
       </a>
-      <a routerLink="/surveys" routerLinkActive="active" class="nav-item">
+      <a routerLink="/surveys" routerDirection="forward" routerLinkActive="active" class="nav-item">
         <ion-icon name="clipboard-outline"></ion-icon>
         <span>Surveys</span>
       </a>
@@ -131,5 +131,5 @@
     </div>
   </div>
 
-  <app-bottom-nav></app-bottom-nav>
+  <app-bottom-nav *ngIf="showBottomNav"></app-bottom-nav>
 </ion-app>

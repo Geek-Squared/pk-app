@@ -63,6 +63,11 @@
     outline: 3px solid rgba(79, 195, 247, 0.35);
     outline-offset: 2px;
   }
+  &.locked {
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+  }
 }
 
 .item-icon {

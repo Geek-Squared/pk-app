@@ -1,14 +1,19 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button
+        text=""
+        icon="chevron-back"
+        defaultHref="/home"
+      ></ion-back-button>
     </ion-buttons>
+    <ion-title>Notifications</ion-title>
     <ion-buttons slot="end">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="page-content">
   <ion-list class="notifications-list">
     <ion-item lines="none" *ngFor="let note of notifications">
       <ion-icon name="notifications-outline" slot="start"></ion-icon>

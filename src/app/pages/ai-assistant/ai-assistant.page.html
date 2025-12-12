@@ -1,14 +1,16 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button text="" icon="chevron-back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>Luna AI</ion-title>
     <ion-buttons slot="end">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content [fullscreen]="true" class="assistant-content">
+
+<ion-content [fullscreen]="true" class="page-content" class="assistant-content">
   <div class="assistant-shell">
 
 
@@ -32,6 +34,25 @@
         >
           <ion-icon name="sparkles-outline"></ion-icon>
           <span>{{ suggestion }}</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="luna-actions">
+      <h3>Luna can help with</h3>
+      <div class="actions-grid">
+        <button
+          type="button"
+          class="action-pill"
+          *ngFor="let action of supportActions"
+          (click)="handleSupportAction(action)"
+        >
+          <ion-icon [name]="action.icon"></ion-icon>
+          <div class="action-text">
+            <strong>{{ action.title }}</strong>
+            <span>{{ action.description }}</span>
+          </div>
+          <ion-icon name="arrow-forward-outline" class="chevron"></ion-icon>
         </button>
       </div>
     </section>
@@ -64,7 +85,7 @@
           #composer
           autoGrow="true"
           rows="1"
-          placeholder="Ask anything - press Enter to send"
+          placeholder="Ask anything - press Enter to send..."
           formControlName="prompt"
           (keydown)="handleKeydown($event)"
           [disabled]="pending"

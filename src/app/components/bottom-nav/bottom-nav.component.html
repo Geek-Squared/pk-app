@@ -5,6 +5,7 @@
       class="nav-button"
       [routerLink]="['/home']"
       [class.active]="isActive('/home')"
+      routerDirection="root"
     >
       <ion-icon name="home-outline"></ion-icon>
       <span>Home</span>
@@ -14,10 +15,10 @@
       class="nav-button"
       [routerLink]="['/notifications']"
       [class.active]="isActive('/notifications')"
+      routerDirection="forward"
     >
       <ion-icon name="notifications-outline"></ion-icon>
       <span>Alerts</span>
     </button>
   </nav>
 </ng-container>
-

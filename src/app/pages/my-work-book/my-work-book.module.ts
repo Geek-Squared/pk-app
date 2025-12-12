@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
@@ -10,11 +10,13 @@ import { MyWorkBookPage } from './my-work-book.page';
 import { ChaptersComponent } from './chapters/chapters.component';
 import { PostsComponent } from './posts/posts.component';
 import { QuestionAnswersComponent } from './question-answers/question-answers.component';
+import { SuperheroComponent } from './superhero/superhero.component';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     IonicModule,
     MyWorkBookPageRoutingModule,
   ],
@@ -23,6 +25,7 @@ import { QuestionAnswersComponent } from './question-answers/question-answers.co
     ChaptersComponent,
     PostsComponent,
     QuestionAnswersComponent,
+    SuperheroComponent,
   ],
 })
 export class MyWorkBookPageModule {}

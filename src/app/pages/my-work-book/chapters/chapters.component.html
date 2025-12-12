@@ -6,7 +6,7 @@
         type="button"
         class="mobile-item"
         [routerLink]="['../posts', chapter.id]"
-        *ngIf="res[0]?.responses.length > i - 1 || i == 0"
+        *ngIf="canAccessChapter(res[0]?.responses, i)"
       >
         <div class="item-icon">
           <ion-icon name="folder-open-outline"></ion-icon>
@@ -31,7 +31,7 @@
           button
           detail
           [routerLink]="['../posts', chapter.id]"
-          *ngIf="res[0]?.responses.length > i - 1 || i == 0"
+          *ngIf="canAccessChapter(res[0]?.responses, i)"
         >
           <ion-icon name="folder-open" size="large"></ion-icon>
           <br />
@@ -41,3 +41,37 @@
     </ng-container>
   </ion-row>
 </ion-grid>
+
+<ng-container *ngIf="userQuestionResponses$ | async as res">
+  <div
+    class="hero-chapter-card"
+    [class.locked]="!canAccessHeroChapter(res[0]?.responses)"
+  >
+    <div class="hero-card-copy">
+      <p class="eyebrow">Chapter 10</p>
+      <h3>Superhero for Life</h3>
+      <p>
+        Rewrite your story as a hero, unlock powers with Luna coins, and create an avatar that reflects who you are becoming.
+      </p>
+      <div class="hero-card-actions">
+        <ion-button
+          color="primary"
+          fill="solid"
+          [routerLink]="['../chapter-ten']"
+          [disabled]="!canAccessHeroChapter(res[0]?.responses)"
+        >
+          Launch Chapter 10
+          <ion-icon slot="end" name="rocket-outline"></ion-icon>
+        </ion-button>
+        <ion-text color="medium" *ngIf="!canAccessHeroChapter(res[0]?.responses)">
+          Complete earlier chapters with meaningful reflections to unlock.
+        </ion-text>
+      </div>
+    </div>
+    <div class="hero-card-visual" aria-hidden="true">
+      <div class="hero-avatar">
+        <span class="hero-emblem">PK</span>
+      </div>
+    </div>
+  </div>
+</ng-container>

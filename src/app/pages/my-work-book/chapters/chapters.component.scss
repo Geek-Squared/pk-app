@@ -81,11 +81,11 @@
   }
 
   // Show desktop grid
-  .desktop-grid {
-    display: block;
-  }
+.desktop-grid {
+  display: block;
+}
 
-  ion-col {
+ion-col {
     border: 1px solid #eee;
     padding: 18px 3px 5px 3px;
     cursor: pointer;
@@ -104,6 +104,79 @@
     p {
       font-size: 13px;
       margin: 0;
+    }
+  }
+}
+
+.hero-chapter-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(107, 44, 145, 0.12), rgba(26, 167, 156, 0.12));
+  border: 1px solid rgba(107, 44, 145, 0.25);
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+
+  &.locked {
+    opacity: 0.6;
+  }
+
+  .hero-card-copy {
+    flex: 1 1 260px;
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.78rem;
+      color: rgba(29, 42, 68, 0.7);
+      margin: 0 0 0.4rem 0;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: #1d2a44;
+    }
+
+    p {
+      margin: 0.6rem 0 1.1rem;
+      color: rgba(29, 42, 68, 0.75);
+      line-height: 1.5;
+    }
+  }
+
+  .hero-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    ion-button[disabled] {
+      opacity: 0.7;
+    }
+  }
+
+  .hero-card-visual {
+    flex: 0 0 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-avatar {
+    width: 140px;
+    height: 140px;
+    border-radius: 40% 60% 55% 45%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(91, 33, 182, 0.85));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 25px 45px rgba(45, 30, 80, 0.25);
+
+    .hero-emblem {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #fff;
     }
   }
 }

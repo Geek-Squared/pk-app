@@ -69,6 +69,12 @@ ion-app {
 
 ion-content {
   --background: transparent;
+  --overflow: auto;
+}
+.page-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 ion-toolbar {

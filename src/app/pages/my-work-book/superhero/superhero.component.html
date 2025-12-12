@@ -1,0 +1,157 @@
+<div class="superhero-shell">
+  <section class="status-grid">
+    <article class="balance-card">
+      <div class="card-header">
+        <h2>Luna Coins</h2>
+        <ion-icon name="sparkles-outline"></ion-icon>
+      </div>
+      <p class="balance">{{ coinBalance }}</p>
+      <p class="subtitle">Earn coins by completing chapters with meaningful reflections.</p>
+
+      <div class="history" *ngIf="coinHistory?.length">
+        <p class="history-label">Recent Activity</p>
+        <ul>
+          <li *ngFor="let entry of coinHistory | slice:0:3">
+            <span>{{ entry?.reason || 'Reward' }}</span>
+            <strong [class.earn]="entry?.amount > 0" [class.spend]="entry?.amount < 0">
+              {{ entry?.amount > 0 ? '+' : '' }}{{ entry?.amount }}
+            </strong>
+          </li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="avatar-card" [style.--aura]="heroForm.value.auraColor">
+      <p class="eyebrow">Hero Avatar</p>
+      <h3>{{ heroForm.value.heroName || 'Your Hero' }}</h3>
+      <p class="alias" *ngIf="heroForm.value.alias">@{{ heroForm.value.alias }}</p>
+      <p class="origin" *ngIf="heroForm.value.originStory">
+        {{ heroForm.value.originStory }}
+      </p>
+      <div class="power-chip" *ngIf="heroForm.value.signaturePower">
+        <ion-icon name="flash-outline"></ion-icon>
+        <span>{{ heroForm.value.signaturePower }}</span>
+      </div>
+      <div class="power-chip" *ngFor="let power of heroProfile.secondaryPowers">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <span>{{ power }}</span>
+      </div>
+      <p class="motto" *ngIf="heroForm.value.motto">“{{ heroForm.value.motto }}”</p>
+    </article>
+  </section>
+
+  <section class="builder-card">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Create Your Hero</p>
+        <h2>Chapter 10 · Superhero for Life</h2>
+        <p class="subtitle">
+          Bring every lesson together by designing an avatar that carries your strengths, allies, and story.
+        </p>
+      </div>
+      <ion-button fill="solid" color="primary" (click)="saveHeroProfile()">
+        Save Hero Story
+        <ion-icon slot="end" name="save-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <form [formGroup]="heroForm">
+      <div class="form-grid">
+        <ion-item lines="none">
+          <ion-label position="stacked">Hero Name</ion-label>
+          <ion-input formControlName="heroName"></ion-input>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label position="stacked">Everyday Alias</ion-label>
+          <ion-input formControlName="alias"></ion-input>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label position="stacked">Signature Power</ion-label>
+          <ion-input formControlName="signaturePower"></ion-input>
+        </ion-item>
+
+        <ion-item lines="none">
+          <ion-label position="stacked">Hero Motto</ion-label>
+          <ion-input formControlName="motto"></ion-input>
+        </ion-item>
+      </div>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Origin Story</ion-label>
+        <ion-textarea
+          formControlName="originStory"
+          rows="6"
+          placeholder="Describe how your hero was formed, who stood beside them, and the challenges they’ve overcome."
+        ></ion-textarea>
+      </ion-item>
+    </form>
+
+    <div class="aura-picker">
+      <p>Choose Aura Color</p>
+      <div class="aura-options">
+        <button
+          type="button"
+          *ngFor="let aura of auraOptions"
+          [style.background]="aura"
+          [class.selected]="heroForm.value.auraColor === aura"
+          (click)="selectAura(aura)"
+        ></button>
+      </div>
+    </div>
+
+    <div class="secondary-powers">
+      <p>Supporting Powers</p>
+      <div class="power-options">
+        <button
+          type="button"
+          *ngFor="let power of secondaryPowerOptions; trackBy: trackByLabel"
+          [class.selected]="isSecondarySelected(power)"
+          (click)="toggleSecondaryPower(power)"
+        >
+          {{ power }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="upgrade-section">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Power Ups</p>
+        <h2>Invest Coins · Unlock Traits</h2>
+        <p class="subtitle">
+          Spend Luna coins earned from chapters to add new strengths that mirror your growth journey.
+        </p>
+      </div>
+    </div>
+
+    <div class="upgrade-grid">
+      <article
+        class="upgrade-card"
+        *ngFor="let upgrade of powerUpgrades; trackBy: trackByUpgrade"
+        [class.unlocked]="heroProfile.unlockedUpgrades?.includes(upgrade.id)"
+      >
+        <div class="upgrade-headline">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <div>
+            <h3>{{ upgrade.label }}</h3>
+            <p>{{ upgrade.description }}</p>
+          </div>
+        </div>
+        <div class="upgrade-actions">
+          <span class="cost">{{ upgrade.cost }} coins</span>
+          <ion-button
+            size="small"
+            fill="clear"
+            (click)="unlockUpgrade(upgrade)"
+            [disabled]="heroProfile.unlockedUpgrades?.includes(upgrade.id)"
+          >
+            {{ heroProfile.unlockedUpgrades?.includes(upgrade.id) ? 'Unlocked' : 'Unlock' }}
+          </ion-button>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>

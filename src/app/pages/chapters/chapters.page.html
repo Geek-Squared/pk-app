@@ -1,14 +1,16 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button text="" icon="chevron-back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>Chapters</ion-title>
     <ion-buttons slot="end">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content class="chapters-content">
+
+<ion-content [fullscreen]="true" class="page-content" class="chapters-content">
   <div class="page-shell">
     <div class="page-header">
       <h1>Chapters</h1>
@@ -26,10 +28,14 @@
             type="button"
             class="chapter-item"
             *ngFor="let chapter of filteredChapters; let i = index"
-            routerLink="/posts/{{ chapter.id }}"
+            (click)="handleChapterClick(chapter.id, i)"
+            [class.locked]="!canAccessChapter(i)"
           >
             <div class="item-icon">
-              <span>{{ i + 1 }}</span>
+              <span *ngIf="canAccessChapter(i); else lockIcon">{{ i + 1 }}</span>
+              <ng-template #lockIcon>
+                <ion-icon name="lock-closed-outline"></ion-icon>
+              </ng-template>
             </div>
             <div class="item-text">
               <h2>{{ chapter?.title }}</h2>

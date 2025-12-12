@@ -22,7 +22,10 @@ export class PostsService {
 
   getPostById(postId: string) {
     return runInInjectionContext(this.injector, () => {
-      return this.firestore.collection('posts').doc(postId).get();
+      return this.firestore
+        .collection<UPost>('posts')
+        .doc(postId)
+        .valueChanges({ idField: 'postId' });
     });
   }
 

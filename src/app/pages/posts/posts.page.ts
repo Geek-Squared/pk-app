@@ -17,6 +17,7 @@ export class PostsPage implements OnInit {
   public selectedPost: UPost;
   public posts: UPost[];
   public workBook;
+  private readonly MIN_MEANINGFUL_SCORE = 5;
 
   constructor(
     private postsService: PostsService,
@@ -69,11 +70,12 @@ export class PostsPage implements OnInit {
   }
 
   checkProgress(postId: string) {
-    return this.workBook
-      ? Object?.values(this.workBook[0]?.responses).find(
-          (element: any) => element?.postId === postId
-        )
-      : null;
+    const responses = this.workBook?.[0]?.responses ?? [];
+    const entry = Object.values(responses).find(
+      (element: any) => element?.postId === postId
+    );
+
+    return entry && this.isMeaningfulResponse(entry) ? entry : null;
   }
 
   // Check if a story is unlocked (can be accessed)
@@ -92,6 +94,28 @@ export class PostsPage implements OnInit {
     }
 
     return true; // All previous stories completed
+  }
+
+  private isMeaningfulResponse(response: any): boolean {
+    if (!response) {
+      return false;
+    }
+
+    if (typeof response?.qualityScore === 'number') {
+      return response.qualityScore >= this.MIN_MEANINGFUL_SCORE;
+    }
+
+    const serialized = JSON.stringify(response?.content ?? '')
+      .replace(/[\n\r]/g, ' ')
+      .trim()
+      .toLowerCase();
+
+    if (!serialized) {
+      return false;
+    }
+
+    const banned = ['x', 'n/a', 'na', 'none', 'nil'];
+    return !banned.includes(serialized);
   }
 
   // Get appropriate icon based on story status

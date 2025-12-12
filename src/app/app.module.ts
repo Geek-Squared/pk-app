@@ -10,6 +10,7 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BottomNavComponent } from './components/bottom-nav/bottom-nav.component';
+import { fadeAnimation } from './utils/nav-animation';
 
 import { environment } from 'src/environments/environment';
 import { HttpClientModule } from '@angular/common/http';
@@ -33,7 +34,9 @@ import {
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    IonicModule.forRoot(),
+    IonicModule.forRoot({
+      navAnimation: fadeAnimation,
+    }),
     AppRoutingModule,
     CommonModule,
     HttpClientModule,

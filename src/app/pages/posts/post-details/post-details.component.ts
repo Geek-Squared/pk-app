@@ -1,6 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { take } from 'rxjs/operators';
 import { UPost } from 'src/app/models/post.interface';
+import { QuestionsService } from 'src/app/services/questions.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 
 @Component({
@@ -11,16 +13,22 @@ import { WorkbookService } from 'src/app/services/workbook.service';
 export class PostDetailsComponent implements OnInit {
   @Input() story: UPost;
   public workBook = [];
+  private readonly MIN_MEANINGFUL_SCORE = 5;
+  private hasQuestions = true;
+  private isRecordingVideoCompletion = false;
 
   constructor(
     public modalController: ModalController,
-    private workbookService: WorkbookService
+    private workbookService: WorkbookService,
+    private questionsService: QuestionsService
   ) {}
 
   ngOnInit() {
     this.workbookService.getUserWorkbook().subscribe((data) => {
       this.workBook = data;
     });
+
+    this.loadQuestionState();
   }
 
   dismiss(value?) {
@@ -31,8 +39,86 @@ export class PostDetailsComponent implements OnInit {
   }
 
   checkProgress() {
-    return this.workBook[0]?.responses.find(
-      (element) => element?.postId === this.story?.id
+    const postId = this.getStoryId();
+    const entry = this.workBook[0]?.responses?.find(
+      (element) => element?.postId === postId
     );
+    return entry && this.isMeaningfulResponse(entry);
+  }
+
+  handleVideoClick(): void {
+    if (this.hasQuestions || this.checkProgress() || this.isRecordingVideoCompletion) {
+      return;
+    }
+
+    const workbookId = localStorage.getItem('userWorkbookId');
+    const postId = this.getStoryId();
+    if (!workbookId || !postId) {
+      return;
+    }
+
+    this.isRecordingVideoCompletion = true;
+    const completionPromise = this.workbookService.markVideoCompletion(
+      workbookId,
+      postId,
+      this.story?.chapterId ?? null
+    );
+
+    if (!completionPromise) {
+      this.isRecordingVideoCompletion = false;
+      return;
+    }
+
+    completionPromise
+      .catch(() => undefined)
+      .finally(() => {
+        this.isRecordingVideoCompletion = false;
+      });
+  }
+
+  private loadQuestionState(): void {
+    const postId = this.getStoryId();
+    if (!postId) {
+      this.hasQuestions = false;
+      return;
+    }
+
+    this.questionsService
+      .getQuestionsByPostId(postId)
+      .pipe(take(1))
+      .subscribe(
+        (snapshot) => {
+          this.hasQuestions = (snapshot?.length ?? 0) > 0;
+        },
+        () => {
+          this.hasQuestions = true;
+        }
+      );
+  }
+
+  private getStoryId(): string | undefined {
+    return this.story?.postId ?? this.story?.id;
+  }
+
+  private isMeaningfulResponse(response: any): boolean {
+    if (!response) {
+      return false;
+    }
+
+    if (typeof response?.qualityScore === 'number') {
+      return response.qualityScore >= this.MIN_MEANINGFUL_SCORE;
+    }
+
+    const serialized = JSON.stringify(response?.content ?? '')
+      .replace(/[\n\r]/g, ' ')
+      .trim()
+      .toLowerCase();
+
+    if (!serialized) {
+      return false;
+    }
+
+    const banned = ['x', 'n/a', 'na', 'none', 'nil'];
+    return !banned.includes(serialized);
   }
 }

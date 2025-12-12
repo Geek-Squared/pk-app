@@ -1,14 +1,16 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button text="" icon="chevron-back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>Questions</ion-title>
     <ion-buttons slot="end">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content class="ion-padding">
+
+<ion-content [fullscreen]="true" class="page-content" class="ion-padding">
   <div *ngFor="let question of filteredQuestions">
     <h3>{{question?.narrative}}</h3>
 

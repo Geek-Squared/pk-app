@@ -1,15 +1,17 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button text="" icon="chevron-back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>Chat</ion-title>
     <ion-buttons slot="end">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content #content>
-  <ng-container>
+
+<ion-content [fullscreen]="true" class="page-content chat-page" #content>
+  <section class="chat-thread">
     <div class="chat">
       <ng-container
         *ngFor="
@@ -26,6 +28,7 @@
         </div>
 
         <div class="msg">
+          <div class="msg-bubble">
           <div class="user">
             <img [src]="msg.user?.photoURL" />
             <span
@@ -55,21 +58,24 @@
         </div>
       </ng-container>
     </div>
+  </section>
 
-    <div class="form">
-      <input
-        [(ngModel)]="newMsg"
-        placeholder="Hold the record button for voice messages"
-        (keydown.enter)="submit(chat)"
-      />
-
-      <button (click)="submit(chat)">
-        <ion-icon name="send"></ion-icon>
-      </button>
-      <ion-button fill="clear" #recordBtn (click)="selectedChat = chat">
-        <ion-icon name="mic-outline" slot="icon-only"></ion-icon>
+  <section class="chat-input">
+    <div class="input-shell">
+      <ion-button fill="clear" class="mic-btn" (click)="selectedChat = chat">
+        <ion-icon name="mic-outline"></ion-icon>
       </ion-button>
-    </div> </ng-container
-></ion-content>
 
-{{ recordBtn }}
+      <ion-textarea
+        autoGrow="true"
+        [(ngModel)]="newMsg"
+        placeholder="Send a message or hold the mic"
+        (keydown.enter)="submit(chat)"
+      ></ion-textarea>
+
+      <ion-button class="send-btn" (click)="submit(chat)">
+        <ion-icon name="send"></ion-icon>
+      </ion-button>
+    </div>
+  </section>
+</ion-content>

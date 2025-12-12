@@ -1,14 +1,18 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button text="" icon="chevron-back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>Post Details</ion-title>
     <ion-buttons slot="end">
-      <ion-menu-button autoHide="false"></ion-menu-button>
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content class="ion-padding">
+
+<ion-content [fullscreen]="true" class="page-content" class="ion-padding">
   <h3 class="ion-text-center">{{ story?.title }}</h3>
   <br />
   <div class="card-img clr-col">
@@ -22,6 +26,7 @@
     fill="outline"
     [href]="story?.videoUrl"
     target="_blank"
+    (click)="handleVideoClick()"
     >Online Video</ion-button
   >
   <br />

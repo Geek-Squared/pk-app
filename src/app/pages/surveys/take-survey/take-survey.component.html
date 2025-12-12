@@ -1,14 +1,16 @@
 <ion-header translucent="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
+      <ion-back-button text="" icon="chevron-back" defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>Take Survey</ion-title>
     <ion-buttons slot="end">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content>
+
+<ion-content [fullscreen]="true" class="page-content">
   <!-- <h3>{{ survey?.title }}</h3>
 <p>{{ survey.description }}</p> -->
   <survey *ngIf="surveyModel" [model]="surveyModel"></survey>

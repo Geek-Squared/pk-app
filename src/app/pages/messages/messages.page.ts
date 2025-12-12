@@ -41,7 +41,14 @@ export class MessagesPage implements OnInit {
   }
 
   change(event) {
-    this.displayView = event?.target?.value;
+    const value = event?.detail?.value;
+    if (value) {
+      this.displayView = value;
+    }
+  }
+
+  setView(view: 'chats' | 'group') {
+    this.displayView = view;
   }
 
   getTotalUnread(chat) {
