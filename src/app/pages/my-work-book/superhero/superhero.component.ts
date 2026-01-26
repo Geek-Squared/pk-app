@@ -7,6 +7,7 @@ import {
 } from 'src/app/models/workbook.interface';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
+import { AvatarService } from 'src/app/services/avatar.service';
 
 interface PowerUpgrade {
   id: string;
@@ -26,6 +27,9 @@ export class SuperheroComponent implements OnInit, OnDestroy {
   coinBalance = 0;
   coinHistory: any[] = [];
   workbookId?: string;
+  avatarUrl?: string;
+  avatarLoading = false;
+  avatarError?: string;
   heroProfile: HeroProfile = {
     heroName: '',
     alias: '',
@@ -91,7 +95,8 @@ export class SuperheroComponent implements OnInit, OnDestroy {
   constructor(
     private readonly workbookService: WorkbookService,
     private readonly fb: FormBuilder,
-    private readonly utilsService: UtilitiesService
+    private readonly utilsService: UtilitiesService,
+    private readonly avatarService: AvatarService
   ) {
     this.heroForm = this.fb.group({
       heroName: ['', [Validators.required, Validators.minLength(3)]],
@@ -131,6 +136,7 @@ export class SuperheroComponent implements OnInit, OnDestroy {
         secondaryPowers: profile.secondaryPowers ?? [],
         unlockedUpgrades: profile.unlockedUpgrades ?? [],
       };
+      this.avatarUrl = this.heroProfile.avatarImageUrl;
 
       this.heroForm.patchValue({
         heroName: this.heroProfile.heroName ?? '',
@@ -182,24 +188,11 @@ export class SuperheroComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.heroForm.invalid) {
-      this.heroForm.markAllAsTouched();
-      this.utilsService.presentToast(
-        'Please complete the hero story before saving.'
-      );
+    if (!this.ensureFormComplete()) {
       return;
     }
 
-    const payload: HeroProfile = {
-      heroName: this.heroForm.value.heroName.trim(),
-      alias: this.heroForm.value.alias?.trim(),
-      originStory: this.heroForm.value.originStory.trim(),
-      signaturePower: this.heroForm.value.signaturePower,
-      auraColor: this.heroForm.value.auraColor,
-      motto: this.heroForm.value.motto?.trim(),
-      secondaryPowers: this.heroProfile.secondaryPowers ?? [],
-      unlockedUpgrades: this.heroProfile.unlockedUpgrades ?? [],
-    };
+    const payload = this.buildProfileFromForm();
 
     this.workbookService
       .updateHeroProfile(this.workbookId, payload)
@@ -257,5 +250,77 @@ export class SuperheroComponent implements OnInit, OnDestroy {
           'Unable to unlock this upgrade at the moment.'
         )
       );
+  }
+
+  generateAvatar(): void {
+    if (!this.workbookId) {
+      return;
+    }
+
+    if (!this.ensureFormComplete()) {
+      return;
+    }
+
+    const payload = this.buildProfileFromForm();
+    this.avatarLoading = true;
+    this.avatarError = undefined;
+
+    const avatarSub = this.avatarService.generateHeroAvatar(payload).subscribe({
+      next: (url) => {
+        this.avatarUrl = url;
+        const updatedProfile: HeroProfile = {
+          ...payload,
+          avatarImageUrl: url,
+        };
+        this.heroProfile = {
+          ...this.heroProfile,
+          ...updatedProfile,
+        };
+        this.workbookService
+          .updateHeroProfile(this.workbookId!, updatedProfile)
+          .then(() =>
+            this.utilsService.presentToast('Visual avatar generated!')
+          )
+          .catch(() =>
+            this.utilsService.presentToast(
+              'Avatar created but failed to save. Please try again.'
+            )
+          );
+      },
+      error: () => {
+        this.avatarError =
+          'We could not reach the avatar service. Please try again in a moment.';
+        this.utilsService.presentToast(this.avatarError);
+      },
+      complete: () => {
+        this.avatarLoading = false;
+      },
+    });
+    this.subscriptions.add(avatarSub);
+  }
+
+  private ensureFormComplete(): boolean {
+    if (this.heroForm.invalid) {
+      this.heroForm.markAllAsTouched();
+      this.utilsService.presentToast(
+        'Please complete the hero story before continuing.'
+      );
+      return false;
+    }
+    return true;
+  }
+
+  private buildProfileFromForm(): HeroProfile {
+    return {
+      heroName: this.heroForm.value.heroName.trim(),
+      alias: this.heroForm.value.alias?.trim(),
+      originStory: this.heroForm.value.originStory.trim(),
+      signaturePower: this.heroForm.value.signaturePower,
+      auraColor: this.heroForm.value.auraColor,
+      motto: this.heroForm.value.motto?.trim(),
+      secondaryPowers: this.heroProfile.secondaryPowers ?? [],
+      unlockedUpgrades: this.heroProfile.unlockedUpgrades ?? [],
+      avatarImageUrl: this.avatarUrl,
+    };
   }
 }

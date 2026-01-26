@@ -29,6 +29,7 @@ export interface HeroProfile {
   secondaryPowers: string[];
   unlockedUpgrades: string[];
   motto?: string;
+  avatarImageUrl?: string;
   updatedAt?: number;
 }
 

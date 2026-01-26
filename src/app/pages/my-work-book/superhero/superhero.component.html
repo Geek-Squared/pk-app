@@ -25,7 +25,30 @@
       <p class="eyebrow">Hero Avatar</p>
       <h3>{{ heroForm.value.heroName || 'Your Hero' }}</h3>
       <p class="alias" *ngIf="heroForm.value.alias">@{{ heroForm.value.alias }}</p>
-      <p class="origin" *ngIf="heroForm.value.originStory">
+      <div class="avatar-media">
+        <img
+          *ngIf="avatarUrl; else avatarPlaceholder"
+          [src]="avatarUrl"
+          alt="Generated hero avatar"
+        />
+        <ng-template #avatarPlaceholder>
+          <p class="origin">
+            Add your hero story above, then generate a visual avatar inspired by their powers.
+          </p>
+        </ng-template>
+      </div>
+      <ion-button
+        size="small"
+        color="light"
+        fill="clear"
+        (click)="generateAvatar()"
+        [disabled]="avatarLoading"
+      >
+        <ion-spinner slot="start" name="crescent" *ngIf="avatarLoading"></ion-spinner>
+        Generate Visual Avatar
+      </ion-button>
+      <ion-text color="danger" *ngIf="avatarError">{{ avatarError }}</ion-text>
+      <p class="origin" *ngIf="heroForm.value.originStory && avatarUrl">
         {{ heroForm.value.originStory }}
       </p>
       <div class="power-chip" *ngIf="heroForm.value.signaturePower">

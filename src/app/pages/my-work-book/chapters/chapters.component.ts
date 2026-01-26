@@ -17,6 +17,7 @@ export class ChaptersComponent implements OnInit {
     this.workbookService.getUserQuestionResponses();
   private readonly MIN_MEANINGFUL_SCORE = 5;
   private readonly HERO_UNLOCK_THRESHOLD = 9;
+  private readonly HERO_PREVIEW_ENABLED = true;
 
   constructor(
     private chaptersService: ChaptersService,
@@ -58,6 +59,10 @@ export class ChaptersComponent implements OnInit {
   public canAccessHeroChapter(
     responses: WorkbookResponse[] | undefined
   ): boolean {
+    if (this.HERO_PREVIEW_ENABLED) {
+      return true;
+    }
+
     const required = Math.min(
       this.HERO_UNLOCK_THRESHOLD,
       this.chapters?.length ?? this.HERO_UNLOCK_THRESHOLD

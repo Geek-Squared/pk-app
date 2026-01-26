@@ -135,6 +135,28 @@
     font-style: italic;
     font-weight: 600;
   }
+
+  .avatar-media {
+    margin: 0.5rem 0 0.75rem;
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.25);
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+    }
+  }
+
+  ion-button {
+    --color: #fff;
+    padding-left: 0;
+  }
 }
 
 .builder-card .section-header,
