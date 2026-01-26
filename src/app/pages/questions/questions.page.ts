@@ -3,7 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { QuestionsService } from 'src/app/services/questions.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
-import { AiValidationService, ValidationResult } from 'src/app/services/ai-validation.service';
+import {
+  AiValidationService,
+  ValidationResult,
+} from 'src/app/services/ai-validation.service';
 import { PostsService } from 'src/app/services/posts.service';
 import { UPost } from 'src/app/models/post.interface';
 import { WorkbookResponseOptions } from 'src/app/models/workbook.interface';
@@ -46,9 +49,11 @@ export class QuestionsPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.utilsService.presentLoading();
-    const workbookSub = this.workbookService.getUserWorkbook().subscribe((data) => {
-      this.workBook = data;
-    });
+    const workbookSub = this.workbookService
+      .getUserWorkbook()
+      .subscribe((data) => {
+        this.workBook = data;
+      });
     this.subscriptions.add(workbookSub);
 
     const questionsSub = this.questionsService
@@ -121,12 +126,12 @@ export class QuestionsPage implements OnInit, OnDestroy {
     if (index > this.pager.index) {
       const currentQuestion = this.filteredQuestions[0];
       const isValid = await this.validateResponseWithAI(currentQuestion);
-      
+
       if (!isValid) {
         return; // Validation failed, don't proceed forward
       }
     }
-    
+
     if (questionId) this.saveAnswerSheet(questionId);
     if (index >= 0 && index < this.pager.count) {
       this.pager.index = index;
@@ -214,7 +219,7 @@ export class QuestionsPage implements OnInit, OnDestroy {
         this.utilsService.dismissLoader();
         if (reward.coins > 0) {
           this.utilsService.presentToast(
-            `Chapter milestone unlocked! ${reward.coins} Luna coins earned.`
+            `Chapter milestone unlocked! ${reward.coins} Peekay coins earned.`
           );
         }
         this.router.navigate(['/my-work-book']);
@@ -277,7 +282,9 @@ export class QuestionsPage implements OnInit, OnDestroy {
   async validateResponseWithAI(question: any): Promise<boolean> {
     // First check basic validation
     if (!this.isCurrentQuestionValid()) {
-      this.utilsService.presentToast('Please enter your response before proceeding.');
+      this.utilsService.presentToast(
+        'Please enter your response before proceeding.'
+      );
       return false;
     }
 
@@ -286,14 +293,19 @@ export class QuestionsPage implements OnInit, OnDestroy {
     this.validationFeedback = 'Checking response quality...';
 
     try {
-      console.log('Starting AI validation for response:', this.questionResponse);
-      
+      console.log(
+        'Starting AI validation for response:',
+        this.questionResponse
+      );
+
       // Use AI validation service
-      const result = await this.aiValidationService.validateResponse(
-        question?.narrative || 'Reflection question',
-        this.questionResponse,
-        'Story about resilience and strength in HIV journey'
-      ).toPromise();
+      const result = await this.aiValidationService
+        .validateResponse(
+          question?.narrative || 'Reflection question',
+          this.questionResponse,
+          'Story about resilience and strength in HIV journey'
+        )
+        .toPromise();
 
       console.log('AI validation result received:', result);
 
@@ -301,7 +313,8 @@ export class QuestionsPage implements OnInit, OnDestroy {
       if (result && (result as any).choices && (result as any).choices[0]) {
         // This is an OpenAI API response, parse it
         console.log('Parsing OpenAI API response');
-        this.lastValidationResult = this.aiValidationService.parseOpenAIResponse(result);
+        this.lastValidationResult =
+          this.aiValidationService.parseOpenAIResponse(result);
       } else if (result && typeof (result as any).score === 'number') {
         // This is already a ValidationResult from enhanced validation
         console.log('Using enhanced validation result directly');
@@ -312,28 +325,34 @@ export class QuestionsPage implements OnInit, OnDestroy {
         this.lastValidationResult = {
           score: 6,
           is_valid: true,
-          feedback: 'Response accepted (validation format issue)'
+          feedback: 'Response accepted (validation format issue)',
         };
       }
-      
+
       console.log('Final validation result:', this.lastValidationResult);
-      
+
       this.isValidating = false;
 
       // Check if response is valid
-      if (this.lastValidationResult.is_valid && this.lastValidationResult.score >= 5) {
+      if (
+        this.lastValidationResult.is_valid &&
+        this.lastValidationResult.score >= 5
+      ) {
         this.validationFeedback = this.lastValidationResult.feedback;
         if (this.lastValidationResult.score >= 8) {
-          this.utilsService.presentToast('Great reflection! Thank you for sharing your thoughts.');
+          this.utilsService.presentToast(
+            'Great reflection! Thank you for sharing your thoughts.'
+          );
         }
         return true;
       } else {
         // Response needs improvement
         this.validationFeedback = this.lastValidationResult.feedback;
         if (this.lastValidationResult.suggestions) {
-          this.validationFeedback += '. ' + this.lastValidationResult.suggestions;
+          this.validationFeedback +=
+            '. ' + this.lastValidationResult.suggestions;
         }
-        
+
         this.utilsService.presentToast(this.validationFeedback);
         return false;
       }
@@ -343,19 +362,23 @@ export class QuestionsPage implements OnInit, OnDestroy {
         message: error.message,
         status: error.status,
         statusText: error.statusText,
-        error: error.error
+        error: error.error,
       });
       this.isValidating = false;
-      
+
       // Fallback to basic validation if AI fails
       this.validationFeedback = 'AI validation unavailable, using basic check.';
-      const basicResult = this.aiValidationService.basicValidation(this.questionResponse);
-      
+      const basicResult = this.aiValidationService.basicValidation(
+        this.questionResponse
+      );
+
       if (!basicResult.valid) {
-        this.utilsService.presentToast(basicResult.reason || 'Please provide a more thoughtful response.');
+        this.utilsService.presentToast(
+          basicResult.reason || 'Please provide a more thoughtful response.'
+        );
         return false;
       }
-      
+
       return true; // Accept if basic validation passes and AI is unavailable
     }
   }

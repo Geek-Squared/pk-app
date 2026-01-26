@@ -68,10 +68,10 @@ export class SuperheroComponent implements OnInit, OnDestroy {
       cost: 25,
     },
     {
-      id: 'luna-beacon',
-      label: 'Luna Beacon',
+      id: 'peekay-beacon',
+      label: 'Peekay Beacon',
       description:
-        'Call on Luna to reflect reminders from earlier workbook chapters.',
+        'Call on Peekay to reflect reminders from earlier workbook chapters.',
       cost: 30,
     },
     {
@@ -109,44 +109,46 @@ export class SuperheroComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const workbookSub = this.workbookService.getUserWorkbook().subscribe((doc) => {
-      const workbook = doc?.[0] as WorkbookDocument | undefined;
-      if (!workbook) {
-        return;
-      }
+    const workbookSub = this.workbookService
+      .getUserWorkbook()
+      .subscribe((doc) => {
+        const workbook = doc?.[0] as WorkbookDocument | undefined;
+        if (!workbook) {
+          return;
+        }
 
-      this.workbookId = workbook.id;
-      this.coinBalance = workbook.coinBalance ?? 0;
-      this.coinHistory = (workbook.coinHistory ?? []).slice(-5).reverse();
+        this.workbookId = workbook.id;
+        this.coinBalance = workbook.coinBalance ?? 0;
+        this.coinHistory = (workbook.coinHistory ?? []).slice(-5).reverse();
 
-      const profile: HeroProfile = {
-        heroName: '',
-        alias: '',
-        auraColor: '#5b21b6',
-        originStory: '',
-        signaturePower: '',
-        secondaryPowers: [],
-        unlockedUpgrades: [],
-        motto: '',
-        ...(workbook.heroProfile ?? {}),
-      };
-      this.heroProfile = {
-        ...this.heroProfile,
-        ...profile,
-        secondaryPowers: profile.secondaryPowers ?? [],
-        unlockedUpgrades: profile.unlockedUpgrades ?? [],
-      };
-      this.avatarUrl = this.heroProfile.avatarImageUrl;
+        const profile: HeroProfile = {
+          heroName: '',
+          alias: '',
+          auraColor: '#5b21b6',
+          originStory: '',
+          signaturePower: '',
+          secondaryPowers: [],
+          unlockedUpgrades: [],
+          motto: '',
+          ...(workbook.heroProfile ?? {}),
+        };
+        this.heroProfile = {
+          ...this.heroProfile,
+          ...profile,
+          secondaryPowers: profile.secondaryPowers ?? [],
+          unlockedUpgrades: profile.unlockedUpgrades ?? [],
+        };
+        this.avatarUrl = this.heroProfile.avatarImageUrl;
 
-      this.heroForm.patchValue({
-        heroName: this.heroProfile.heroName ?? '',
-        alias: this.heroProfile.alias ?? '',
-        originStory: this.heroProfile.originStory ?? '',
-        signaturePower: this.heroProfile.signaturePower ?? '',
-        motto: this.heroProfile.motto ?? '',
-        auraColor: this.heroProfile.auraColor ?? this.heroProfile.auraColor,
+        this.heroForm.patchValue({
+          heroName: this.heroProfile.heroName ?? '',
+          alias: this.heroProfile.alias ?? '',
+          originStory: this.heroProfile.originStory ?? '',
+          signaturePower: this.heroProfile.signaturePower ?? '',
+          motto: this.heroProfile.motto ?? '',
+          auraColor: this.heroProfile.auraColor ?? this.heroProfile.auraColor,
+        });
       });
-    });
 
     this.subscriptions.add(workbookSub);
   }
@@ -198,9 +200,7 @@ export class SuperheroComponent implements OnInit, OnDestroy {
       .updateHeroProfile(this.workbookId, payload)
       .then(() => this.utilsService.presentToast('Hero profile updated.'))
       .catch(() =>
-        this.utilsService.presentToast(
-          'Unable to save hero profile right now.'
-        )
+        this.utilsService.presentToast('Unable to save hero profile right now.')
       );
   }
 
@@ -215,7 +215,7 @@ export class SuperheroComponent implements OnInit, OnDestroy {
 
     if (this.coinBalance < upgrade.cost) {
       this.utilsService.presentToast(
-        'Earn more Luna coins to unlock this power.'
+        'Earn more Peekay coins to unlock this power.'
       );
       return;
     }
@@ -241,9 +241,7 @@ export class SuperheroComponent implements OnInit, OnDestroy {
         );
       })
       .then(() => {
-        this.utilsService.presentToast(
-          `${upgrade.label} added to your hero!`
-        );
+        this.utilsService.presentToast(`${upgrade.label} added to your hero!`);
       })
       .catch(() =>
         this.utilsService.presentToast(

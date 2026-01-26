@@ -9,9 +9,6 @@ const config: CapacitorConfig = {
       style: 'DARK',
     },
   },
-  android: {
-    adjustMarginsForEdgeToEdge: 'auto',
-  },
 };
 
 export default config;

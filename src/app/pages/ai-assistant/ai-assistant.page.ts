@@ -3,10 +3,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { IonContent, IonTextarea } from '@ionic/angular';
 import { Subscription } from 'rxjs';
-import {
-  AiChatMessage,
-  AiChatService,
-} from 'src/app/services/ai-chat.service';
+import { AiChatMessage, AiChatService } from 'src/app/services/ai-chat.service';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -22,7 +19,7 @@ export class AiAssistantPage implements OnDestroy {
     {
       role: 'assistant',
       content:
-        "Hi, I'm Luna — your Positive Konnections companion. I can walk you back to workbook chapters, guide a breathing pause, or just listen whenever you need to vent. What would you like support with?",
+        "Hi, I'm Peekay — your Positive Konnections companion. I can walk you back to workbook chapters, guide a breathing pause, or just listen whenever you need to vent. What would you like support with?",
       createdAt: Date.now(),
     },
   ];
@@ -50,7 +47,7 @@ export class AiAssistantPage implements OnDestroy {
     {
       icon: 'sparkles-outline',
       title: 'Chapter 10 Boost',
-      description: 'Ask Luna to brainstorm powers for your hero.',
+      description: 'Ask Peekay to brainstorm powers for your hero.',
       type: 'prompt',
       value: 'Help me design a new power for my Chapter 10 superhero.',
     },
@@ -64,7 +61,7 @@ export class AiAssistantPage implements OnDestroy {
     {
       icon: 'heart-outline',
       title: 'Vent Space',
-      description: 'Share what’s heavy — Luna listens without judgment.',
+      description: 'Share what’s heavy — Peekay listens without judgment.',
       type: 'prompt',
       value: 'I need a safe space to vent about how I am feeling right now.',
     },
@@ -80,7 +77,7 @@ export class AiAssistantPage implements OnDestroy {
   private readonly systemPrompt: AiChatMessage = {
     role: 'system',
     content:
-      'You are Luna, the Positive Konnections wellbeing guide. Offer compassionate, peer-style support to young people navigating HIV-related journeys. Redirect them to relevant workbook chapters when asked, suggest short calming exercises, and encourage self-empowerment through superhero metaphors. Keep replies under 8 sentences, avoid medical/diagnostic claims, and gently remind users to contact their care provider or emergency services for urgent needs.',
+      'You are Peekay, the Positive Konnections wellbeing guide. Offer compassionate, peer-style support to young people navigating HIV-related journeys. Redirect them to relevant workbook chapters when asked, suggest short calming exercises, and encourage self-empowerment through superhero metaphors. Keep replies under 8 sentences, avoid medical/diagnostic claims, and gently remind users to contact their care provider or emergency services for urgent needs.',
     createdAt: Date.now(),
   };
 
@@ -141,25 +138,24 @@ export class AiAssistantPage implements OnDestroy {
 
     this.scrollToBottom();
 
-    const conversation: AiChatMessage[] = [
-      this.systemPrompt,
-      ...this.messages,
-    ];
+    const conversation: AiChatMessage[] = [this.systemPrompt, ...this.messages];
 
     this.activeRequest?.unsubscribe();
-    this.activeRequest = this.aiChatService.sendMessage(conversation).subscribe({
-      next: (assistantMessage) => {
-        this.messages = [...this.messages, assistantMessage];
-        this.pending = false;
-        this.scrollToBottom();
-      },
-      error: (error) => {
-        this.errorMessage =
-          error?.message ??
-          'Something went wrong. Please try sending your message again.';
-        this.pending = false;
-      },
-    });
+    this.activeRequest = this.aiChatService
+      .sendMessage(conversation)
+      .subscribe({
+        next: (assistantMessage) => {
+          this.messages = [...this.messages, assistantMessage];
+          this.pending = false;
+          this.scrollToBottom();
+        },
+        error: (error) => {
+          this.errorMessage =
+            error?.message ??
+            'Something went wrong. Please try sending your message again.';
+          this.pending = false;
+        },
+      });
   }
 
   handleKeydown(event: KeyboardEvent): void {
