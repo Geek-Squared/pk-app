@@ -2,19 +2,43 @@
   background: url(../../../assets/images/joshua-coleman-WTrfvtoe3yM-unsplash.jpg);
 }
  */
-ion-content {
+.login-content {
   --ion-background-color: rgb(40, 91, 167, 1);
   --ion-background-color: linear-gradient(
     90deg,
     rgb(103, 154, 202) 0%,
     rgb(40, 91, 167) 100%
   );
+  position: relative;
 }
 
-img {
-  max-width: 100px;
-  border: 0;
-  margin: 0 auto;
+.login-wrapper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.08;
+
+  img {
+    width: min(70vw, 520px);
+    height: auto;
+    filter: brightness(0) invert(1);
+  }
 }
 
 ion-card {
@@ -27,7 +51,7 @@ ion-card {
   padding-right: 20px;
   width: 100% !important;
   max-width: 400px;
-  margin: 0 auto;
+  margin: 0;
 }
 ion-card-content {
   padding: 0px;
@@ -81,12 +105,4 @@ p {
 a {
   color: aqua;
   text-decoration: none;
-}
-.logo img {
-  height: auto;
-  display: block;
-  max-width: 46%;
-  margin-bottom: 2%;
-  margin-top: 2%;
-  filter: brightness(0) invert(1);
 }

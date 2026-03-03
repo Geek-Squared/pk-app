@@ -151,8 +151,8 @@ ion-item a {
     }
   }
 
-  // Push main content to the right
-  ion-router-outlet {
+  // Push main content to the right only when sidebar is visible
+  ion-app.logged-in ion-router-outlet {
     margin-left: 280px;
     background: #f8fafc;
   }

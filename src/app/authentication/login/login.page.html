@@ -1,71 +1,71 @@
-<ion-content class="ion-padding">
-  <br />
-  <div class="ion-text-center logo">
-    <img src="/assets/images/logo.png" style="width: 100%" />
+<ion-content class="login-content">
+  <div class="login-bg">
+    <img src="/assets/images/logo.png" alt="Positive Konnections" />
   </div>
-  <br />
 
-  <ion-card>
-    <ion-card-content>
-      <h2>Welcome</h2>
-      <p>Enter your details to access your account</p>
-      <br />
-      <form>
-        <ion-item lines="full">
-          <!-- <ion-label position="floating">Email</ion-label> -->
-          <ion-input
-            type="text"
-            #email
-            required
-            placeholder="your@email.com"
-          ></ion-input>
-        </ion-item>
+  <div class="login-wrapper">
+    <ion-card>
+      <ion-card-content>
+        <h2>Welcome</h2>
+        <p>Enter your details to access your account</p>
         <br />
+        <form>
+          <ion-item lines="full">
+            <!-- <ion-label position="floating">Email</ion-label> -->
+            <ion-input
+              type="text"
+              #email
+              required
+              placeholder="your@email.com"
+            ></ion-input>
+          </ion-item>
+          <br />
 
-        <ion-item lines="full">
-          <!-- <ion-label position="floating">Password</ion-label> -->
-          <ion-input
-            type="password"
-            #password
-            required
-            placeholder="password"
-          ></ion-input>
-        </ion-item>
+          <ion-item lines="full">
+            <!-- <ion-label position="floating">Password</ion-label> -->
+            <ion-input
+              type="password"
+              #password
+              required
+              placeholder="password"
+            ></ion-input>
+          </ion-item>
+          <br />
+
+          <ion-row>
+            <ion-col>
+              <ion-button
+                type="submit"
+                (click)="logIn(email, password)"
+                expand="block"
+                >Login with Email</ion-button
+              >
+            </ion-col>
+          </ion-row>
+
+          <ion-text style="text-align: center; width: 100%; display: block"
+            >or</ion-text
+          >
+
+          <ion-row>
+            <ion-col>
+              <ion-button
+                type="submit"
+                (click)="logIn(email, password)"
+                expand="block"
+                fill="clear"
+                >Login with Google</ion-button
+              >
+            </ion-col>
+          </ion-row>
+        </form>
         <br />
+      </ion-card-content>
+    </ion-card>
 
-        <ion-row>
-          <ion-col>
-            <ion-button
-              type="submit"
-              (click)="logIn(email, password)"
-              expand="block"
-              >Login with Email</ion-button
-            >
-          </ion-col>
-        </ion-row>
-
-        <ion-text style="text-align: center; width: 100%; display: block"
-          >or</ion-text
-        >
-
-        <ion-row>
-          <ion-col>
-            <ion-button
-              type="submit"
-              (click)="logIn(email, password)"
-              expand="block"
-              fill="clear"
-              >Login with Google</ion-button
-            >
-          </ion-col>
-        </ion-row>
-      </form>
-      <br />
-    </ion-card-content>
-  </ion-card>
-
-  <p class="ion-text-center register-text">
-    <a routerLink="/registration">Register</a> |
-    <a routerLink="/reset-password">Reset password</a>
-  </p>
+    <p class="ion-text-center register-text">
+      <a routerLink="/registration">Register</a> |
+      <a routerLink="/reset-password">Reset password</a>
+    </p>
+  </div>
 </ion-content>

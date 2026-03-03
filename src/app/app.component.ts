@@ -18,7 +18,7 @@ export class AppComponent {
 
   constructor(
     private platform: Platform,
-    private authenticationService: AuthenticationService,
+    public authenticationService: AuthenticationService,
     private menu: MenuController,
     private router: Router
   ) {
