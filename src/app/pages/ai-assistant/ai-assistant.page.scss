@@ -26,7 +26,7 @@
     justify-content: space-between;
     border: none;
 
-    ion-back-button {
+    app-back-button ion-button {
       color: var(--pk-navy);
       --color: var(--pk-navy);
     }

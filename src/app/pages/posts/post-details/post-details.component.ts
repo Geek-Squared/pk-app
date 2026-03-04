@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { take } from 'rxjs/operators';
 import { UPost } from 'src/app/models/post.interface';
+import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 import { QuestionsService } from 'src/app/services/questions.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
@@ -11,7 +12,7 @@ import { UtilitiesService } from 'src/app/services/utilities.service';
 @Component({
   selector: 'app-post-details',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, BackButtonComponent],
   templateUrl: './post-details.component.html',
   styleUrls: ['./post-details.component.scss'],
 })

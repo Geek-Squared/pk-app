@@ -15,8 +15,12 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'chapters', pathMatch: 'full' },
       { path: 'chapters', component: ChaptersComponent },
-      { path: 'posts/:chapterId', component: PostsComponent },
+      { path: 'chapters/:interventionId', component: ChaptersComponent },
+      { path: 'questionAnswers', component: QuestionAnswersComponent },
+      { path: 'questionAnswers/chapter/:chapterId', component: QuestionAnswersComponent },
+      { path: 'questionAnswers/intervention/:interventionId', component: QuestionAnswersComponent },
       { path: 'questionAnswers/:postId', component: QuestionAnswersComponent },
+      { path: 'posts/:chapterId', component: PostsComponent },
       { path: 'chapter-ten', component: SuperheroComponent },
     ],
   },

@@ -1,3 +1,4 @@
+import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -13,6 +14,7 @@ import { BookingsPage } from './bookings.page';
     CommonModule,
     FormsModule,
     IonicModule,
+    BackButtonComponent,
     ReactiveFormsModule,
     BookingsPageRoutingModule
   ],

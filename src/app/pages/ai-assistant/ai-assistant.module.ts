@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
+import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 
 import { AiAssistantPageRoutingModule } from './ai-assistant-routing.module';
 import { AiAssistantPage } from './ai-assistant.page';
@@ -13,6 +14,7 @@ import { AiAssistantPage } from './ai-assistant.page';
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
+    BackButtonComponent,
     AiAssistantPageRoutingModule,
   ],
   declarations: [AiAssistantPage],

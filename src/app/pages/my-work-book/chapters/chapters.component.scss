@@ -1,11 +1,12 @@
-// Mobile List Styling
-.mobile-list {
+.interventions-list,
+.chapters-list {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
 }
 
-.mobile-item {
+.intervention-item,
+.chapter-item {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -29,154 +30,77 @@
     outline: 3px solid rgba(45, 114, 173, 0.35);
     outline-offset: 2px;
   }
-
-  .item-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(79, 195, 247, 0.18), rgba(45, 114, 173, 0.26));
-
-    ion-icon {
-      font-size: 1.6rem;
-      color: #2d72ad;
-    }
-  }
-
-  .item-content {
-    flex: 1;
-
-    h2 {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: #1d2a44;
-    }
-
-    p {
-      margin: 0.3rem 0 0;
-      font-size: 0.85rem;
-      color: rgba(29, 42, 68, 0.68);
-      line-height: 1.4;
-    }
-  }
-
-  .item-caret {
-    font-size: 1.25rem;
-    color: rgba(45, 114, 173, 0.6);
-  }
 }
 
-// Desktop Grid Styling
-.desktop-grid {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  // Hide mobile list on desktop
-  .mobile-list {
-    display: none;
-  }
-
-  // Show desktop grid
-.desktop-grid {
-  display: block;
-}
-
-ion-col {
-    border: 1px solid #eee;
-    padding: 18px 3px 5px 3px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-color: #2d72ad;
-    }
-
-    ion-icon {
-      color: #3374d6;
-    }
-
-    p {
-      font-size: 13px;
-      margin: 0;
-    }
-  }
-}
-
-.hero-chapter-card {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  border-radius: 24px;
-  background: linear-gradient(135deg, rgba(107, 44, 145, 0.12), rgba(26, 167, 156, 0.12));
-  border: 1px solid rgba(107, 44, 145, 0.25);
+.intervention-item-icon,
+.chapter-item-icon {
   display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(79, 195, 247, 0.18),
+    rgba(45, 114, 173, 0.26)
+  );
 
-  &.locked {
-    opacity: 0.6;
+  ion-icon {
+    font-size: 1.6rem;
+    color: #2d72ad;
+  }
+}
+
+.intervention-item-content,
+.chapter-item-content {
+  flex: 1;
+
+  h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1d2a44;
   }
 
-  .hero-card-copy {
-    flex: 1 1 260px;
+  p {
+    margin: 0.3rem 0 0;
+    font-size: 0.85rem;
+    color: rgba(29, 42, 68, 0.68);
+    line-height: 1.4;
+  }
+}
 
-    .eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 0.78rem;
-      color: rgba(29, 42, 68, 0.7);
-      margin: 0 0 0.4rem 0;
-    }
+.item-caret {
+  font-size: 1.25rem;
+  color: rgba(45, 114, 173, 0.6);
+}
 
-    h3 {
-      margin: 0;
-      font-size: 1.35rem;
-      color: #1d2a44;
-    }
+.chapter-header {
+  margin-bottom: 1.2rem;
 
-    p {
-      margin: 0.6rem 0 1.1rem;
-      color: rgba(29, 42, 68, 0.75);
-      line-height: 1.5;
-    }
+  h2 {
+    margin: 0.4rem 0 0.2rem;
+    color: #1d2a44;
   }
 
-  .hero-card-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
-    ion-button[disabled] {
-      opacity: 0.7;
-    }
+  p {
+    margin: 0;
+    color: rgba(29, 42, 68, 0.7);
+    font-size: 0.9rem;
   }
+}
 
-  .hero-card-visual {
-    flex: 0 0 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .hero-avatar {
-    width: 140px;
-    height: 140px;
-    border-radius: 40% 60% 55% 45%;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(91, 33, 182, 0.85));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 25px 45px rgba(45, 30, 80, 0.25);
-
-    .hero-emblem {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #fff;
-    }
-  }
+.state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  border-radius: 18px;
+  border: 1px dashed rgba(45, 114, 173, 0.3);
+  background: rgba(255, 255, 255, 0.85);
+  color: rgba(29, 42, 68, 0.7);
+  text-align: center;
 }

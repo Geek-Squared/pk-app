@@ -11,6 +11,7 @@ import { ChaptersComponent } from './chapters/chapters.component';
 import { PostsComponent } from './posts/posts.component';
 import { QuestionAnswersComponent } from './question-answers/question-answers.component';
 import { SuperheroComponent } from './superhero/superhero.component';
+import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 
 @NgModule({
   imports: [
@@ -18,6 +19,7 @@ import { SuperheroComponent } from './superhero/superhero.component';
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
+    BackButtonComponent,
     MyWorkBookPageRoutingModule,
   ],
   declarations: [

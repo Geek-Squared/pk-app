@@ -1,77 +1,58 @@
-<!-- Mobile List View -->
-<div class="mobile-list">
-  <ng-container *ngFor="let chapter of chapters; let i = index">
-    <ng-container *ngIf="userQuestionResponses$ | async as res">
+<ng-container *ngIf="!isLoading; else loadingState">
+  <ng-container *ngIf="selectedInterventionId; else interventionsList">
+    <div class="chapter-header">
+      <h2>{{ selectedInterventionName || 'Chapters' }}</h2>
+      <p>Select a chapter to review its saved questions and answers.</p>
+    </div>
+
+    <div class="chapters-list" *ngIf="chapters.length; else emptyState">
       <button
         type="button"
-        class="mobile-item"
-        [routerLink]="['../posts', chapter.id]"
-        *ngIf="canAccessChapter(res[0]?.responses, i)"
+        class="chapter-item"
+        *ngFor="let chapter of chapters"
+        [routerLink]="['/my-work-book/questionAnswers/chapter', chapter.id]"
       >
-        <div class="item-icon">
+        <div class="chapter-item-icon">
           <ion-icon name="folder-open-outline"></ion-icon>
         </div>
-        <div class="item-content">
-          <h2>{{ chapter?.title }}</h2>
-          <p>Tap to explore this chapter's content and exercises.</p>
+        <div class="chapter-item-content">
+          <h3>{{ chapter?.title }}</h3>
         </div>
         <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
       </button>
-    </ng-container>
+    </div>
   </ng-container>
-</div>
-
-<!-- Desktop Grid View -->
-<ion-grid class="desktop-grid">
-  <ion-row class="ion-text-center">
-    <ng-container *ngFor="let chapter of chapters; let i = index">
-      <ng-container *ngIf="userQuestionResponses$ | async as res">
-        <ion-col
-          size="4"
-          button
-          detail
-          [routerLink]="['../posts', chapter.id]"
-          *ngIf="canAccessChapter(res[0]?.responses, i)"
-        >
-          <ion-icon name="folder-open" size="large"></ion-icon>
-          <br />
-          <p>{{ chapter?.title }}</p>
-        </ion-col>
-      </ng-container>
-    </ng-container>
-  </ion-row>
-</ion-grid>
-
-<ng-container *ngIf="userQuestionResponses$ | async as res">
-  <div
-    class="hero-chapter-card"
-    [class.locked]="!canAccessHeroChapter(res[0]?.responses)"
-  >
-    <div class="hero-card-copy">
-      <p class="eyebrow">Chapter 10</p>
-      <h3>Superhero for Life</h3>
-      <p>
-        Rewrite your story as a hero, unlock powers with Peekay coins, and create an avatar that reflects who you are becoming.
-      </p>
-      <div class="hero-card-actions">
-        <ion-button
-          color="primary"
-          fill="solid"
-          [routerLink]="['../chapter-ten']"
-          [disabled]="!canAccessHeroChapter(res[0]?.responses)"
-        >
-          Launch Chapter 10
-          <ion-icon slot="end" name="rocket-outline"></ion-icon>
-        </ion-button>
-        <ion-text color="medium" *ngIf="!canAccessHeroChapter(res[0]?.responses)">
-          Complete earlier chapters with meaningful reflections to unlock.
-        </ion-text>
-      </div>
-    </div>
-    <div class="hero-card-visual" aria-hidden="true">
-      <div class="hero-avatar">
-        <span class="hero-emblem">PK</span>
-      </div>
-    </div>
-  </div>
 </ng-container>
+
+<ng-template #interventionsList>
+  <div class="interventions-list" *ngIf="interventions.length; else emptyState">
+    <button
+      type="button"
+      class="intervention-item"
+      *ngFor="let intervention of interventions"
+      [routerLink]="['/my-work-book/chapters', intervention.id]"
+    >
+      <div class="intervention-item-icon">
+        <ion-icon name="library-outline"></ion-icon>
+      </div>
+      <div class="intervention-item-content">
+        <h3>{{ intervention?.name }}</h3>
+        <p>Open this intervention to see its chapters.</p>
+      </div>
+      <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #loadingState>
+  <div class="state-card">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading…</p>
+  </div>
+</ng-template>
+
+<ng-template #emptyState>
+  <div class="state-card">
+    <p>No content is available right now.</p>
+  </div>
+</ng-template>
