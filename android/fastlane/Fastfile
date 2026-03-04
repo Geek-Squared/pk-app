@@ -1,0 +1,59 @@
+default_platform(:android)
+
+platform :android do
+  def app_build_gradle_path
+    File.expand_path("../app/build.gradle", __dir__)
+  end
+
+  def set_version_code(file_path, new_code)
+    content = File.read(file_path)
+    matcher = /versionCode\s+\d+/
+    unless content.match?(matcher)
+      UI.user_error!("versionCode not found in #{file_path}")
+    end
+    updated = content.gsub(matcher, "versionCode #{new_code}")
+    File.write(file_path, updated)
+  end
+
+  desc "Fetch latest Play Store version code and increment it"
+  lane :bump_version_code_from_play do |options|
+    track = options[:track] || "internal"
+    package_name = options[:package_name] || "com.positivekonnections.app"
+    json_key = ENV["SUPPLY_JSON_KEY"]
+
+    if json_key.to_s.empty? || !File.exist?(json_key)
+      UI.user_error!("SUPPLY_JSON_KEY is missing or file does not exist")
+    end
+
+    codes = google_play_track_version_codes(
+      package_name: package_name,
+      track: track,
+      json_key: json_key
+    )
+
+    next_code = (codes.max || 0) + 1
+    set_version_code(app_build_gradle_path, next_code)
+    UI.message("Set versionCode to #{next_code} (track: #{track})")
+  end
+
+  desc "Build release AAB"
+  lane :build do
+    gradle(task: "clean", project_dir: ".")
+    gradle(task: "bundle", build_type: "Release", project_dir: ".")
+  end
+
+  desc "Upload AAB to Google Play internal track"
+  lane :internal do
+    bump_version_code_from_play(track: "internal")
+    build
+    upload_to_play_store(
+      track: "internal",
+      release_status: "draft",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: false,
+      skip_upload_changelogs: true
+    )
+  end
+end

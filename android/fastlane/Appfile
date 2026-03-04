@@ -1,0 +1,2 @@
+package_name("com.positivekonnections.app")
+json_key_file(ENV["SUPPLY_JSON_KEY"])
