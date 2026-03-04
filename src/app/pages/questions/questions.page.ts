@@ -153,17 +153,20 @@ export class QuestionsPage implements OnInit, OnDestroy {
     if (this.questionAnswers.some((item) => item?.questionId === question.id))
       this.questionAnswers.splice(removeIndex, 1);
 
-    this.questionAnswers = [
-      ...[
-        {
-          questionUid: question.id,
-          response: this.questionResponse,
-          questionNarrative: question.narrative,
-          postId: this.route.snapshot.paramMap.get('postId'),
-        },
-      ],
-      ...this.questionAnswers,
-    ];
+    const entry = {
+      questionUid: question.id,
+      response: this.questionResponse,
+      questionNarrative: question.narrative,
+      postId: this.route.snapshot.paramMap.get('postId'),
+      questionOrder:
+        typeof question?.order === 'number' ? question.order : this.pager.index,
+    };
+
+    this.questionAnswers = [...this.questionAnswers, entry].sort((a, b) => {
+      const aOrder = typeof a?.questionOrder === 'number' ? a.questionOrder : 0;
+      const bOrder = typeof b?.questionOrder === 'number' ? b.questionOrder : 0;
+      return aOrder - bOrder;
+    });
     this.questionResponse = null;
   }
 
@@ -181,6 +184,8 @@ export class QuestionsPage implements OnInit, OnDestroy {
     const postId = this.route.snapshot.paramMap.get('postId');
     const obj = Object.assign({
       ...this.questionAnswers.map((item) => ({
+        questionUid: item.questionUid,
+        questionOrder: item.questionOrder,
         response: item.response,
         questionNarrative: item.questionNarrative,
         postId: item.postId,

@@ -2,7 +2,7 @@
 
 <ion-list>
   <div *ngFor="let item of workbook">
-    <ng-container *ngFor="let element of item?.content | keyvalue">
+    <ng-container *ngFor="let element of item?.content | keyvalue: sortAnswers">
       <ng-container
         *ngIf="element?.value.postId === route.snapshot.paramMap.get('postId')"
       >

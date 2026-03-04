@@ -1,5 +1,6 @@
 export const environment = {
   production: false,
+  fcmVapidKey: 'BECrzYb8qf8KI7CwOXahIdLZ8JyDvm_FSJjczIPziroT_VG0K8DYlPz61J4r8OfHF6iauLybi5n7_EK67Igt5qg',
   /* firebaseConfig: {
     apiKey: 'AIzaSyCM-e-V6Y4rw_KNO95Zs2bZmCeTnI1h95I',
     authDomain: 'positive-konnections-578ca.firebaseapp.com',

@@ -14,6 +14,20 @@ import { WorkbookService } from 'src/app/services/workbook.service';
 export class QuestionAnswersComponent implements OnInit {
   public workbook = [];
   public questionAnswers;
+  public sortAnswers = (a: any, b: any) => {
+    const aOrder = typeof a?.value?.questionOrder === 'number'
+      ? a.value.questionOrder
+      : Number(a?.key);
+    const bOrder = typeof b?.value?.questionOrder === 'number'
+      ? b.value.questionOrder
+      : Number(b?.key);
+
+    if (!Number.isNaN(aOrder) && !Number.isNaN(bOrder)) {
+      return aOrder - bOrder;
+    }
+
+    return `${a?.key}`.localeCompare(`${b?.key}`);
+  };
 
   constructor(
     private workbookService: WorkbookService,

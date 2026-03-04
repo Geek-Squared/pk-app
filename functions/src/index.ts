@@ -147,6 +147,75 @@ async function getAdminTokens(): Promise<string[]> {
   return Array.from(new Set(tokens));
 }
 
+function extractWebTokens(data: any): string[] {
+  const tokens: string[] = [];
+  const webTokens = data?.webFcmTokens || data?.fcmTokens || [];
+  if (Array.isArray(webTokens)) {
+    webTokens.forEach((token: string) => token && tokens.push(token));
+  } else if (webTokens && typeof webTokens === 'object') {
+    Object.keys(webTokens).forEach((token) => tokens.push(token));
+  }
+  return tokens;
+}
+
+async function getUserTokensByUids(uids: string[]): Promise<string[]> {
+  if (!uids.length) {
+    return [];
+  }
+
+  const refs = uids.map((uid) => admin.firestore().collection('users').doc(uid));
+  const docs = await admin.firestore().getAll(...refs);
+  const tokens: string[] = [];
+  docs.forEach((doc: any) => {
+    if (!doc.exists) {
+      return;
+    }
+    tokens.push(...extractWebTokens(doc.data() || {}));
+  });
+
+  return Array.from(new Set(tokens));
+}
+
+async function getAllUsersForNotifications(): Promise<{
+  uids: string[];
+  tokens: string[];
+}> {
+  const snap = await admin.firestore().collection('users').get();
+  const uids: string[] = [];
+  const tokens: string[] = [];
+  snap.forEach((doc: any) => {
+    uids.push(doc.id);
+    tokens.push(...extractWebTokens(doc.data() || {}));
+  });
+
+  return { uids, tokens: Array.from(new Set(tokens)) };
+}
+
+async function writeUserNotifications(
+  uids: string[],
+  payload: Record<string, any>
+): Promise<void> {
+  if (!uids.length) {
+    return;
+  }
+
+  const chunkSize = 400;
+  for (let i = 0; i < uids.length; i += chunkSize) {
+    const batch = admin.firestore().batch();
+    const chunk = uids.slice(i, i + chunkSize);
+    chunk.forEach((uid) => {
+      const ref = admin
+        .firestore()
+        .collection('users')
+        .doc(uid)
+        .collection('notifications')
+        .doc();
+      batch.set(ref, payload);
+    });
+    await batch.commit();
+  }
+}
+
 async function assertAdmin(context: functions.https.CallableContext) {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -155,14 +224,15 @@ async function assertAdmin(context: functions.https.CallableContext) {
     );
   }
 
-  const userDoc = await admin
-    .firestore()
-    .collection('users')
-    .doc(context.auth.uid)
-    .get();
-
+  const userRef = admin.firestore().collection('users').doc(context.auth.uid);
+  const userDoc = await userRef.get();
   const role = userDoc.exists ? userDoc.data()?.role : null;
-  if (role !== 'Administrator') {
+
+  if (role === 'Administrator') {
+    return;
+  }
+
+  {
     throw new functions.https.HttpsError(
       'permission-denied',
       'Admin access required.'
@@ -176,16 +246,17 @@ exports.onWorkbookCompletion = functions.firestore
     const before = change.before.data() || {};
     const after = change.after.data() || {};
 
-    if (before.completedAt || after.completedAt) {
-      return null;
-    }
-
-    const responses = Array.isArray(after.responses) ? after.responses : [];
+    const responses = Array.isArray(after.responses)
+      ? after.responses
+      : after.responses && typeof after.responses === 'object'
+      ? Object.values(after.responses)
+      : [];
     if (!responses.length) {
       return null;
     }
 
     const completedPostIds = new Set<string>();
+    const completedByChapter = new Map<string, Set<string>>();
     for (const response of responses) {
       const postId = response?.postId;
       if (!postId) {
@@ -193,6 +264,12 @@ exports.onWorkbookCompletion = functions.firestore
       }
       if (isMeaningfulResponse(response)) {
         completedPostIds.add(postId);
+        const chapterId = response?.chapterId;
+        if (chapterId) {
+          const set = completedByChapter.get(chapterId) ?? new Set<string>();
+          set.add(postId);
+          completedByChapter.set(chapterId, set);
+        }
       }
     }
 
@@ -202,21 +279,57 @@ exports.onWorkbookCompletion = functions.firestore
 
     const postsSnap = await admin.firestore().collection('posts').get();
     const totalPosts = postsSnap.size;
-    if (!totalPosts || completedPostIds.size < totalPosts) {
+    if (!totalPosts) {
       return null;
     }
 
     const completedAt = admin.firestore.Timestamp.now();
     const completedBy = after.uid || null;
     const workbookId = context.params.workbookId;
+    const updates: Record<string, any> = {};
 
-    await change.after.ref.update({
-      completedAt,
-      completed: true,
-      completedBy,
-      completedPostCount: completedPostIds.size,
-      totalPostCount: totalPosts,
+    const postsByChapter = new Map<string, Set<string>>();
+    postsSnap.forEach((doc: any) => {
+      const data = doc.data() || {};
+      const chapterId = data.chapterId;
+      if (!chapterId) {
+        return;
+      }
+      const set = postsByChapter.get(chapterId) ?? new Set<string>();
+      set.add(doc.id);
+      postsByChapter.set(chapterId, set);
     });
+
+    const completedChapters = after.completedChapters || {};
+    const newlyCompletedChapterIds: string[] = [];
+    completedByChapter.forEach((completedSet, chapterId) => {
+      const totalSet = postsByChapter.get(chapterId);
+      if (!totalSet || completedSet.size < totalSet.size) {
+        return;
+      }
+
+      if (completedChapters?.[chapterId]) {
+        return;
+      }
+
+      newlyCompletedChapterIds.push(chapterId);
+      updates[`completedChapters.${chapterId}`] = completedAt;
+    });
+
+    const workbookAlreadyCompleted = Boolean(before.completedAt || after.completedAt);
+    const hasCompletedWorkbook =
+      !workbookAlreadyCompleted && completedPostIds.size >= totalPosts;
+    if (hasCompletedWorkbook) {
+      updates.completedAt = completedAt;
+      updates.completed = true;
+      updates.completedBy = completedBy;
+      updates.completedPostCount = completedPostIds.size;
+      updates.totalPostCount = totalPosts;
+    }
+
+    if (Object.keys(updates).length) {
+      await change.after.ref.update(updates);
+    }
 
     let displayName: string | null = null;
     if (completedBy) {
@@ -226,6 +339,74 @@ exports.onWorkbookCompletion = functions.firestore
         .doc(completedBy)
         .get();
       displayName = userDoc.exists ? userDoc.data()?.displayName || null : null;
+    }
+
+    const uniqueTokens = await getAdminTokens();
+
+    if (newlyCompletedChapterIds.length) {
+      const chapterRefs = newlyCompletedChapterIds.map((id) =>
+        admin.firestore().collection('chapters').doc(id)
+      );
+      const chapterDocs = chapterRefs.length
+        ? await admin.firestore().getAll(...chapterRefs)
+        : [];
+      const chapterTitles = new Map<string, string>();
+      chapterDocs.forEach((doc: any) => {
+        chapterTitles.set(doc.id, doc.data()?.title || 'Chapter');
+      });
+
+      const chapterNotifications = [];
+      for (const chapterId of newlyCompletedChapterIds) {
+        const chapterTitle = chapterTitles.get(chapterId) || 'Chapter';
+        const message = displayName
+          ? `${displayName} completed ${chapterTitle}.`
+          : `A user completed ${chapterTitle}.`;
+
+        const chapterNotificationRef = await admin
+          .firestore()
+          .collection('adminNotifications')
+          .add({
+            type: 'chapter_completed',
+            userId: completedBy,
+            workbookId,
+            chapterId,
+            title: 'Chapter completed',
+            message,
+            createdAt: completedAt,
+            readBy: {},
+          });
+
+        chapterNotifications.push({
+          chapterId,
+          message,
+          notificationId: chapterNotificationRef.id,
+        });
+      }
+
+      if (uniqueTokens.length) {
+        await Promise.all(
+          chapterNotifications.map((item) =>
+            admin.messaging().sendMulticast({
+              tokens: uniqueTokens,
+              notification: {
+                title: 'Chapter completed',
+                body: item.message,
+              },
+              data: {
+                type: 'chapter_completed',
+                workbookId,
+                userId: completedBy ?? '',
+                chapterId: item.chapterId,
+                notificationId: item.notificationId,
+              },
+            })
+          )
+        );
+      }
+    }
+
+    if (!hasCompletedWorkbook) {
+      return null;
     }
 
     const notificationMessage = displayName
@@ -245,7 +426,6 @@ exports.onWorkbookCompletion = functions.firestore
         readBy: {},
       });
 
-    const uniqueTokens = await getAdminTokens();
     if (!uniqueTokens.length) {
       return null;
     }
@@ -312,3 +492,138 @@ exports.sendAdminTestNotification = functions.https.onCall(
     };
   }
 );
+
+exports.sendUserBroadcastNotification = functions.https.onCall(
+  async (data, context) => {
+    await assertAdmin(context);
+
+    const title =
+      typeof data?.title === 'string' && data.title.trim()
+        ? data.title.trim()
+        : 'Positive Konnections';
+    const body =
+      typeof data?.body === 'string' && data.body.trim()
+        ? data.body.trim()
+        : 'You have a new update.';
+    const url =
+      typeof data?.url === 'string' && data.url.trim()
+        ? data.url.trim()
+        : '';
+
+    const createdAt = admin.firestore.Timestamp.now();
+    const { tokens, uids } = await getAllUsersForNotifications();
+    await writeUserNotifications(uids, {
+      type: 'broadcast',
+      title,
+      body,
+      createdAt,
+      read: false,
+      data: {
+        url,
+      },
+    });
+
+    if (!tokens.length) {
+      return { sent: 0 };
+    }
+
+    const result = await admin.messaging().sendMulticast({
+      tokens,
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        type: 'broadcast',
+        url,
+      },
+    });
+
+    return {
+      sent: result.successCount,
+      failed: result.failureCount,
+    };
+  }
+);
+
+exports.onChatMessageCreated = functions.firestore
+  .document('chats/{chatId}')
+  .onUpdate(async (change, context) => {
+    const before = change.before.data() || {};
+    const after = change.after.data() || {};
+
+    const beforeMessages = Array.isArray(before.messages) ? before.messages : [];
+    const afterMessages = Array.isArray(after.messages) ? after.messages : [];
+
+    if (afterMessages.length <= beforeMessages.length) {
+      return null;
+    }
+
+    const latest = afterMessages[afterMessages.length - 1];
+    if (!latest) {
+      return null;
+    }
+
+    const senderUid = latest?.uid;
+    const recipientUids = new Set<string>();
+
+    if (Array.isArray(after.members)) {
+      after.members.forEach((uid: string) => uid && recipientUids.add(uid));
+    }
+
+    if (after.hasRead && typeof after.hasRead === 'object') {
+      Object.keys(after.hasRead).forEach((uid) => recipientUids.add(uid));
+    }
+
+    if (after.uid) {
+      recipientUids.add(after.uid);
+    }
+
+    if (senderUid) {
+      recipientUids.delete(senderUid);
+    }
+
+    if (!recipientUids.size) {
+      return null;
+    }
+
+    const tokens = await getUserTokensByUids(Array.from(recipientUids));
+    if (!tokens.length) {
+      return null;
+    }
+
+    const title =
+      after?.type === 'group'
+        ? after?.displayName || 'Group message'
+        : 'New message';
+    const body =
+      latest?.type === 'audio'
+        ? 'Sent a voice note.'
+        : latest?.content || 'New message received.';
+
+    const createdAt = admin.firestore.Timestamp.now();
+    await writeUserNotifications(Array.from(recipientUids), {
+      type: 'chat_message',
+      title,
+      body,
+      createdAt,
+      read: false,
+      data: {
+        landing_page: 'messages/chat',
+        chatId: context.params.chatId,
+      },
+    });
+
+    return admin.messaging().sendMulticast({
+      tokens,
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        type: 'chat_message',
+        landing_page: 'messages/chat',
+        chatId: context.params.chatId,
+      },
+    });
+  });

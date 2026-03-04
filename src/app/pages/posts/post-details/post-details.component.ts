@@ -1,5 +1,7 @@
+import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { RouterModule } from '@angular/router';
+import { IonicModule, ModalController } from '@ionic/angular';
 import { take } from 'rxjs/operators';
 import { UPost } from 'src/app/models/post.interface';
 import { QuestionsService } from 'src/app/services/questions.service';
@@ -8,6 +10,8 @@ import { UtilitiesService } from 'src/app/services/utilities.service';
 
 @Component({
   selector: 'app-post-details',
+  standalone: true,
+  imports: [CommonModule, IonicModule, RouterModule],
   templateUrl: './post-details.component.html',
   styleUrls: ['./post-details.component.scss'],
 })
