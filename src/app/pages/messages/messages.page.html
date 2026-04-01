@@ -5,6 +5,9 @@
     </ion-buttons>
     <ion-title>Messages</ion-title>
     <ion-buttons slot="end">
+      <ion-button (click)="showUserSelection()">
+        <ion-icon name="add" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
   </ion-toolbar>
@@ -18,7 +21,7 @@
       <p>Jump back into a private chat or check in with your group support circles.</p>
     </div>
     <div class="hero-actions">
-      <ion-button size="default" (click)="createChat()">
+      <ion-button size="default" (click)="showUserSelection()">
         <ion-icon slot="start" name="add-outline"></ion-icon>
         Start private chat
       </ion-button>
@@ -47,7 +50,7 @@
         <ion-icon name="chatbubble-outline"></ion-icon>
         <h3>No private chats yet</h3>
         <p>Start a one-on-one chat with your coach or care partner.</p>
-        <ion-button (click)="createChat()">
+        <ion-button (click)="showUserSelection()">
           <ion-icon slot="start" name="add-outline"></ion-icon>
           Create chat
         </ion-button>
@@ -60,11 +63,15 @@
           [routerLink]="'chat/' + chat.id"
         >
           <div class="avatar">
-            <ion-icon name="person-circle-outline"></ion-icon>
+            <ion-icon name="person-circle-half-outline"></ion-icon>
           </div>
           <div class="chat-meta">
-            <h4>Private Chat</h4>
-            <p>Tap to pick up the conversation.</p>
+            <div class="meta-header">
+              <h4>{{ chat.recipientName || 'Private Chat' }}</h4>
+              <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
+            </div>
+            <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:40 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 40 ? '...' : '' }}</p>
+            <p class="last-msg" *ngIf="!chat.messages?.length">Tap to start the conversation</p>
           </div>
           <div class="unread" *ngIf="getTotalUnread(chat) > 0">
             <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
@@ -83,11 +90,15 @@
           [routerLink]="['chat/' + chat.id, { chatType: 'group' } ]"
         >
           <div class="avatar group">
-            <ion-icon name="people-circle-outline"></ion-icon>
+            <ion-icon name="people-outline"></ion-icon>
           </div>
           <div class="chat-meta">
-            <h4>{{ chat?.displayName | titlecase }}</h4>
-            <p>Shared space for guided updates.</p>
+            <div class="meta-header">
+              <h4>{{ chat?.displayName | titlecase }}</h4>
+              <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
+            </div>
+            <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:40 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 40 ? '...' : '' }}</p>
+            <p class="last-msg" *ngIf="!chat.messages?.length">No messages yet</p>
           </div>
           <div class="unread" *ngIf="getTotalUnread(chat) > 0">
             <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
@@ -103,7 +114,6 @@
       </ng-template>
     </ng-container>
   </section>
-
   <div class="desktop-nav">
     <div class="nav-content">
       <div class="breadcrumb">
@@ -127,11 +137,11 @@
         <ion-segment [value]="displayView" (ionChange)="change($event)">
           <ion-segment-button value="chats">
             <ion-icon name="person-outline"></ion-icon>
-            Private Chats
+            <span>Private Chats</span>
           </ion-segment-button>
           <ion-segment-button value="group">
             <ion-icon name="people-outline"></ion-icon>
-            Group Chats
+            <span>Group Chats</span>
           </ion-segment-button>
         </ion-segment>
       </div>
@@ -141,7 +151,7 @@
           <div class="empty-state" *ngIf="(userChats$ | async)?.length < 1">
             <ion-icon name="chatbubble-outline"></ion-icon>
             <p>No private chats yet</p>
-            <ion-button (click)="createChat()" fill="solid" color="primary">
+            <ion-button (click)="showUserSelection()" fill="solid" color="primary">
               <ion-icon name="add-outline" slot="start"></ion-icon>
               Create Chat
             </ion-button>
@@ -149,14 +159,20 @@
 
           <div class="chats-grid" *ngIf="(userChats$ | async)?.length > 0">
             <div class="chat-card" *ngFor="let chat of userChats$ | async" [routerLink]="'chat/' + chat.id">
-              <div class="chat-icon">
-                <ion-icon name="person-circle-outline"></ion-icon>
+              <div class="avatar">
+                <ion-icon name="person-circle-half-outline"></ion-icon>
               </div>
-              <div class="chat-info">
-                <h3>Private Chat</h3>
-                <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
-                  <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
-                  <span>Unread Messages</span>
+              <div class="chat-meta">
+                <div class="meta-header">
+                  <h3>{{ chat.recipientName || 'Private Chat' }}</h3>
+                  <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
+                </div>
+                <div class="meta-body">
+                  <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:60 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 60 ? '...' : '' }}</p>
+                  <p class="last-msg" *ngIf="!chat.messages?.length">Tap to start conversation</p>
+                  <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
+                    <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -168,14 +184,20 @@
         <ng-container *ngIf="auth.user$ | async as user">
           <div class="chats-grid">
             <div class="chat-card" *ngFor="let chat of groupChats$ | async" [routerLink]="['chat/' + chat.id, { chatType: 'group' } ]">
-              <div class="chat-icon">
-                <ion-icon name="people-circle-outline"></ion-icon>
+              <div class="avatar group">
+                <ion-icon name="people-outline"></ion-icon>
               </div>
-              <div class="chat-info">
-                <h3>{{ chat?.displayName | titlecase }}</h3>
-                <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
-                  <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
-                  <span>Unread Messages</span>
+              <div class="chat-meta">
+                <div class="meta-header">
+                  <h3>{{ chat?.displayName | titlecase }}</h3>
+                  <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
+                </div>
+                <div class="meta-body">
+                  <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:60 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 60 ? '...' : '' }}</p>
+                  <p class="last-msg" *ngIf="!chat.messages?.length">No messages yet</p>
+                  <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
+                    <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -185,4 +207,9 @@
     </div>
   </div>
 
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="showUserSelection()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

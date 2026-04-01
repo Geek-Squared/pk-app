@@ -144,26 +144,62 @@
 
     .chat-meta {
       flex: 1;
-      h4 {
-        margin: 0;
-        font-size: 1rem;
-        color: #101433;
+      overflow: hidden;
+
+      .meta-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.15rem;
+
+        h3, h4 {
+          margin: 0;
+          font-size: 1.05rem;
+          color: #101433;
+          font-weight: 600;
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .chat-time {
+          font-size: 0.75rem;
+          color: #8d92b2;
+          margin-left: 0.75rem;
+        }
       }
-      p {
-        margin: 0.15rem 0 0;
+
+      .meta-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .last-msg {
+        margin: 0;
         color: #777c9d;
         font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
       }
     }
 
-    .unread ion-badge {
-      min-width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .unread, .unread-badge {
+      margin-left: 0.75rem;
+      ion-badge {
+        min-width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        --padding-start: 4px;
+        --padding-end: 4px;
+      }
     }
   }
 }

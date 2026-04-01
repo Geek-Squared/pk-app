@@ -7,14 +7,12 @@ import { IonicModule } from '@ionic/angular';
 
 import { MessagesPageRoutingModule } from './messages-routing.module';
 
-import { MessagesPage } from './messages.page';
-
 import { ChatComponent } from './chat/chat.component';
 import { VoiceNotesComponent } from './voice-notes/voice-notes.component';
 
 @NgModule({
   imports: [CommonModule, FormsModule, IonicModule,
     BackButtonComponent, MessagesPageRoutingModule],
-  declarations: [MessagesPage, ChatComponent, VoiceNotesComponent],
+  declarations: [VoiceNotesComponent],
 })
 export class MessagesPageModule {}

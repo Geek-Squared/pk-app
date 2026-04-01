@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -12,15 +13,19 @@ import { ChatService } from 'src/app/services/chat.service';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { RecordingData, VoiceRecorder } from 'capacitor-voice-recorder';
-import { GestureController } from '@ionic/angular';
+import { GestureController, IonicModule, ModalController } from '@ionic/angular';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-// const { PushNotifications } = Plugins;
+import { UsersService } from 'src/app/services/users.service';
+import { RouterModule } from '@angular/router';
+import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
+import { UserSelectionComponent } from './user-selection/user-selection.component';
 
 @Component({
   selector: 'app-messages',
   templateUrl: './messages.page.html',
   styleUrls: ['./messages.page.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, IonicModule, RouterModule, BackButtonComponent]
 })
 export class MessagesPage implements OnInit {
   userChats$: Observable<any>;
@@ -32,12 +37,31 @@ export class MessagesPage implements OnInit {
   constructor(
     public auth: AuthenticationService,
     public cs: ChatService,
-    public gestureCtrl: GestureController
+    public gestureCtrl: GestureController,
+    private usersService: UsersService,
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
     this.userChats$ = this.cs.getUserChats();
     this.groupChats$ = this.cs.getGroupChats();
+  }
+
+  async showUserSelection() {
+    const modal = await this.modalController.create({
+      component: UserSelectionComponent,
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data) {
+      this.startNewChat(data);
+    }
+  }
+
+  startNewChat(user: any) {
+    this.cs.create(user);
   }
 
   change(event) {

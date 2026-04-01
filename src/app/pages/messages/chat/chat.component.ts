@@ -1,27 +1,31 @@
+import { CommonModule } from '@angular/common';
 import {
-  AfterViewChecked,
   AfterViewInit,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { IonicModule, GestureController } from '@ionic/angular';
+import { Subject, Subscription, take, takeUntil } from 'rxjs';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ChatService } from 'src/app/services/chat.service';
 import { UsersService } from 'src/app/services/users.service';
 import { VoiceRecorder, RecordingData } from 'capacitor-voice-recorder';
-import { GestureController } from '@ionic/angular';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { FileStorageService } from 'src/app/services/file-storage.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
+import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
+
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
+  standalone: true,
+  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent]
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('content') private content: any;
@@ -35,6 +39,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   durationDisplay = '';
   selectedChat: any;
   destroyed$ = new Subject();
+  currentUser: any;
 
   constructor(
     public cs: ChatService,
@@ -47,6 +52,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   ngOnInit() {
+    this.auth.user$.pipe(takeUntil(this.destroyed$)).subscribe(user => this.currentUser = user);
     VoiceRecorder.requestAudioRecordingPermission();
     const chatId = this.route.snapshot.paramMap.get('chatId');
     const source$ = this.cs.get(chatId);
@@ -56,10 +62,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroyed$))
       .subscribe(
         (res) => {
+          console.log('DEBUG: Chat data received:', res);
+          if (res?.messages) {
+            console.log('DEBUG: Last message object:', res.messages[res.messages.length - 1]);
+          }
           this.chat = res;
           this.utilsService.dismissLoader();
         },
-        () => {
+        (err) => {
+          console.error('DEBUG: Chat join error:', err);
           this.utilsService.dismissLoader();
         }
       );
@@ -95,63 +106,65 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     longPress.enable();
   }
 
-  submit(chat: { type: string; }) {
-    if (!(this.newMsg || this.newRecording)) {
-      return alert('You need to enter something');
+  submit(chat: any) {
+    const trimmedMsg = this.newMsg?.trim();
+    if (!trimmedMsg && !this.newRecording) {
+      return;
     }
-  
+
     if (chat?.type === 'group') {
-      this.handleGroupChatSubmit(chat);
+      this.handleGroupChatSubmit(chat, trimmedMsg);
     } else {
-      this.handleDirectChatSubmit(chat);
+      this.handleDirectChatSubmit(chat, trimmedMsg);
     }
   }
-  
-  handleGroupChatSubmit(chat) {
-    this.usersSubscription = this.usersService.getUsers().subscribe((res) => {
+
+  handleGroupChatSubmit(chat: any, content: string) {
+    this.usersService.getUsers().pipe(take(1)).subscribe((res: any) => {
       const users = this.mapUsers(res);
       const groupMembers = this.filterGroupMembers(users, chat);
-  
-      this.sendMessageToGroup(chat, groupMembers);
+
+      this.sendMessageToGroup(chat, groupMembers, content);
       this.resetMessage();
       this.scrollBottom();
       this.updateChat(chat);
     });
   }
-  
-  handleDirectChatSubmit(chat: { type: string; }) {
-    this.sendMessageToDirectChat(chat);
+
+  handleDirectChatSubmit(chat: any, content: string) {
+    this.sendMessageToDirectChat(chat, content);
     this.resetMessage();
     this.scrollBottom();
     this.updateChat(chat);
   }
-  
+
   mapUsers(res: any[]) {
     return res.map((e: any) => ({
       id: e.payload.doc.id,
       ...e.payload.doc.data(),
     }));
   }
-  
-  filterGroupMembers(users: any[], chat: { hasRead: { hasOwnProperty: (arg0: any) => any; }; }) {
+
+  filterGroupMembers(users: any[], chat: any) {
     return users.filter((element) => chat?.hasRead?.hasOwnProperty(element?.uid));
   }
-  
-  sendMessageToGroup(chat: { id: string; uid: string; }, groupMembers: any[]) {
-    if (this.newMsg !== '') {
-      this.cs.sendMessage(chat.id, this.newMsg, chat?.uid, groupMembers);
-    }
-  
+
+  sendMessageToGroup(chat: any, groupMembers: any[], content: string) {
     if (this.newRecording) {
       this.cs.sendMessage(chat.id, this.newRecording, chat?.uid, groupMembers, 'audio');
+    } else {
+      this.cs.sendMessage(chat.id, content, chat?.uid, groupMembers);
     }
   }
-  
-  sendMessageToDirectChat(chat: { type?: string; id?: any; uid?: any; }) {
+
+  async sendMessageToDirectChat(chat: any, content: string) {
+    const user = await this.auth.getUser();
+    const recipient = chat.uids ? chat.uids.find((u) => u !== user.uid) : chat.uid;
+    
     if (this.newRecording) {
-      this.cs.sendMessage(chat.id, this.newRecording, chat?.uid, null, 'audio');
+      this.cs.sendMessage(chat.id, this.newRecording, recipient, null, 'audio');
     } else {
-      this.cs.sendMessage(chat.id, this.newMsg, chat?.uid);
+      this.cs.sendMessage(chat.id, content, recipient);
     }
   }
   

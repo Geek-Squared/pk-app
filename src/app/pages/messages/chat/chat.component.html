@@ -1,12 +1,9 @@
-<ion-header translucent="true">
+<ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <app-back-button></app-back-button>
+      <app-back-button defaultHref="/messages"></app-back-button>
     </ion-buttons>
-    <ion-title>Chat</ion-title>
-    <ion-buttons slot="end">
-      <ion-menu-button autoHide="false"></ion-menu-button>
-    </ion-buttons>
+    <ion-title>{{ chat?.recipientName || chat?.displayName || 'Chat' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -27,33 +24,27 @@
           }}</span>
         </div>
 
-        <div class="msg">
-          <div class="msg-bubble">
-          <div class="user">
-            <img [src]="msg.user?.photoURL" />
+        <div class="msg" [class.my-msg]="msg.uid === currentUser?.uid">
+          <div class="user" *ngIf="msg.uid !== currentUser?.uid">
+            <img [src]="msg.user?.photoURL" *ngIf="msg.user?.photoURL" />
             <span
               id="profileImage"
-              *ngIf="!msg.user?.photoURL"
+              *ngIf="!msg?.user?.photoURL"
               [innerHTML]="getInitials(msg?.user?.displayName)"
             ></span>
           </div>
-          <div>
-            <strong class="name">{{ msg.user?.displayName }}</strong>
-            <br />
-
-            <p class="ion-text-justify" *ngIf="msg?.type !== 'audio'">
-              {{ msg?.content }}<br />
-              <i style="color: steelblue">{{
-                msg?.createdAt | date : 'shortTime'
-              }}</i>
+          <div class="msg-bubble">
+            <strong class="name" *ngIf="chat?.type === 'group' && msg.uid !== currentUser?.uid">{{ msg.user?.displayName }}</strong>
+            <p *ngIf="msg?.type !== 'audio'">
+              {{ msg?.content || msg?.message }}
             </p>
-
             <div class="audio-container" *ngIf="msg?.type === 'audio'">
               <audio controls preload="auto">
                 <source type="audio/mpeg" [src]="msg?.content" />
                 [unable to load audio]
               </audio>
             </div>
+            <span class="msg-time">{{ msg?.createdAt | date : 'shortTime' }}</span>
           </div>
         </div>
       </ng-container>
@@ -62,7 +53,7 @@
 
   <section class="chat-input">
     <div class="input-shell">
-      <ion-button fill="clear" class="mic-btn" (click)="selectedChat = chat">
+      <ion-button #recordBtn fill="clear" class="mic-btn" (click)="selectedChat = chat">
         <ion-icon name="mic-outline"></ion-icon>
       </ion-button>
 
@@ -70,7 +61,7 @@
         autoGrow="true"
         [(ngModel)]="newMsg"
         placeholder="Send a message or hold the mic"
-        (keydown.enter)="submit(chat)"
+        (keydown.enter)="submit(chat); $event.preventDefault()"
       ></ion-textarea>
 
       <ion-button class="send-btn" (click)="submit(chat)">

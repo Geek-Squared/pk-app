@@ -55,8 +55,11 @@ export class UtilitiesService {
     await this.loading.present();
   }
 
-  dismissLoader() {
-    this.loading.dismiss();
+  async dismissLoader() {
+    if (this.loading) {
+      await this.loading.dismiss();
+      this.loading = null;
+    }
   }
 
   // Alert

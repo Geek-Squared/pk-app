@@ -1,6 +1,7 @@
 import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Router } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 
 import { AuthenticationService } from './authentication.service';
 import { map, switchMap, tap } from 'rxjs/operators';
@@ -10,11 +11,13 @@ import firebase from 'firebase/compat/app';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { UsersService } from './users.service';
 import { environment } from 'src/environments/environment';
+
 interface Member {
   deviceId: {
     value: string;
   };
 }
+
 @Injectable({
   providedIn: 'root',
 })
@@ -45,18 +48,21 @@ export class ChatService {
   getUserChats() {
     return this.auth.user$.pipe(
       switchMap((user) => {
+        if (!user) return of([]);
         return runInInjectionContext(this.injector, () => {
           return this.afs
-            .collection('chats', (ref) => ref.where('uid', '==', user.uid))
+            .collection('chats', (ref) =>
+              ref.where('uids', 'array-contains', user.uid)
+            )
             .snapshotChanges()
             .pipe(
-              map((actions) => {
-                return actions.map((a) => {
-                  const data: Object = a.payload.doc.data();
+              map((actions) =>
+                actions.map((a) => {
+                  const data: any = a.payload.doc.data();
                   const id = a.payload.doc.id;
                   return { id, ...data };
-                });
-              })
+                })
+              )
             );
         });
       })
@@ -65,76 +71,86 @@ export class ChatService {
 
   getGroupChats() {
     return this.auth.user$.pipe(
-      switchMap(() => {
+      switchMap((user) => {
+        if (!user) return of([]);
         return runInInjectionContext(this.injector, () => {
           return this.afs
             .collection('chats', (ref) => ref.where('type', '==', 'group'))
             .snapshotChanges()
             .pipe(
-              map((actions) => {
-                return actions.map((a) => {
-                  const data: Object = a.payload.doc.data();
+              map((actions) =>
+                actions.map((a) => {
+                  const data: any = a.payload.doc.data();
                   const id = a.payload.doc.id;
                   return { id, ...data };
-                });
-              })
+                })
+              )
             );
         });
       })
     );
   }
 
-  async create() {
-    const { uid, displayName } = await this.auth.getUser();
+  async create(recipientUser?: any) {
+    const user = await this.auth.getUser();
 
     const data = {
-      uid,
-      displayName,
+      uid: user.uid,
+      uids: recipientUser ? [user.uid, recipientUser.uid] : [user.uid],
+      recipientName: recipientUser
+        ? recipientUser.displayName || recipientUser.email
+        : 'Private Chat',
       createdAt: Date.now(),
       count: 0,
       messages: [],
+      type: recipientUser ? 'private' : 'private',
     };
-
-    const docRef = await runInInjectionContext(this.injector, () => {
-      return this.afs.collection('chats').add(data);
-    });
-
-    return this.router.navigate(['messages/chat', docRef.id]);
-  }
-
-  async sendMessage(
-    chatId: string,
-    content: string,
-    chatUser?: string,
-    members?: Member[],
-    type: string = 'text'
-  ) {
-    const { uid } = await this.auth.getUser();
-
-    if (!uid) return;
-
-    const data = {
-      uid,
-      content,
-      createdAt: Date.now(),
-      type,
-    };
-
-    if (members) {
-      let uniqueItems = [...new Set(members.map((el) => el?.deviceId?.value))];
-      this.sendGroupPush(chatId, data, uniqueItems);
-    } else if (chatUser && chatUser !== uid) {
-      this.sendPush(chatId, data, chatUser);
-    }
 
     return runInInjectionContext(this.injector, () => {
-      const ref = this.afs.collection('chats').doc(chatId);
-      return ref
-        .update({
-          messages: firebase.firestore.FieldValue.arrayUnion(data),
-        })
-        .then((res) => {});
+      return this.afs
+        .collection('chats')
+        .add(data)
+        .then((docRef) => {
+          this.router.navigate(['messages/chat', docRef.id]);
+        });
     });
+  }
+
+  async sendMessage(chatId, content, recipientUid?, members?, type?) {
+    const user = await this.auth.getUser();
+
+    const data = {
+      uid: user.uid,
+      content,
+      createdAt: Date.now(),
+      user: {
+        uid: user.uid,
+        displayName: user.displayName || user.email,
+        photoURL: user.photoURL || '',
+      },
+      type: type || 'text',
+    };
+
+    if (chatId) {
+      return runInInjectionContext(this.injector, () => {
+        const ref = this.afs.collection('chats').doc(chatId);
+        console.log('DEBUG: Sending message data to Firestore:', data);
+        return ref
+          .update({
+            messages: firebase.firestore.FieldValue.arrayUnion(data),
+          })
+          .then(() => {
+            if (members) {
+              const userDeviceIds = members
+                .filter((m) => m?.deviceId?.value)
+                .map((m) => m.deviceId.value);
+              this.sendGroupPush(chatId, data, userDeviceIds);
+            } else if (recipientUid) {
+              this.sendPush(chatId, data, recipientUid);
+            }
+          });
+      });
+    }
   }
 
   joinUsers(chat$: Observable<any>) {
@@ -143,23 +159,22 @@ export class ChatService {
 
     return chat$.pipe(
       switchMap((c) => {
-        // Unique User IDs
         chat = c;
-        const uids = Array.from(new Set(c.messages.map((v) => v?.uid)));
+        const uids = Array.from(new Set(c.messages.map((v: any) => v.uid)));
 
-        // Firestore User Doc Reads
-        const userDocs = uids.map((u) =>
-          runInInjectionContext(this.injector, () => {
-            return this.afs.doc(`users/${u}`).valueChanges();
-          })
-        );
-
-        return userDocs.length ? combineLatest(userDocs) : of([]);
+        return runInInjectionContext(this.injector, () => {
+          const userDocsByUid = uids.map((uid) =>
+            this.afs.doc(`users/${uid}`).valueChanges()
+          );
+          return userDocsByUid.length ? combineLatest(userDocsByUid) : of([]);
+        });
       }),
       map((arr) => {
-        arr.forEach((v) => (joinKeys[(<any>v)?.uid] = v));
-        chat.messages = chat.messages.map((v) => {
-          return { ...v, user: joinKeys[v?.uid] };
+        arr.forEach((v: any) => {
+          if (v) joinKeys[v.uid] = v;
+        });
+        chat.messages = chat.messages.map((v: any) => {
+          return { ...v, user: joinKeys[v.uid] };
         });
 
         return chat;
@@ -167,23 +182,29 @@ export class ChatService {
     );
   }
 
-  async updateChat(chat, totalRead) {
-    const user = await this.auth.getUser();
-
-    if (!user?.uid) return;
+  updateChat(chat, count) {
+    const userUid = JSON.parse(localStorage.getItem('user'))?.uid;
+    const hasRead = chat.hasRead || {};
+    hasRead[userUid] = count;
 
     return runInInjectionContext(this.injector, () => {
-      const chatRef = this.afs.collection('chats').doc(chat.id);
-      return chatRef.update({ [`hasRead.${user.uid}`]: totalRead });
+      return this.afs.collection('chats').doc(chat.id).update({
+        hasRead,
+      });
     });
   }
 
-  sendPush(chatId: string | number, data: any, uid: string) {
+  sendPush(chatId: string | number, data: any, recipientUid: any) {
+    if (Capacitor.getPlatform() === 'web') {
+      console.log('Skipping push notification on web');
+      return;
+    }
+
     this.usersService
-      .getUserById(uid)
+      .getUserById(recipientUid)
       .pipe(
         tap((user: any) => {
-          if (user.deviceId) {
+          if (user?.deviceId?.value) {
             this.http
               .post(
                 `https://fcm.googleapis.com/fcm/send`,
@@ -199,7 +220,6 @@ export class ChatService {
                     landing_page: 'messages/chat',
                     chatId,
                   },
-                  /*  to: user?.deviceId.value, */
                   priority: 'high',
                   restricted_package_name: '',
                 },
@@ -210,7 +230,10 @@ export class ChatService {
                   ),
                 }
               )
-              .subscribe();
+              .subscribe({
+                next: () => {},
+                error: (err) => console.log('FCM failed:', err),
+              });
           }
         })
       )
@@ -218,6 +241,11 @@ export class ChatService {
   }
 
   sendGroupPush(chatId: string | number, data: any, userDeviceIds: string[]) {
+    if (Capacitor.getPlatform() === 'web') {
+      console.log('Skipping group push notification on web');
+      return;
+    }
+
     this.http
       .post(
         `https://fcm.googleapis.com/fcm/send`,
@@ -233,7 +261,6 @@ export class ChatService {
             landing_page: 'messages/chat',
             chatId,
           },
-          /*  to: user?.deviceId.value, */
           priority: 'high',
           restricted_package_name: '',
         },
@@ -244,6 +271,9 @@ export class ChatService {
           ),
         }
       )
-      .subscribe();
+      .subscribe({
+        next: () => {},
+        error: (err) => console.log('FCM failed:', err),
+      });
   }
 }
