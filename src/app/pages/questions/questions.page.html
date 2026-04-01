@@ -42,19 +42,17 @@
     <ion-button
       color="light"
       *ngIf="pager.index > 0"
-      (click)="goTo(pager.index - 1)"
+      (click)="goTo(pager.index - 1, question)"
       >Prev</ion-button
     >
     <ion-button
       *ngIf="!checkPosition()"
-      [disabled]="!isCurrentQuestionValid() || isValidating"
       (click)="goTo(pager.index + 1,question)"
       >Next</ion-button
     >
     <ion-button
       color="success"
       *ngIf="checkPosition()"
-      [disabled]="!isCurrentQuestionValid() || isValidating"
       (click)="saveQuestionResponses(question)"
       >Complete</ion-button
     >

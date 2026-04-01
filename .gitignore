@@ -11,7 +11,8 @@
 *.sublime-workspace
 .DS_Store
 Thumbs.db
-ply.json
+play.json
+android/fastlane/keys/play.json
 UserInterfaceState.xcuserstate
 $RECYCLE.BIN/
 

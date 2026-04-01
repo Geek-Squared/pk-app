@@ -8,6 +8,8 @@ import { BackButtonComponent } from 'src/app/components/back-button/back-button.
 import { QuestionsService } from 'src/app/services/questions.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
+import { addIcons } from 'ionicons';
+import { close, arrowForwardOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-post-details',
@@ -20,7 +22,7 @@ export class PostDetailsComponent implements OnInit {
   @Input() story: UPost;
   public workBook = [];
   private readonly MIN_MEANINGFUL_SCORE = 5;
-  private hasQuestions = true;
+  public hasQuestions = true;
   private isRecordingVideoCompletion = false;
 
   constructor(
@@ -28,7 +30,9 @@ export class PostDetailsComponent implements OnInit {
     private workbookService: WorkbookService,
     private questionsService: QuestionsService,
     private utilsService: UtilitiesService
-  ) {}
+  ) {
+    addIcons({ close, arrowForwardOutline });
+  }
 
   ngOnInit() {
     this.workbookService.getUserWorkbook().subscribe((data) => {

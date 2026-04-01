@@ -53,6 +53,7 @@ export class QuestionsPage implements OnInit, OnDestroy {
       .getUserWorkbook()
       .subscribe((data) => {
         this.workBook = data;
+        this.loadExistingAnswers();
       });
     this.subscriptions.add(workbookSub);
 
@@ -68,10 +69,45 @@ export class QuestionsPage implements OnInit, OnDestroy {
 
         this.pager.count = this.questions.length;
         this.utilsService.dismissLoader();
+        this.loadExistingAnswers();
       });
     this.subscriptions.add(questionsSub);
 
     this.loadPostMetadata();
+  }
+
+  private loadExistingAnswers() {
+    if (!this.workBook || !this.questions || this.questions.length === 0) {
+      return;
+    }
+    
+    // Only load if we haven't already started editing
+    if (this.questionAnswers.length > 0 || this.questionResponse) {
+      return;
+    }
+
+    const postId = this.route.snapshot.paramMap.get('postId');
+    const existingEntry = this.workBook?.[0]?.responses?.find((element: any) => element?.postId === postId);
+    
+
+    if (existingEntry && existingEntry.content) {
+      let contentArray = [];
+      if (Array.isArray(existingEntry.content)) {
+        contentArray = [...existingEntry.content];
+      } else if (typeof existingEntry.content === 'object' && existingEntry.content !== null) {
+        contentArray = Object.values(existingEntry.content);
+      }
+      
+      this.questionAnswers = contentArray;
+      
+      const targetQuestion = this.questions[this.pager.index];
+      const answer = this.questionAnswers.find(item => 
+        (item?.questionUid && item.questionUid === targetQuestion?.id) || 
+        (item?.questionNarrative === targetQuestion?.narrative)
+      );
+            
+      this.questionResponse = answer ? answer.response : '';
+    }
   }
 
   private loadPostMetadata(): void {
@@ -121,45 +157,58 @@ export class QuestionsPage implements OnInit, OnDestroy {
       : [];
   }
 
-  async goTo(index: number, questionId?: string) {
+  async goTo(index: number, currentQuestion?: any) {
     // Only validate when moving forward (index > current index)
+    /*
     if (index > this.pager.index) {
-      const currentQuestion = this.filteredQuestions[0];
+      if (!currentQuestion) currentQuestion = this.filteredQuestions[0];
       const isValid = await this.validateResponseWithAI(currentQuestion);
 
       if (!isValid) {
         return; // Validation failed, don't proceed forward
       }
     }
+    */
 
-    if (questionId) this.saveAnswerSheet(questionId);
+    if (currentQuestion) {
+      this.saveAnswerSheet(currentQuestion);
+    }
+    
+    // Progress the pager index
     if (index >= 0 && index < this.pager.count) {
       this.pager.index = index;
     }
-    if (this.questionAnswers.some((item) => item?.questionId === questionId)) {
-      this.questionResponse = this.questionAnswers.find(
-        (item) => item?.questionId === questionId
-      )?.response;
-    }
+    
+    // Load existing response for the newly focused question if available
+    const nextQuestion = this.questions[this.pager.index];
+    const existingEntry = this.questionAnswers.find(
+      (item) => item?.questionUid === nextQuestion?.id
+    );
+    
+    this.questionResponse = existingEntry ? existingEntry.response : '';
+    
+    // Clear old validation states when switching questions
+    this.validationFeedback = '';
+    this.lastValidationResult = null;
   }
 
   private saveAnswerSheet(question) {
-    const removeIndex = this.questionAnswers
-      .map(function (item) {
-        return item.questionId;
-      })
-      .indexOf(question.id);
+    if (!question || !question.id) return;
 
-    if (this.questionAnswers.some((item) => item?.questionId === question.id))
-      this.questionAnswers.splice(removeIndex, 1);
+    const existingIndex = this.questionAnswers.findIndex(
+      (item) => item.questionUid === question.id
+    );
+
+    if (existingIndex !== -1) {
+      this.questionAnswers.splice(existingIndex, 1);
+    }
 
     const entry = {
       questionUid: question.id,
-      response: this.questionResponse,
+      response: this.questionResponse || '',
       questionNarrative: question.narrative,
       postId: this.route.snapshot.paramMap.get('postId'),
-      questionOrder:
-        typeof question?.order === 'number' ? question.order : this.pager.index,
+      questionOrder: typeof question?.order === 'number' ? question.order : this.pager.index,
     };
 
     this.questionAnswers = [...this.questionAnswers, entry].sort((a, b) => {
@@ -167,7 +216,6 @@ export class QuestionsPage implements OnInit, OnDestroy {
       const bOrder = typeof b?.questionOrder === 'number' ? b.questionOrder : 0;
       return aOrder - bOrder;
     });
-    this.questionResponse = null;
   }
 
   public checkPosition() {
@@ -175,10 +223,12 @@ export class QuestionsPage implements OnInit, OnDestroy {
   }
 
   async saveQuestionResponses(question) {
+    /*
     const isValid = await this.validateResponseWithAI(question);
     if (!isValid) {
       return;
     }
+    */
 
     this.saveAnswerSheet(question);
     const postId = this.route.snapshot.paramMap.get('postId');
@@ -192,13 +242,7 @@ export class QuestionsPage implements OnInit, OnDestroy {
       })),
     });
 
-    if (this.checkProgress(postId)) {
-      this.utilsService.presentToast(
-        'You have already answered these questions'
-      );
-      this.router.navigate(['']);
-      return;
-    }
+    // We allow resubmission to edit existing questions, so checkProgress restriction is removed.
 
     const metadata: WorkbookResponseOptions = {
       chapterId: this.currentPost?.chapterId ?? null,

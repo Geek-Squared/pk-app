@@ -80,9 +80,9 @@ export class AppComponent {
     try {
       await StatusBar.setOverlaysWebView({ overlay: false });
       if (this.platform.is('android')) {
-        await StatusBar.setBackgroundColor({ color: '#ffffff' });
+        await StatusBar.setBackgroundColor({ color: '#0f63ff' });
       }
-      await StatusBar.setStyle({ style: Style.Dark });
+      await StatusBar.setStyle({ style: Style.Light });
     } catch (error) {
       console.warn('Unable to configure native status bar overlay', error);
     }

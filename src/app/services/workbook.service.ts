@@ -116,16 +116,37 @@ export class WorkbookService {
       return;
     }
 
-    return runInInjectionContext(this.injector, () => {
+    return runInInjectionContext(this.injector, async () => {
       const ref = this.afs.collection('workbooks').doc(workbookId);
+      const doc = await ref.get().toPromise();
+      const docData = doc.data() as any;
+      
+      let responses = docData?.responses || [];
+      const existingIndex = responses.findIndex((r: any) => r.postId === postId);
+      
+      let coinsAwarded = 0;
+      
+      if (existingIndex > -1) {
+        responses[existingIndex] = {
+          ...responses[existingIndex],
+          content,
+          qualityScore: options?.qualityScore ?? responses[existingIndex].qualityScore,
+          validationFeedback: options?.validationFeedback ?? responses[existingIndex].validationFeedback,
+          updatedAt: Date.now()
+        };
+      } else {
+        responses.push(data);
+        coinsAwarded = options?.coinsAwarded ?? 0;
+      }
+
       const updates: Record<string, any> = {
-        responses: firebase.firestore.FieldValue.arrayUnion(data),
+        responses,
         newContent: true,
       };
 
-      if (options?.coinsAwarded && options.coinsAwarded > 0) {
+      if (coinsAwarded > 0) {
         const ledgerEntry: CoinLedgerEntry = {
-          amount: options.coinsAwarded,
+          amount: coinsAwarded,
           reason: options.coinReason ?? 'Chapter milestone',
           type: 'earn',
           timestamp: Date.now(),
@@ -133,12 +154,8 @@ export class WorkbookService {
           postId: postId ?? null,
         };
 
-        updates.coinBalance = firebase.firestore.FieldValue.increment(
-          options.coinsAwarded
-        );
-        updates.coinHistory = firebase.firestore.FieldValue.arrayUnion(
-          ledgerEntry
-        );
+        updates.coinBalance = firebase.firestore.FieldValue.increment(coinsAwarded);
+        updates.coinHistory = firebase.firestore.FieldValue.arrayUnion(ledgerEntry);
       }
 
       return ref.update(updates);

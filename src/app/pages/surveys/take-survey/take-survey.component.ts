@@ -6,6 +6,7 @@ import { Model } from 'survey-core';
   selector: 'app-take-survey',
   templateUrl: './take-survey.component.html',
   styleUrls: ['./take-survey.component.scss'],
+  standalone: false,
 })
 export class TakeSurveyComponent implements OnInit {
   surveyModel: any;
@@ -28,7 +29,6 @@ export class TakeSurveyComponent implements OnInit {
   }
 
   submit(context) {
-    console.log(context, context?.data);
     this.surveysService.saveSurveyResponse(this.survey.id, context.data).then();
   }
 }

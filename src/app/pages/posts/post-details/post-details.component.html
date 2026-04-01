@@ -5,15 +5,23 @@
     </ion-buttons>
     <ion-title>Post Details</ion-title>
     <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="dismiss()">
-        <ion-icon slot="icon-only" name="close"></ion-icon>
+      <ion-button color="danger" fill="solid" (click)="dismiss()" style="border-radius: 20px; text-transform: none; --border-radius: 20px;">
+        <ion-icon name="close" style="margin-right: 5px;"></ion-icon>
+        Close
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="page-content" class="ion-padding">
-  <h3 class="ion-text-center">{{ story?.title }}</h3>
+<ion-content [fullscreen]="true" class="page-content ion-padding">
+  <!-- Elegant dismiss button that doesn't overlap content -->
+  <div style="display: flex; justify-content: flex-end; margin-bottom: 10px; margin-top: -5px; margin-right: -5px;">
+    <ion-button (click)="dismiss()" fill="clear" color="medium" size="small" style="--padding-start: 8px; --padding-end: 8px; margin: 0;">
+      <ion-icon name="close" slot="icon-only" style="font-size: 28px;"></ion-icon>
+    </ion-button>
+  </div>
+
+  <h3 class="ion-text-center" style="margin-top: 0;">{{ story?.title }}</h3>
   <br />
   <div class="card-img clr-col">
     <img src="{{ story?.imageUrl }}" />
@@ -45,12 +53,14 @@
 
   <br /><br />
   <ion-button
-    *ngIf="!checkProgress()"
     expand="full"
     routerLink="/questions/{{ story?.postId }}"
     (click)="dismiss()"
-    >Answer story questions &nbsp;<ion-icon
-      name="arrow-forward-outline"
-    ></ion-icon
-  ></ion-button>
+    [disabled]="!hasQuestions"
+  >
+    <ng-container *ngIf="hasQuestions && !checkProgress()">Answer story questions</ng-container>
+    <ng-container *ngIf="hasQuestions && checkProgress()">Edit story questions</ng-container>
+    <ng-container *ngIf="!hasQuestions">No questions</ng-container>
+    <ng-container *ngIf="hasQuestions">&nbsp;<ion-icon name="arrow-forward-outline"></ion-icon></ng-container>
+  </ion-button>
 </ion-content>
