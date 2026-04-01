@@ -1,214 +1,160 @@
-<ion-header translucent="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button></app-back-button>
-    </ion-buttons>
-    <ion-title>Messages</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="showUserSelection()">
-        <ion-icon name="add" slot="icon-only"></ion-icon>
-      </ion-button>
-      <ion-menu-button autoHide="false"></ion-menu-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="messages-page" [fullscreen]="true" class="page-content">
-  <section class="messages-hero">
-    <div class="hero-copy">
-      <span class="eyebrow">Conversations</span>
-      <h1>Choose how you'd like to connect</h1>
-      <p>Jump back into a private chat or check in with your group support circles.</p>
-    </div>
-    <div class="hero-actions">
-      <ion-button size="default" (click)="showUserSelection()">
-        <ion-icon slot="start" name="add-outline"></ion-icon>
-        Start private chat
-      </ion-button>
-      <ion-button fill="clear" color="dark" (click)="setView('group')">
-        Explore groups
-      </ion-button>
-    </div>
-  </section>
-
-  <section class="messages-tabs">
-    <ion-segment [value]="displayView" (ionChange)="change($event)">
-      <ion-segment-button value="chats">
-        <ion-icon name="person-outline"></ion-icon>
-        <span>Private Chats</span>
-      </ion-segment-button>
-      <ion-segment-button value="group">
-        <ion-icon name="people-outline"></ion-icon>
-        <span>Group Chats</span>
-      </ion-segment-button>
-    </ion-segment>
-  </section>
-
-  <section class="messages-list" *ngIf="displayView === 'chats'">
-    <ng-container *ngIf="auth.user$ | async as user">
-      <div class="empty-card" *ngIf="(userChats$ | async)?.length < 1">
-        <ion-icon name="chatbubble-outline"></ion-icon>
-        <h3>No private chats yet</h3>
-        <p>Start a one-on-one chat with your coach or care partner.</p>
-        <ion-button (click)="showUserSelection()">
-          <ion-icon slot="start" name="add-outline"></ion-icon>
-          Create chat
-        </ion-button>
-      </div>
-
-      <div class="chat-list" *ngIf="(userChats$ | async)?.length > 0">
-        <div
-          class="chat-card"
-          *ngFor="let chat of userChats$ | async"
-          [routerLink]="'chat/' + chat.id"
-        >
-          <div class="avatar">
-            <ion-icon name="person-circle-half-outline"></ion-icon>
-          </div>
-          <div class="chat-meta">
-            <div class="meta-header">
-              <h4>{{ chat.recipientName || 'Private Chat' }}</h4>
-              <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
-            </div>
-            <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:40 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 40 ? '...' : '' }}</p>
-            <p class="last-msg" *ngIf="!chat.messages?.length">Tap to start the conversation</p>
-          </div>
-          <div class="unread" *ngIf="getTotalUnread(chat) > 0">
-            <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
-          </div>
-        </div>
-      </div>
-    </ng-container>
-  </section>
-
-  <section class="messages-list" *ngIf="displayView === 'group'">
-    <ng-container *ngIf="auth.user$ | async as user">
-      <div class="chat-list" *ngIf="(groupChats$ | async)?.length > 0; else emptyGroup">
-        <div
-          class="chat-card"
-          *ngFor="let chat of groupChats$ | async"
-          [routerLink]="['chat/' + chat.id, { chatType: 'group' } ]"
-        >
-          <div class="avatar group">
-            <ion-icon name="people-outline"></ion-icon>
-          </div>
-          <div class="chat-meta">
-            <div class="meta-header">
-              <h4>{{ chat?.displayName | titlecase }}</h4>
-              <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
-            </div>
-            <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:40 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 40 ? '...' : '' }}</p>
-            <p class="last-msg" *ngIf="!chat.messages?.length">No messages yet</p>
-          </div>
-          <div class="unread" *ngIf="getTotalUnread(chat) > 0">
-            <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
-          </div>
-        </div>
-      </div>
-      <ng-template #emptyGroup>
-        <div class="empty-card">
-          <ion-icon name="people-circle-outline"></ion-icon>
-          <h3>No group chats yet</h3>
-          <p>Your facilitator will invite you when a group session opens.</p>
-        </div>
-      </ng-template>
-    </ng-container>
-  </section>
-  <div class="desktop-nav">
-    <div class="nav-content">
+<ion-content [fullscreen]="true" class="page-content">
+  <div class="dashboard-wrapper">
+    <!-- Top Navbar -->
+    <header class="top-navbar">
       <div class="breadcrumb">
-        <a routerLink="/home" routerDirection="root" class="back-btn">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-          <span>Home</span>
-        </a>
-        <span class="separator">/</span>
-        <span class="current-page">Messages</span>
+        <span class="root" routerLink="/dashboard">Dashboard</span>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+        <span class="current">Messages</span>
       </div>
-      <div class="page-title">
-        <ion-icon name="chatbubbles-outline"></ion-icon>
-        <h1>Messages</h1>
+      <div class="header-actions">
+        <ion-button fill="clear" color="dark">
+          <ion-icon name="notifications-outline"></ion-icon>
+        </ion-button>
+        <div class="user-pill">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <ion-icon name="settings-outline"></ion-icon>
+        </div>
       </div>
-    </div>
-  </div>
+    </header>
 
-  <div class="desktop-content">
-    <div class="messages-content">
-      <div class="chat-tabs">
-        <ion-segment [value]="displayView" (ionChange)="change($event)">
-          <ion-segment-button value="chats">
-            <ion-icon name="person-outline"></ion-icon>
-            <span>Private Chats</span>
-          </ion-segment-button>
-          <ion-segment-button value="group">
-            <ion-icon name="people-outline"></ion-icon>
-            <span>Group Chats</span>
-          </ion-segment-button>
-        </ion-segment>
-      </div>
-
-      <div class="desktop-chats" *ngIf="displayView === 'chats'">
-        <ng-container *ngIf="auth.user$ | async as user">
-          <div class="empty-state" *ngIf="(userChats$ | async)?.length < 1">
-            <ion-icon name="chatbubble-outline"></ion-icon>
-            <p>No private chats yet</p>
-            <ion-button (click)="showUserSelection()" fill="solid" color="primary">
-              <ion-icon name="add-outline" slot="start"></ion-icon>
-              Create Chat
-            </ion-button>
+    <main class="dashboard-layout full-width">
+      <!-- Main Content Area -->
+      <section class="content-area">
+        
+        <!-- Private Chats View -->
+        <ng-container *ngIf="displayView === 'chats'">
+          <div class="dashboard-content">
+            <div class="chat-hub-header">
+              <div class="hub-title">
+                <h1>Chat Hub</h1>
+                <p>Connect with your community and counsellors.</p>
+              </div>
+            </div>
           </div>
 
-          <div class="chats-grid" *ngIf="(userChats$ | async)?.length > 0">
-            <div class="chat-card" *ngFor="let chat of userChats$ | async" [routerLink]="'chat/' + chat.id">
-              <div class="avatar">
-                <ion-icon name="person-circle-half-outline"></ion-icon>
+          <div class="search-filter-row">
+            <div class="search-box">
+              <ion-icon name="search-outline"></ion-icon>
+              <input type="text" placeholder="Find a chat..." (input)="onSearchChange($event)" />
+            </div>
+          </div>
+
+          <div class="tab-switcher">
+            <button [class.active]="displayView === 'chats'" (click)="setView('chats')">Private Chats</button>
+            <button [class.active]="displayView === 'group'" (click)="setView('group')">Group Chats</button>
+          </div>
+
+          <div class="conversations-list">
+            <div 
+              class="chat-card" 
+              *ngFor="let chat of filteredChats$ | async" 
+              [routerLink]="'chat/' + chat.id"
+            >
+              <div class="avatar-wrapper">
+                <div class="avatar-circle">
+                  <ion-icon name="person-outline" *ngIf="!chat.recipientName"></ion-icon>
+                  <span *ngIf="chat.recipientName">{{ chat.recipientName | slice:0:1 }}</span>
+                </div>
+                <div class="status-indicator online" *ngIf="chat.recipientOnline"></div>
               </div>
-              <div class="chat-meta">
-                <div class="meta-header">
+              <div class="chat-info">
+                <div class="chat-header">
                   <h3>{{ chat.recipientName || 'Private Chat' }}</h3>
-                  <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
+                  <span class="timestamp">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' || 'JUST NOW' }}</span>
                 </div>
-                <div class="meta-body">
-                  <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:60 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 60 ? '...' : '' }}</p>
-                  <p class="last-msg" *ngIf="!chat.messages?.length">Tap to start conversation</p>
-                  <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
-                    <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
+                <div class="chat-body">
+                  <p class="last-message">
+                    {{ chat.messages[chat.messages.length - 1]?.content || 'Tap to start conversation...' }}
+                  </p>
+                  <div class="unread-count" *ngIf="getTotalUnread(chat) > 0">
+                    {{ getTotalUnread(chat) }}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </ng-container>
-      </div>
 
-      <div class="desktop-chats" *ngIf="displayView === 'group'">
-        <ng-container *ngIf="auth.user$ | async as user">
-          <div class="chats-grid">
-            <div class="chat-card" *ngFor="let chat of groupChats$ | async" [routerLink]="['chat/' + chat.id, { chatType: 'group' } ]">
-              <div class="avatar group">
-                <ion-icon name="people-outline"></ion-icon>
+        <!-- Group Chats View -->
+        <ng-container *ngIf="displayView === 'group'">
+          <div class="group-chats-wrapper">
+            <div class="hub-header">
+              <div class="hub-title">
+                <h1>Group Chats</h1>
+                <p>Connect with your communities. Stay resilient, together.</p>
               </div>
-              <div class="chat-meta">
-                <div class="meta-header">
-                  <h3>{{ chat?.displayName | titlecase }}</h3>
-                  <span class="chat-time" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' }}</span>
-                </div>
-                <div class="meta-body">
-                  <p class="last-msg" *ngIf="chat.messages?.length">{{ chat.messages[chat.messages.length - 1]?.content | slice:0:60 }}{{ chat.messages[chat.messages.length - 1]?.content?.length > 60 ? '...' : '' }}</p>
-                  <p class="last-msg" *ngIf="!chat.messages?.length">No messages yet</p>
-                  <div class="unread-badge" *ngIf="getTotalUnread(chat) > 0">
-                    <ion-badge color="primary">{{ getTotalUnread(chat) }}</ion-badge>
+              <div class="hub-actions">
+                <button class="new-group-btn" (click)="showUserSelection(true)">
+                  <ion-icon name="person-add-outline"></ion-icon>
+                  New Group
+                </button>
+              </div>
+            </div>
+
+            <!-- Search moved under title for groups -->
+            <div class="search-filter-row group-search">
+              <div class="search-box">
+                <ion-icon name="search-outline"></ion-icon>
+                <input type="text" placeholder="Find a group..." (input)="onSearchChange($event)" />
+              </div>
+            </div>
+
+            <div class="tab-switcher">
+              <button [class.active]="displayView === 'chats'" (click)="setView('chats')">Private Chats</button>
+              <button [class.active]="displayView === 'group'" (click)="setView('group')">Group Chats</button>
+            </div>
+
+            <div class="group-grid">
+              <div 
+                class="group-card" 
+                *ngFor="let chat of filteredGroups$ | async; let i = index" 
+                [routerLink]="['chat/' + chat.id, { chatType: 'group' }]"
+              >
+                <div class="card-top">
+                  <div class="group-badge" [attr.data-color]="i % 4">
+                    <span>{{ chat.displayName | slice:0:1 || 'G' }}</span>
                   </div>
+                  <span class="timestamp">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' || 'STARTED' }}</span>
                 </div>
+
+                <div class="card-content">
+                  <h2 class="group-name">{{ chat.displayName || 'Unnamed Group' }}</h2>
+
+                  <p class="last-mention">
+                    <span class="sender">{{ chat.messages[chat.messages.length - 1]?.user?.displayName || 'System' }}:</span>
+                    "{{ chat.messages[chat.messages.length - 1]?.content || 'Tap to join the conversation...' }}"
+                  </p>
+                </div>
+
+                <div class="card-footer">
+                  <div class="avatar-stack">
+                    <div class="stack-avatar" style="background: #e0f2fe; color: #0369a1;">A</div>
+                    <div class="stack-avatar" style="background: #fef2f2; color: #ef4444;">B</div>
+                    <div class="stack-avatar" style="background: #f0fdf4; color: #22c55e;">M</div>
+                    <div class="stack-avatar more">+{{ chat.messages?.length || 2 }}</div>
+                  </div>
+                  <ion-icon name="arrow-forward-outline" class="nav-arrow"></ion-icon>
+                </div>
+              </div>
+
+              <!-- Create Placeholder -->
+              <div class="create-placeholder" (click)="showUserSelection()">
+                <div class="placeholder-icon">
+                  <ion-icon name="add-outline"></ion-icon>
+                </div>
+                <h3>Create New Space</h3>
+                <p>ASSEMBLE YOUR TEAM</p>
               </div>
             </div>
           </div>
         </ng-container>
-      </div>
-    </div>
+      </section>
+    </main>
   </div>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="showUserSelection()">
+    <ion-fab-button (click)="showUserSelection()" class="custom-fab">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

@@ -1,14 +1,21 @@
-<ion-header translucent="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button></app-back-button>
-    </ion-buttons>
-    <ion-title>Questions</ion-title>
-    <ion-buttons slot="end">
-      <ion-menu-button autoHide="false"></ion-menu-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="dashboard-wrapper">
+  <header class="top-navbar">
+    <div class="breadcrumb">
+      <span class="root" routerLink="/dashboard">Dashboard</span>
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+      <span class="current">Questions</span>
+    </div>
+    <div class="header-actions">
+      <ion-button fill="clear" color="dark">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </ion-button>
+      <div class="user-pill">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <ion-icon name="settings-outline"></ion-icon>
+      </div>
+    </div>
+  </header>
+</div>
 
 <ion-content [fullscreen]="true" class="page-content" class="ion-padding">
   <div *ngFor="let question of filteredQuestions">

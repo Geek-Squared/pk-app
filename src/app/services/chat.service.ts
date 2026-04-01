@@ -56,13 +56,28 @@ export class ChatService {
             )
             .snapshotChanges()
             .pipe(
-              map((actions) =>
-                actions.map((a) => {
+              switchMap((actions) => {
+                const chats = actions.map((a) => {
                   const data: any = a.payload.doc.data();
                   const id = a.payload.doc.id;
                   return { id, ...data };
-                })
-              )
+                });
+
+                if (chats.length === 0) return of([]);
+
+                const joins = chats.map((chat) => {
+                  const recipientUid = chat.uids?.find(uid => uid !== user.uid);
+                  if (!recipientUid) return of(chat);
+                  
+                  return runInInjectionContext(this.injector, () => {
+                    return this.afs.doc(`users/${recipientUid}`).valueChanges().pipe(
+                      map((u: any) => ({ ...chat, recipientOnline: u?.isOnline || false }))
+                    );
+                  });
+                });
+
+                return combineLatest(joins);
+              })
             );
         });
       })
@@ -75,7 +90,10 @@ export class ChatService {
         if (!user) return of([]);
         return runInInjectionContext(this.injector, () => {
           return this.afs
-            .collection('chats', (ref) => ref.where('type', '==', 'group'))
+            .collection('chats', (ref) => 
+               ref.where('type', '==', 'group')
+                  .where('uids', 'array-contains', user.uid)
+            )
             .snapshotChanges()
             .pipe(
               map((actions) =>
@@ -113,6 +131,48 @@ export class ChatService {
         .then((docRef) => {
           this.router.navigate(['messages/chat', docRef.id]);
         });
+    });
+  }
+
+  async createGroup(name: string, members: any[]) {
+    const user = await this.auth.getUser();
+    const memberUids = [user.uid, ...members.map(m => m.uid)];
+    
+    const data = {
+      displayName: name,
+      uids: memberUids,
+      type: 'group',
+      createdAt: Date.now(),
+      count: 0,
+      messages: [],
+      members: [
+        {
+          uid: user.uid,
+          displayName: user.displayName || user.email,
+          photoURL: user.photoURL || ''
+        },
+        ...members.map(m => ({
+          uid: m.uid,
+          displayName: m.displayName || m.email,
+          photoURL: m.photoURL || ''
+        }))
+      ]
+    };
+
+    return runInInjectionContext(this.injector, () => {
+      return this.afs
+        .collection('chats')
+        .add(data)
+        .then((docRef) => {
+          this.router.navigate(['messages/chat', docRef.id]);
+        });
+    });
+  }
+
+  async updateGroupMembers(chatId: string, uid: string, memberObj: any) {
+    return this.afs.collection('chats').doc(chatId).update({
+      uids: firebase.firestore.FieldValue.arrayUnion(uid),
+      members: firebase.firestore.FieldValue.arrayUnion(memberObj)
     });
   }
 

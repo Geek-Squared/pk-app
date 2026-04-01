@@ -47,9 +47,9 @@ export class UtilitiesService {
     toast.present();
   }
 
-  async presentLoading() {
+  async presentLoading(message: string = 'Please wait...') {
     this.loading = await this.loadingController.create({
-      message: 'Please wait...',
+      message,
       duration: 2000,
     });
     await this.loading.present();

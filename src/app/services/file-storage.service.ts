@@ -24,9 +24,43 @@ export class FileStorageService {
       });
   }
 
+  async uploadImage(file: File) {
+    const filePath = `uploads/images/${Date.now()}_${file.name}`;
+    const storageRef = this.storage.ref(filePath);
+    const uploadTask = this.storage.upload(filePath, file);
+
+    return new Promise<string>((resolve, reject) => {
+      uploadTask.snapshotChanges().pipe(
+        finalize(() => {
+          storageRef.getDownloadURL().subscribe({
+            next: (url) => resolve(url),
+            error: (err) => reject(err)
+          });
+        })
+      ).subscribe();
+    });
+  }
+
   getUrl(): Observable<any> {
     const storageRef = this.storage.ref('uploads');
     return storageRef.getDownloadURL();
+  }
+
+  async uploadFile(file: File) {
+    const filePath = `uploads/${Date.now()}_${file.name}`;
+    const storageRef = this.storage.ref(filePath);
+    const uploadTask = this.storage.upload(filePath, file);
+
+    return new Promise<string>((resolve, reject) => {
+      uploadTask.snapshotChanges().pipe(
+        finalize(() => {
+          storageRef.getDownloadURL().subscribe({
+            next: (url) => resolve(url),
+            error: (err) => reject(err)
+          });
+        })
+      ).subscribe();
+    });
   }
 }
 

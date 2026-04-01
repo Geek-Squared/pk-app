@@ -6,33 +6,33 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { GestureController, IonicModule, ModalController } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ChatService } from 'src/app/services/chat.service';
-import { Capacitor } from '@capacitor/core';
-import { Directory, Filesystem } from '@capacitor/filesystem';
-import { RecordingData, VoiceRecorder } from 'capacitor-voice-recorder';
-import { GestureController, IonicModule, ModalController } from '@ionic/angular';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { UsersService } from 'src/app/services/users.service';
 import { RouterModule } from '@angular/router';
 import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 import { UserSelectionComponent } from './user-selection/user-selection.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-messages',
   templateUrl: './messages.page.html',
   styleUrls: ['./messages.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, BackButtonComponent]
+  imports: [CommonModule, IonicModule, RouterModule, BackButtonComponent, FormsModule]
 })
 export class MessagesPage implements OnInit {
+  searchTerm$ = new BehaviorSubject<string>('');
+  displayView: string = 'chats';
+  
   userChats$: Observable<any>;
-  isGroupChats: boolean;
-  displayView = 'chats';
-  public groupChats$;
-  badgeColor: any;
+  groupChats$: Observable<any>;
+  
+  filteredChats$: Observable<any>;
+  filteredGroups$: Observable<any>;
 
   constructor(
     public auth: AuthenticationService,
@@ -43,20 +43,59 @@ export class MessagesPage implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.auth.user$.subscribe(user => console.log('Current User Messages:', user));
+    
     this.userChats$ = this.cs.getUserChats();
     this.groupChats$ = this.cs.getGroupChats();
+
+    this.filteredChats$ = combineLatest([this.userChats$, this.searchTerm$]).pipe(
+      map(([chats, term]) => this.filterChatList(chats, term))
+    );
+
+    this.filteredGroups$ = combineLatest([this.groupChats$, this.searchTerm$]).pipe(
+      map(([groups, term]) => this.filterGroupList(groups, term))
+    );
   }
 
-  async showUserSelection() {
+  filterChatList(chats: any[], term: string) {
+    if (!chats) return [];
+    if (!term) return chats;
+    return chats.filter(c => 
+      c.recipientName?.toLowerCase().includes(term.toLowerCase())
+    );
+  }
+
+  filterGroupList(groups: any[], term: string) {
+    if (!groups) return [];
+    if (!term) return groups;
+    return groups.filter(g => 
+      g.displayName?.toLowerCase().includes(term.toLowerCase())
+    );
+  }
+
+  onSearchChange(event: any) {
+    this.searchTerm$.next(event.target.value);
+  }
+
+  setView(view: string) {
+    this.displayView = view;
+  }
+
+  async showUserSelection(isGroup: boolean = false) {
     const modal = await this.modalController.create({
       component: UserSelectionComponent,
+      componentProps: { isGroup }
     });
 
     await modal.present();
 
     const { data } = await modal.onWillDismiss();
     if (data) {
-      this.startNewChat(data);
+      if (data.mode === 'group') {
+        this.cs.createGroup(data.name, data.members);
+      } else {
+        this.cs.create(data.user);
+      }
     }
   }
 
@@ -69,10 +108,6 @@ export class MessagesPage implements OnInit {
     if (value) {
       this.displayView = value;
     }
-  }
-
-  setView(view: 'chats' | 'group') {
-    this.displayView = view;
   }
 
   getTotalUnread(chat) {

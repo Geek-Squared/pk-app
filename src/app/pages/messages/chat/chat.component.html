@@ -1,72 +1,102 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button defaultHref="/messages"></app-back-button>
-    </ion-buttons>
-    <ion-title>{{ chat?.recipientName || chat?.displayName || 'Chat' }}</ion-title>
-  </ion-toolbar>
+  <div class="chat-navbar">
+    <div class="breadcrumb">
+      <span class="root" routerLink="/messages">MESSAGES</span>
+      <span class="separator">/</span>
+      <div class="current-wrapper">
+        <span class="current">{{ chat?.recipientName || chat?.displayName || 'Chat' }}</span>
+        <!-- Add Member Icon for Groups -->
+        <button class="add-member-btn" *ngIf="chat?.type === 'group'" (click)="addMember()">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+    <div class="navbar-actions">
+    </div>
+  </div>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="page-content chat-page" #content>
-  <section class="chat-thread">
-    <div class="chat">
-      <ng-container
-        *ngFor="
-          let msg of chat?.messages;
-          index as index;
-          trackBy: trackByCreated
-        "
-      >
-        <div class="ion-text-center date">
-          <br />
-          <span *ngIf="isDifferentDay(index)">{{
-            msg?.createdAt | date : 'mediumDate'
-          }}</span>
-        </div>
+  <div class="chat-thread-wrapper">
+    <ng-container *ngFor="let msg of chat?.messages; index as index; trackBy: trackByCreated">
+      <!-- Date Divider -->
+      <div class="date-divider" *ngIf="isDifferentDay(index)">
+        <span class="date-pill">{{ msg?.createdAt | date : 'EEEE' | uppercase }}</span>
+      </div>
 
-        <div class="msg" [class.my-msg]="msg.uid === currentUser?.uid">
-          <div class="user" *ngIf="msg.uid !== currentUser?.uid">
+      <!-- Message Structure -->
+      <div class="message-row" [class.sender]="msg.uid === currentUser?.uid" [class.recipient]="msg.uid !== currentUser?.uid">
+        
+        <!-- Recipient Avatar -->
+        <div class="message-meta-avatar" *ngIf="msg.uid !== currentUser?.uid">
+          <div class="avatar-circle">
+            <span *ngIf="!msg.user?.photoURL">{{ (msg.user?.displayName || 'C') | slice:0:1 }}</span>
             <img [src]="msg.user?.photoURL" *ngIf="msg.user?.photoURL" />
-            <span
-              id="profileImage"
-              *ngIf="!msg?.user?.photoURL"
-              [innerHTML]="getInitials(msg?.user?.displayName)"
-            ></span>
-          </div>
-          <div class="msg-bubble">
-            <strong class="name" *ngIf="chat?.type === 'group' && msg.uid !== currentUser?.uid">{{ msg.user?.displayName }}</strong>
-            <p *ngIf="msg?.type !== 'audio'">
-              {{ msg?.content || msg?.message }}
-            </p>
-            <div class="audio-container" *ngIf="msg?.type === 'audio'">
-              <audio controls preload="auto">
-                <source type="audio/mpeg" [src]="msg?.content" />
-                [unable to load audio]
-              </audio>
-            </div>
-            <span class="msg-time">{{ msg?.createdAt | date : 'shortTime' }}</span>
           </div>
         </div>
-      </ng-container>
-    </div>
-  </section>
 
-  <section class="chat-input">
-    <div class="input-shell">
-      <ion-button #recordBtn fill="clear" class="mic-btn" (click)="selectedChat = chat">
+        <!-- Bubble Container -->
+        <div class="bubble-container">
+          <!-- Text Bubble -->
+          <div class="bubble" *ngIf="msg?.type === 'text' || !msg?.type">
+            <p>{{ msg?.content || msg?.message }}</p>
+          </div>
+
+          <!-- Image Bubble -->
+          <div class="bubble image-bubble" *ngIf="msg?.type === 'image'">
+            <img [src]="msg.content" />
+          </div>
+
+          <!-- Audio Bubble -->
+          <div class="bubble audio-bubble" *ngIf="msg?.type === 'audio'">
+            <div class="audio-player-wrapper">
+              <ion-button fill="clear" class="play-btn">
+                <ion-icon name="play-sharp"></ion-icon>
+              </ion-button>
+              <div class="waveform-placeholder">
+                <div class="bar" style="height: 40%"></div>
+                <div class="bar active" style="height: 60%"></div>
+                <div class="bar active" style="height: 80%"></div>
+                <div class="bar active" style="height: 50%"></div>
+                <div class="bar" style="height: 30%"></div>
+              </div>
+              <span class="audio-duration">0:42</span>
+            </div>
+          </div>
+
+          <!-- Timestamp Below -->
+          <span class="message-timestamp">{{ msg?.createdAt | date : 'hh:mm a' }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Polished Footer -->
+  <div class="chat-footer-wrapper" slot="fixed">
+    <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
+    <div class="footer-actions-left">
+      <button class="icon-btn" (click)="triggerFileSelect()"><ion-icon name="add-circle-outline"></ion-icon></button>
+      <button class="icon-btn" (click)="triggerFileSelect()"><ion-icon name="image-outline"></ion-icon></button>
+    </div>
+    <div class="input-container">
+      <input type="text" placeholder="Type your message..." [(ngModel)]="newMsg" (keydown.enter)="submit(chat)" />
+      <button class="emoji-btn"><ion-icon name="happy-outline"></ion-icon></button>
+    </div>
+    <div class="footer-actions-right">
+      <button 
+        class="mic-btn" 
+        #recordBtn
+        [class.recording]="recording"
+        (touchstart)="startRecording()" 
+        (touchend)="stopRecording()"
+        (mousedown)="startRecording()"
+        (mouseup)="stopRecording()"
+      >
         <ion-icon name="mic-outline"></ion-icon>
-      </ion-button>
-
-      <ion-textarea
-        autoGrow="true"
-        [(ngModel)]="newMsg"
-        placeholder="Send a message or hold the mic"
-        (keydown.enter)="submit(chat); $event.preventDefault()"
-      ></ion-textarea>
-
-      <ion-button class="send-btn" (click)="submit(chat)">
-        <ion-icon name="send"></ion-icon>
-      </ion-button>
+      </button>
+      <button class="send-btn" (click)="submit(chat)">
+        <ion-icon name="send-sharp"></ion-icon>
+      </button>
     </div>
-  </section>
+  </div>
 </ion-content>

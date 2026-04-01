@@ -11,8 +11,13 @@ import { ChatComponent } from './chat/chat.component';
 import { VoiceNotesComponent } from './voice-notes/voice-notes.component';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, IonicModule,
-    BackButtonComponent, MessagesPageRoutingModule],
-  declarations: [VoiceNotesComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    IonicModule,
+    BackButtonComponent, 
+    MessagesPageRoutingModule,
+    VoiceNotesComponent
+  ],
 })
 export class MessagesPageModule {}

@@ -19,6 +19,9 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { FileStorageService } from 'src/app/services/file-storage.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
+import { ModalController } from '@ionic/angular';
+import { UserSelectionComponent } from '../user-selection/user-selection.component';
+import firebase from 'firebase/compat/app';
 
 @Component({
   selector: 'app-chat',
@@ -48,11 +51,40 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     public usersService: UsersService,
     private gestureCtrl: GestureController,
     private fileStorageService: FileStorageService,
-    private utilsService: UtilitiesService
+    private utilsService: UtilitiesService,
+    private modalController: ModalController
   ) {}
 
+  async addMember() {
+    const modal = await this.modalController.create({
+      component: UserSelectionComponent,
+      componentProps: { isGroup: false } // We use private mode to pick ONE person to add
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data && data.user) {
+      const newUser = data.user;
+      
+      // Update the group in Firestore
+      const chatId = this.chat.id;
+      const memberObj = {
+        uid: newUser.uid,
+        displayName: newUser.displayName || newUser.email,
+        photoURL: newUser.photoURL || ''
+      };
+
+      await this.cs.updateGroupMembers(chatId, newUser.uid, memberObj);
+      this.utilsService.presentToast(`${newUser.displayName} added to group`);
+    }
+  }
+
   ngOnInit() {
-    this.auth.user$.pipe(takeUntil(this.destroyed$)).subscribe(user => this.currentUser = user);
+    this.auth.user$.pipe(takeUntil(this.destroyed$)).subscribe(user => {
+      this.currentUser = user;
+      console.log('Current User Chat:', user);
+    });
     VoiceRecorder.requestAudioRecordingPermission();
     const chatId = this.route.snapshot.paramMap.get('chatId');
     const source$ = this.cs.get(chatId);
@@ -85,25 +117,27 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     this.stopRecording();
 
-    const longPress = this.gestureCtrl.create(
-      {
-        el: this.recordBtn?.nativeElement,
-        gestureName: 'long-press',
-        threshold: 0,
-        onStart: (t: any) => {
-          Haptics.impact({ style: ImpactStyle.Light });
-          this.startRecording();
-          this.calculateDuration();
+    if (this.recordBtn?.nativeElement) {
+      const longPress = this.gestureCtrl.create(
+        {
+          el: this.recordBtn.nativeElement,
+          gestureName: 'long-press',
+          threshold: 0,
+          onStart: (t: any) => {
+            Haptics.impact({ style: ImpactStyle.Light });
+            this.startRecording();
+            this.calculateDuration();
+          },
+          onEnd: () => {
+            Haptics.impact({ style: ImpactStyle.Light });
+            this.stopRecording();
+          },
         },
-        onEnd: () => {
-          Haptics.impact({ style: ImpactStyle.Light });
-          this.stopRecording();
-        },
-      },
-      true
-    );
-
-    longPress.enable();
+        true
+      );
+  
+      longPress.enable();
+    }
   }
 
   submit(chat: any) {
@@ -187,7 +221,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private scrollBottom() {
     setTimeout(() => {
-      if (this.content.scrollToBottom) {
+      if (this.content && this.content.scrollToBottom) {
         this.content.scrollToBottom(400);
       }
     }, 1000);
@@ -260,5 +294,35 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   updateChatUnread() {
     if (this.chat)
       return this.cs.updateChat(this.chat, this.chat.messages?.length).then();
+  }
+
+  triggerFileSelect() {
+    const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
+    fileInput.click();
+  }
+
+  async onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file || !this.chat) return;
+
+    this.utilsService.presentLoading('Uploading image...');
+    try {
+      const url = await this.fileStorageService.uploadFile(file);
+      const user = await this.auth.getUser();
+      
+      if (this.chat.type === 'group') {
+        const groupMembers = this.filterGroupMembers([], this.chat); // simplify for now, the service handles the list
+        await this.cs.sendMessage(this.chat.id, url, user.uid, groupMembers, 'image');
+      } else {
+        const recipient = this.chat.uids ? this.chat.uids.find((u) => u !== user.uid) : this.chat.uid;
+        await this.cs.sendMessage(this.chat.id, url, recipient, null, 'image');
+      }
+      
+      this.utilsService.dismissLoader();
+    } catch (error) {
+      console.error('Upload error:', error);
+      this.utilsService.dismissLoader();
+      this.utilsService.presentToast('Failed to upload image');
+    }
   }
 }
