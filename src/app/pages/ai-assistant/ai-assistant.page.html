@@ -1,6 +1,33 @@
 <ion-content [fullscreen]="true" class="page-content assistant-content">
   <div class="dashboard-wrapper">
-    <div class="ai-hero-section">
+    <!-- Mobile High Fidelity View -->
+    <div class="mobile-only-assistant">
+      <div class="peekay-hero">
+        <h1>I'm Peekay</h1>
+        <p>Your AI companion for mindful living</p>
+      </div>
+
+      <div class="assistant-actions-grid">
+        <div class="action-card energy">
+          <ion-icon name="flash"></ion-icon>
+          <h3>Energy Boost Tactics</h3>
+        </div>
+        <div class="action-card mindful">
+          <ion-icon name="leaf"></ion-icon>
+          <h3>Mindful Breathwork</h3>
+        </div>
+        <div class="action-card pulse">
+          <div class="pulse-content">
+            <h3>Daily Pulse Check</h3>
+            <p>Analyze your mood and productivity</p>
+          </div>
+          <ion-icon name="heart"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Existing Hero (Hidden on Mobile) -->
+    <div class="ai-hero-section desktop-only">
       <h1 class="main-greeting">{{ greeting }}, {{ userName }}.</h1>
       <p class="sub-greeting">Your resilient sanctuary is ready. How can I guide your wellness journey today?</p>
     </div>
@@ -8,19 +35,25 @@
     <div class="chat-thread-container">
       <div class="chat-thread">
         <!-- Welcoming Assistant Message -->
-        <div class="bubble from-assistant" *ngIf="messages.length === 0">
-          <p>Hello {{ userName }}, I'm here to support you. Feel free to ask anything about your wellness or your workbook journey.</p>
+        <div class="message-group from-assistant" *ngIf="messages.length === 0">
+          <div class="bubble">
+            <p>Hello! I've been tracking your activity. You seem to be having a productive day. How is your focus level feeling right now?</p>
+          </div>
+          <span class="timestamp">9:41 AM</span>
         </div>
 
         <div
           *ngFor="let message of messages; trackBy: trackByTimestamp"
-          class="bubble"
+          class="message-group"
           [ngClass]="{
             'from-user': message.role === 'user',
             'from-assistant': message.role === 'assistant'
           }"
         >
-          <p>{{ message.content }}</p>
+          <div class="bubble">
+            <p>{{ message.content }}</p>
+          </div>
+          <span class="timestamp">{{ message.timestamp | date:'h:mm a' }}</span>
         </div>
 
         <div class="bubble typing" *ngIf="pending">
@@ -48,32 +81,28 @@
 
     <ion-toolbar class="composer-toolbar">
       <form class="composer-form" [formGroup]="form" (ngSubmit)="sendMessage()">
-        <div class="composer-input-wrapper">
+        <div class="composer-pill">
+          <div class="add-action">
+            <ion-icon name="add-circle"></ion-icon>
+          </div>
+          
           <ion-textarea
             #composer
             autoGrow="true"
             rows="1"
-            placeholder="Tell me what's on your mind..."
+            [placeholder]="'Message Peekay...'"
             formControlName="prompt"
             (keydown)="handleKeydown($event)"
             [disabled]="pending"
           ></ion-textarea>
           
-          <div class="composer-actions">
-            <ion-button fill="clear" color="medium" class="action-btn">
-              <ion-icon name="attach-outline"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" color="medium" class="action-btn">
-              <ion-icon name="mic-outline"></ion-icon>
-            </ion-button>
-            <ion-button
-              class="send-btn"
-              type="submit"
-              [disabled]="!canSend"
-            >
-              <ion-icon name="sparkles"></ion-icon>
-            </ion-button>
-          </div>
+          <button
+            class="send-action-btn"
+            type="submit"
+            [disabled]="!canSend"
+          >
+            <ion-icon name="arrow-up-outline"></ion-icon>
+          </button>
         </div>
       </form>
     </ion-toolbar>

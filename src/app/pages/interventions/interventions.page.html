@@ -1,47 +1,40 @@
 <ion-content [fullscreen]="true" class="page-content interventions-content">
   <div class="dashboard-wrapper">
-    <!-- Mobile Content -->
+    <!-- Mobile Content - Curated High Fidelity Design -->
     <div class="mobile-wrapper">
-      <section class="mobile-hero">
-        <p class="hero-eyebrow">Interventions</p>
-        <h1>Choose your next step</h1>
-        <p class="hero-subtitle">
-          Work through guided practices designed to support and empower your wellbeing journey.
-        </p>
+      <section class="curated-header">
+        <h1>Interventions</h1>
+        <p>Curated paths designed for specific life stages and roles. Choose a focus to begin your journey.</p>
       </section>
-
+ 
       <ng-container *ngIf="interventions$ | async as interventions; else loadingState">
         <ng-container *ngIf="interventions.length; else emptyState">
-          <div class="mobile-list">
-            <button
-              type="button"
-              class="mobile-item"
+          <div class="mobile-curated-list">
+            <div 
+              class="mobile-curated-card no-icons" 
               *ngFor="let intervention of interventions"
               [routerLink]="['/chapters', intervention.id]"
             >
-              <div class="item-icon">
-                <ion-icon name="library-outline"></ion-icon>
+              <!-- Content text - forced to white -->
+              <div class="card-info">
+                <h2 style="color: #ffffff !important;">{{ intervention?.name }}</h2>
+                <p style="color: #ffffff !important; opacity: 0.95;">{{ getInterventionDescription(intervention.name) }}</p>
               </div>
-              <div class="item-content">
-                <h2>{{ intervention?.name }}</h2>
-                <p>Tap to explore chapters, exercises, and reflections tailored for you.</p>
-              </div>
-              <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
-            </button>
+            </div>
           </div>
         </ng-container>
       </ng-container>
-
+ 
       <ng-template #loadingState>
         <div class="mobile-loading">
-          <ion-spinner name="crescent"></ion-spinner>
-          <span>Loading interventions…</span>
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <span>Loading curated paths…</span>
         </div>
       </ng-template>
-
+ 
       <ng-template #emptyState>
         <div class="mobile-empty">
-          <ion-icon name="information-circle-outline"></ion-icon>
+          <ion-icon name="information-circle-outline" color="medium"></ion-icon>
           <p>No interventions are available right now. Please check back later.</p>
         </div>
       </ng-template>

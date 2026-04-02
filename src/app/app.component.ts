@@ -26,7 +26,7 @@ export class AppComponent {
     '/about': 'About',
     '/interventions': 'Interventions',
     '/my-work-book': 'My Workbook',
-    '/ai-assistant': 'AI Assistant',
+    '/ai-assistant': 'Wellness Chat',
     '/feedback': 'Feedback',
     '/referrals': 'Referrals',
     '/bookings': 'Bookings',

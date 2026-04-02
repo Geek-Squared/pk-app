@@ -268,4 +268,30 @@ ion-card-content {
   .desktop-dashboard {
     display: none !important;
   }
+
+  .home-mobile-grid {
+    background-color: var(--ion-background-color) !important;
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex;
+    flex-flow: column;
+    
+    ion-row {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    ion-col {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    ion-card {
+      margin: 0 !important;
+      height: 100% !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
+  }
 }

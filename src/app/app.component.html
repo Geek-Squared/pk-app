@@ -66,6 +66,23 @@
       </ion-list>
     </ion-content>
   </ion-menu>
+  
+  <!-- Mobile-only header, hidden on Dashboard as requested -->
+  <ion-header class="ion-no-border mobile-only-header" *ngIf="authenticationService.isLoggedIn && !isDashboardRoute()">
+    <ion-toolbar mode="ios">
+      <ion-buttons slot="start">
+        <ion-menu-button color="primary"></ion-menu-button>
+      </ion-buttons>
+      <ion-title mode="ios">
+        <img src="assets/images/logo.png" class="mobile-logo-header" />
+      </ion-title>
+      <ion-buttons slot="end">
+        <div class="mobile-profile-avatar">
+          <ion-icon name="person"></ion-icon>
+        </div>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
 
   <ion-header class="ion-no-border root-shell-header" *ngIf="authenticationService.isLoggedIn && !isDashboardRoute()">
     <div class="dashboard-header-wrapper">

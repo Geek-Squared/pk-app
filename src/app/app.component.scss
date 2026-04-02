@@ -179,10 +179,60 @@ ion-item a {
   ion-app.logged-in ion-router-outlet {
     background: #f8fafc;
   }
+
+  // Hide mobile header on desktop
+  .mobile-only-header {
+    display: none !important;
+  }
 }
 
-// Hide desktop sidebar on mobile - ensure mobile works normally
+// Mobile and Tablet specific styles
 @media (max-width: 767px) {
+  .mobile-only-header {
+    display: block !important;
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+
+    ion-toolbar {
+      --background: #fff;
+      --padding-top: 10px;
+      --padding-bottom: 10px;
+      --min-height: 64px;
+    }
+
+    .mobile-logo-header {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .mobile-profile-avatar {
+      width: 40px;
+      height: 40px;
+      background: #0d122a; // Deep dark navy almost black from the image
+      border: 1.5px solid rgba(255, 255, 255, 0.1); 
+      border-radius: 12px; // Slightly rounded corners (rounded square)
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      
+      ion-icon {
+        font-size: 1.4rem;
+        color: #ffffff;
+        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
+      }
+    }
+  }
+
+  // Ensure main content doesn't overlap mobile header
+  .main-content-layout.authenticated {
+    padding-top: 0; // Default ionic content padding will handle
+  }
+
+  // Hide desktop parts
+  .root-shell-header,
   .desktop-sidebar {
     display: none !important;
   }

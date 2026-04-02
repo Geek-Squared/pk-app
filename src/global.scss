@@ -320,5 +320,28 @@ ion-router-outlet.has-header {
   .desktop-only-title {
     display: none !important;
   }
+
+  // Enforce 16px margins to page for all mobile content EXCEPT Home
+  .dashboard-wrapper,
+  .mobile-wrapper,
+  .dashboard-header-wrapper,
+  .assistant-content .dashboard-wrapper,
+  .interventions-content .dashboard-wrapper,
+  .page-content:not(.home-content) > div:first-child {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  ion-grid.mobile-grid-layout {
+    --ion-grid-padding: 16px;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  // Explicitly ensure home grid is edge-to-edge
+  ion-grid.home-mobile-grid {
+    padding: 0 !important;
+    --ion-grid-padding: 0px !important;
+  }
 }
 
