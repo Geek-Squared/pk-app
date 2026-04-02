@@ -167,9 +167,17 @@ ion-item a {
     }
   }
 
-  // Push main content to the right only when sidebar is visible
-  ion-app.logged-in ion-router-outlet {
+  // Push main content and header to the right only when sidebar is visible
+  ion-app.logged-in ion-router-outlet,
+  ion-app.logged-in ion-header.root-shell-header {
     margin-left: 280px;
+  }
+  
+  ion-app.logged-in ion-header.root-shell-header {
+    width: calc(100% - 280px);
+  }
+  
+  ion-app.logged-in ion-router-outlet {
     background: #f8fafc;
   }
 }

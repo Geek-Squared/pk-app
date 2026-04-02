@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Location } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { MenuController, Platform } from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -39,7 +40,8 @@ export class AppComponent {
     public authenticationService: AuthenticationService,
     private menu: MenuController,
     private router: Router,
-    private titleService: TitleService
+    private titleService: TitleService,
+    private location: Location
   ) {
     this.initializeApp();
     this.watchRouteChanges();
@@ -69,6 +71,10 @@ export class AppComponent {
   logOut() {
     this.authenticationService.SignOut();
     this.menu.close();
+  }
+
+  navigateBack() {
+    this.location.back();
   }
 
   private watchRouteChanges(): void {
