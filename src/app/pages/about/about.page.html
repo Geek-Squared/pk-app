@@ -1,90 +1,43 @@
-<div class="dashboard-wrapper">
-  <header class="top-navbar">
-    <div class="breadcrumb">
-      <span class="root" routerLink="/dashboard">Dashboard</span>
-      <ion-icon name="chevron-forward-outline"></ion-icon>
-      <span class="current">About</span>
-    </div>
-    <div class="header-actions">
-      <ion-button fill="clear" color="dark">
-        <ion-icon name="notifications-outline"></ion-icon>
-      </ion-button>
-      <div class="user-pill">
-        <ion-icon name="person-circle-outline"></ion-icon>
-        <ion-icon name="settings-outline"></ion-icon>
-      </div>
-    </div>
-  </header>
-</div>
-
 <ion-content [fullscreen]="true" class="page-content">
-  <ion-card>
-    <ion-card-content>
-
-      <p>Positive Konnections is an idea that was inspired by working with people living with HIV. In listening to stories about experiences of shame associated with infection, we could see that a lot of focus was on how different, dirty, unworthy, unlovable etc., they felt without any acknowledgement of the strength and resilience it takes to fight with death every day and win. Through all their experiences and struggles, people living with HIV have become super heroes, who are in hiding, unaware of their own strength or superhero status. Therefore Positive Konnections is social networking platform, with a self -help psychological intervention, which has been put together for these super heroes to go through a journey of self-discovery, come out of hiding and form a unified offensive against the super villain HIV.</p>
-
-      <h2>Positive Konnections: The Birthing of a Super Hero</h2>
-
-      <img src="assets/images/heroes.jpg" alt="The birth of a superhero">
-
-      <p>Viewing people living with HIV as super heroes is something that can appear unrealistic and far-fetched. It might seem as though one is being over ambitious or trying to sugar coat or put a positive spin to something ugly and difficult to deal with. Thus it might be easy to dismiss the thought or concept because of the traditional, personal, cultural or social responses and ways of thinking about and dealing with people living with HIV. Therefore there is need to make a case for the hidden heroes of our generation that society might have missed and who might be unaware of their heroes’ status. Thus, Positive Konnections (PK) endeavours to draw parallels between the lives and challenges of the super heroes that have been confirmed as such with those who do not see themselves as such, have not been acknowledged as such and are in hiding. This can be done through joining Positive Konnections, an online social media application which will give one access to the PK story which is entitled “The Birthing of a Super Hero”. The PK story has 10 chapters or chronicles that narrate the journey that one goes through in becoming a superhero. Each chronicle will have a collection of stories that will highlight experiences of known and acknowledged superheroes together with similarities that can be drawn or seen in the journey of being HIV positive. After reading the story, one is encouraged to introspect and reflect on the issues discussed in the narrative and how they have impacted on thoughts, feelings, behaviours, attitudes, beliefs, identity, self - worth or esteem
-      in relation to HIV infection. The aim is to help people living with HIV to realize and recognise their strengths, abilities, value and self- worth which might be overshadowed by the negative personal and social labels surrounding infection.</p>
-
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Desktop Navigation & Content -->
-  <div class="desktop-nav">
-    <div class="nav-content">
-      <div class="breadcrumb">
-        <a routerLink="/" class="back-btn">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-          <span>Dashboard</span>
-        </a>
-        <span class="separator">/</span>
-        <span class="current-page">About</span>
-      </div>
+  <div class="dashboard-wrapper">
+    <div class="about-content">
       <div class="page-title">
         <ion-icon name="information-circle-outline"></ion-icon>
         <h1>About Positive Konnections</h1>
       </div>
+      
+    <div class="hero-section">
+      <img src="assets/images/heroes.jpg" alt="The birth of a superhero" class="hero-image">
+      <div class="hero-text">
+        <h2>Positive Konnections: The Birthing of a Super Hero</h2>
+        <p class="hero-description">Empowering people living with HIV to recognize their strength and resilience</p>
+      </div>
     </div>
-  </div>
 
-  <div class="desktop-content">
-    <div class="about-content">
-      <div class="hero-section">
-        <img src="assets/images/heroes.jpg" alt="The birth of a superhero" class="hero-image">
-        <div class="hero-text">
-          <h2>Positive Konnections: The Birthing of a Super Hero</h2>
-          <p class="hero-description">Empowering people living with HIV to recognize their strength and resilience</p>
-        </div>
+    <div class="content-sections">
+      <div class="section">
+        <h3>Our Mission</h3>
+        <p>Positive Konnections is an idea that was inspired by working with people living with HIV. In listening to stories about experiences of shame associated with infection, we could see that a lot of focus was on how different, dirty, unworthy, unlovable etc., they felt without any acknowledgement of the strength and resilience it takes to fight with death every day and win.</p>
+        
+        <p>Through all their experiences and struggles, people living with HIV have become super heroes, who are in hiding, unaware of their own strength or superhero status. Therefore Positive Konnections is social networking platform, with a self-help psychological intervention, which has been put together for these super heroes to go through a journey of self-discovery, come out of hiding and form a unified offensive against the super villain HIV.</p>
       </div>
 
-      <div class="content-sections">
-        <div class="section">
-          <h3>Our Mission</h3>
-          <p>Positive Konnections is an idea that was inspired by working with people living with HIV. In listening to stories about experiences of shame associated with infection, we could see that a lot of focus was on how different, dirty, unworthy, unlovable etc., they felt without any acknowledgement of the strength and resilience it takes to fight with death every day and win.</p>
-          
-          <p>Through all their experiences and struggles, people living with HIV have become super heroes, who are in hiding, unaware of their own strength or superhero status. Therefore Positive Konnections is social networking platform, with a self-help psychological intervention, which has been put together for these super heroes to go through a journey of self-discovery, come out of hiding and form a unified offensive against the super villain HIV.</p>
-        </div>
-
-        <div class="section">
-          <h3>The Hero's Journey</h3>
-          <p>Viewing people living with HIV as super heroes is something that can appear unrealistic and far-fetched. It might seem as though one is being over ambitious or trying to sugar coat or put a positive spin to something ugly and difficult to deal with. Thus it might be easy to dismiss the thought or concept because of the traditional, personal, cultural or social responses and ways of thinking about and dealing with people living with HIV.</p>
-          
-          <p>Therefore there is need to make a case for the hidden heroes of our generation that society might have missed and who might be unaware of their heroes' status. Thus, Positive Konnections (PK) endeavours to draw parallels between the lives and challenges of the super heroes that have been confirmed as such with those who do not see themselves as such, have not been acknowledged as such and are in hiding.</p>
-        </div>
-
-        <div class="section">
-          <h3>Our Approach</h3>
-          <p>This can be done through joining Positive Konnections, an online social media application which will give one access to the PK story which is entitled "The Birthing of a Super Hero". The PK story has 10 chapters or chronicles that narrate the journey that one goes through in becoming a superhero.</p>
-          
-          <p>Each chronicle will have a collection of stories that will highlight experiences of known and acknowledged superheroes together with similarities that can be drawn or seen in the journey of being HIV positive. After reading the story, one is encouraged to introspect and reflect on the issues discussed in the narrative and how they have impacted on thoughts, feelings, behaviours, attitudes, beliefs, identity, self-worth or esteem in relation to HIV infection.</p>
-          
-          <p><strong>The aim is to help people living with HIV to realize and recognise their strengths, abilities, value and self-worth which might be overshadowed by the negative personal and social labels surrounding infection.</strong></p>
-        </div>
+      <div class="section">
+        <h3>The Hero's Journey</h3>
+        <p>Viewing people living with HIV as super heroes is something that can appear unrealistic and far-fetched. It might seem as though one is being over ambitious or trying to sugar coat or put a positive spin to something ugly and difficult to deal with. Thus it might be easy to dismiss the thought or concept because of the traditional, personal, cultural or social responses and ways of thinking about and dealing with people living with HIV.</p>
+        
+        <p>Therefore there is need to make a case for the hidden heroes of our generation that society might have missed and who might be unaware of their heroes' status. Thus, Positive Konnections (PK) endeavours to draw parallels between the lives and challenges of the super heroes that have been confirmed as such with those who do not see themselves as such, have not been acknowledged as such and are in hiding.</p>
       </div>
+
+      <div class="section">
+        <h3>Our Approach</h3>
+        <p>This can be done through joining Positive Konnections, an online social media application which will give one access to the PK story which is entitled "The Birthing of a Super Hero". The PK story has 10 chapters or chronicles that narrate the journey that one goes through in becoming a superhero.</p>
+        
+        <p>Each chronicle will have a collection of stories that will highlight experiences of known and acknowledged superheroes together with similarities that can be drawn or seen in the journey of being HIV positive. After reading the story, one is encouraged to introspect and reflect on the issues discussed in the narrative and how they have impacted on thoughts, feelings, behaviours, attitudes, beliefs, identity, self-worth or esteem in relation to HIV infection.</p>
+        
+        <p><strong>The aim is to help people living with HIV to realize and recognise their strengths, abilities, value and self-worth which might be overshadowed by the negative personal and social labels surrounding infection.</strong></p>
+      </div>
+    </div>
     </div>
   </div>
 </ion-content>

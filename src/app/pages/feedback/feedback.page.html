@@ -1,88 +1,63 @@
-<ion-header translucent="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button></app-back-button>
-    </ion-buttons>
-    <ion-title>Feedback</ion-title>
-    <ion-buttons slot="end">
-      <ion-menu-button autoHide="false"></ion-menu-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true" class="page-content">
-  <!-- Mobile Content -->
-  <ion-grid style="height: 100%">
-    <ion-row
-      class="ion-align-items-center ion-justify-content-center"
-      style="height: 100%"
-    >
-      <ion-card>
-        <ion-card-header style="font-size: 2em">
-          <h5><ion-icon name="mail"></ion-icon> Get in touch</h5>
-        </ion-card-header>
-        <ion-card-content>
-          <form [formGroup]="feedbackForm">
-            <ion-item>
-              <!-- <ion-label position="fixed">Name</ion-label> -->
-              <ion-input
-                type="text"
-                formControlName="name"
-                placeholder="Name"
-              ></ion-input>
-            </ion-item>
+  <div class="dashboard-wrapper">
+    <!-- Mobile Content -->
+    <ion-grid style="height: 100%">
+      <ion-row
+        class="ion-align-items-center ion-justify-content-center"
+        style="height: 100%"
+      >
+        <ion-card>
+          <ion-card-header style="font-size: 2em">
+            <h5><ion-icon name="mail"></ion-icon> Get in touch</h5>
+          </ion-card-header>
+          <ion-card-content>
+            <form [formGroup]="feedbackForm">
+              <ion-item>
+                <!-- <ion-label position="fixed">Name</ion-label> -->
+                <ion-input
+                  type="text"
+                  formControlName="name"
+                  placeholder="Name"
+                ></ion-input>
+              </ion-item>
 
-            <ion-item>
-              <!-- <ion-label position="fixed">Phone</ion-label> -->
-              <ion-input
-                type="text"
-                formControlName="phoneNumber"
-                placeholder="Phone"
-              ></ion-input>
-            </ion-item>
+              <ion-item>
+                <!-- <ion-label position="fixed">Phone</ion-label> -->
+                <ion-input
+                  type="text"
+                  formControlName="phoneNumber"
+                  placeholder="Phone"
+                ></ion-input>
+              </ion-item>
 
-            <ion-item>
-              <!-- <ion-label position="fixed">Message</ion-label> -->
-              <ion-textarea
-                name="message"
-                formControlName="message"
-                placeholder="Message"
-              ></ion-textarea>
-            </ion-item>
+              <ion-item>
+                <!-- <ion-label position="fixed">Message</ion-label> -->
+                <ion-textarea
+                  name="message"
+                  formControlName="message"
+                  placeholder="Message"
+                ></ion-textarea>
+              </ion-item>
 
-            <ion-button
-              color="primary"
-              expand="block"
-              (click)="onSubmit()"
-              [disabled]="feedbackForm.invalid"
-              >Submit</ion-button
-            >
-          </form>
-        </ion-card-content>
-      </ion-card>
-    </ion-row>
-  </ion-grid>
-
-  <!-- Desktop Navigation & Content -->
-  <div class="desktop-nav">
-    <div class="nav-content">
-      <div class="breadcrumb">
-        <a routerLink="/" class="back-btn">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-          <span>Dashboard</span>
-        </a>
-        <span class="separator">/</span>
-        <span class="current-page">Feedback</span>
-      </div>
-      <div class="page-title">
-        <ion-icon name="mail-outline"></ion-icon>
-        <h1>Get in Touch</h1>
-      </div>
-    </div>
-  </div>
+              <ion-button
+                color="primary"
+                expand="block"
+                (click)="onSubmit()"
+                [disabled]="feedbackForm.invalid"
+                >Submit</ion-button
+              >
+            </form>
+          </ion-card-content>
+        </ion-card>
+      </ion-row>
+    </ion-grid>
 
   <div class="desktop-content">
     <div class="feedback-content">
+      <div class="page-title desktop-only-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+        <ion-icon name="chatbubbles-outline" style="font-size: 1.5rem; color: #2d72ad;"></ion-icon>
+        <h1 style="font-size: 1.75rem; font-weight: 600; color: #1e293b; margin: 0;">Feedback</h1>
+      </div>
       <div class="feedback-card">
         <div class="card-header">
           <ion-icon name="mail-outline"></ion-icon>
@@ -134,6 +109,7 @@
           </ion-button>
         </form>
       </div>
+    </div>
     </div>
   </div>
 </ion-content>

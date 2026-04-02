@@ -16,6 +16,7 @@ import { RouterModule } from '@angular/router';
 import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 import { UserSelectionComponent } from './user-selection/user-selection.component';
 import { FormsModule } from '@angular/forms';
+import { TitleService } from 'src/app/services/title.service';
 
 @Component({
   selector: 'app-messages',
@@ -39,7 +40,8 @@ export class MessagesPage implements OnInit {
     public cs: ChatService,
     public gestureCtrl: GestureController,
     private usersService: UsersService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private titleService: TitleService
   ) {}
 
   ngOnInit() {
@@ -77,8 +79,9 @@ export class MessagesPage implements OnInit {
     this.searchTerm$.next(event.target.value);
   }
 
-  setView(view: string) {
+  setView(view: 'chats' | 'group') {
     this.displayView = view;
+    this.titleService.setTitle(view === 'chats' ? 'Chat Hub' : 'Group Chats');
   }
 
   async showUserSelection(isGroup: boolean = false) {

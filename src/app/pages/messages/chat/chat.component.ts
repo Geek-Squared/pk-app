@@ -22,6 +22,7 @@ import { BackButtonComponent } from 'src/app/components/back-button/back-button.
 import { ModalController } from '@ionic/angular';
 import { UserSelectionComponent } from '../user-selection/user-selection.component';
 import firebase from 'firebase/compat/app';
+import { TitleService } from 'src/app/services/title.service';
 
 @Component({
   selector: 'app-chat',
@@ -52,7 +53,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     private gestureCtrl: GestureController,
     private fileStorageService: FileStorageService,
     private utilsService: UtilitiesService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private titleService: TitleService
   ) {}
 
   async addMember() {
@@ -99,6 +101,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
             console.log('DEBUG: Last message object:', res.messages[res.messages.length - 1]);
           }
           this.chat = res;
+          this.titleService.setTitle(this.chat?.recipientName || this.chat?.displayName || 'Chat');
           this.utilsService.dismissLoader();
         },
         (err) => {

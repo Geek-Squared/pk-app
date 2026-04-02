@@ -1,24 +1,6 @@
-<div class="dashboard-wrapper">
-  <header class="top-navbar">
-    <div class="breadcrumb">
-      <span class="root" routerLink="/dashboard">Dashboard</span>
-      <ion-icon name="chevron-forward-outline"></ion-icon>
-      <span class="current">Questions</span>
-    </div>
-    <div class="header-actions">
-      <ion-button fill="clear" color="dark">
-        <ion-icon name="notifications-outline"></ion-icon>
-      </ion-button>
-      <div class="user-pill">
-        <ion-icon name="person-circle-outline"></ion-icon>
-        <ion-icon name="settings-outline"></ion-icon>
-      </div>
-    </div>
-  </header>
-</div>
-
 <ion-content [fullscreen]="true" class="page-content" class="ion-padding">
-  <div *ngFor="let question of filteredQuestions">
+  <div class="dashboard-wrapper">
+    <div *ngFor="let question of filteredQuestions">
     <h3>{{question?.narrative}}</h3>
 
     <ion-item>
@@ -68,5 +50,6 @@
   <div class="ion-text-center" *ngIf=" questions?.length === 0">
     <ion-icon name="search-outline" style="font-size: 3.2em"></ion-icon><br />
     <p>No Questions Available!</p>
+  </div>
   </div>
 </ion-content>

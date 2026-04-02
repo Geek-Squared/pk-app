@@ -1,82 +1,58 @@
-<ion-header translucent="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button></app-back-button>
-    </ion-buttons>
-    <ion-title>Interventions</ion-title>
-    <ion-buttons slot="end">
-      <ion-menu-button autoHide="false"></ion-menu-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="page-content interventions-content">
+  <div class="dashboard-wrapper">
+    <!-- Mobile Content -->
+    <div class="mobile-wrapper">
+      <section class="mobile-hero">
+        <p class="hero-eyebrow">Interventions</p>
+        <h1>Choose your next step</h1>
+        <p class="hero-subtitle">
+          Work through guided practices designed to support and empower your wellbeing journey.
+        </p>
+      </section>
 
-<ion-content [fullscreen]="true" class="page-content" class="interventions-content">
-  <!-- Mobile Content -->
-  <div class="mobile-wrapper">
-    <section class="mobile-hero">
-      <p class="hero-eyebrow">Interventions</p>
-      <h1>Choose your next step</h1>
-      <p class="hero-subtitle">
-        Work through guided practices designed to support and empower your wellbeing journey.
-      </p>
-    </section>
-
-    <ng-container *ngIf="interventions$ | async as interventions; else loadingState">
-      <ng-container *ngIf="interventions.length; else emptyState">
-        <div class="mobile-list">
-          <button
-            type="button"
-            class="mobile-item"
-            *ngFor="let intervention of interventions"
-            [routerLink]="['/chapters', intervention.id]"
-          >
-            <div class="item-icon">
-              <ion-icon name="library-outline"></ion-icon>
-            </div>
-            <div class="item-content">
-              <h2>{{ intervention?.name }}</h2>
-              <p>Tap to explore chapters, exercises, and reflections tailored for you.</p>
-            </div>
-            <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
-          </button>
-        </div>
+      <ng-container *ngIf="interventions$ | async as interventions; else loadingState">
+        <ng-container *ngIf="interventions.length; else emptyState">
+          <div class="mobile-list">
+            <button
+              type="button"
+              class="mobile-item"
+              *ngFor="let intervention of interventions"
+              [routerLink]="['/chapters', intervention.id]"
+            >
+              <div class="item-icon">
+                <ion-icon name="library-outline"></ion-icon>
+              </div>
+              <div class="item-content">
+                <h2>{{ intervention?.name }}</h2>
+                <p>Tap to explore chapters, exercises, and reflections tailored for you.</p>
+              </div>
+              <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+        </ng-container>
       </ng-container>
-    </ng-container>
 
-    <ng-template #loadingState>
-      <div class="mobile-loading">
-        <ion-spinner name="crescent"></ion-spinner>
-        <span>Loading interventions…</span>
-      </div>
-    </ng-template>
+      <ng-template #loadingState>
+        <div class="mobile-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Loading interventions…</span>
+        </div>
+      </ng-template>
 
-    <ng-template #emptyState>
-      <div class="mobile-empty">
-        <ion-icon name="information-circle-outline"></ion-icon>
-        <p>No interventions are available right now. Please check back later.</p>
-      </div>
-    </ng-template>
-  </div>
-
-  <!-- Desktop Navigation & Content -->
-  <div class="desktop-nav">
-    <div class="nav-content">
-      <div class="breadcrumb">
-        <a routerLink="/" class="back-btn">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-          <span>Dashboard</span>
-        </a>
-        <span class="separator">/</span>
-        <span class="current-page">Interventions</span>
-      </div>
-      <div class="page-title">
-        <ion-icon name="library-outline"></ion-icon>
-        <h1>Interventions</h1>
-      </div>
+      <ng-template #emptyState>
+        <div class="mobile-empty">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>No interventions are available right now. Please check back later.</p>
+        </div>
+      </ng-template>
     </div>
-  </div>
 
   <div class="desktop-content">
+    <div class="page-title" style="margin-bottom: 1.5rem;">
+      <ion-icon name="library-outline"></ion-icon>
+      <h1>Interventions</h1>
+    </div>
+
     <div class="page-description">
       <p>Choose from our evidence-based therapeutic interventions designed to support your mental health journey.</p>
     </div>
@@ -101,6 +77,7 @@
           </div>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </ion-content>

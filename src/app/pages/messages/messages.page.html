@@ -1,23 +1,5 @@
 <ion-content [fullscreen]="true" class="page-content">
   <div class="dashboard-wrapper">
-    <!-- Top Navbar -->
-    <header class="top-navbar">
-      <div class="breadcrumb">
-        <span class="root" routerLink="/dashboard">Dashboard</span>
-        <ion-icon name="chevron-forward-outline"></ion-icon>
-        <span class="current">Messages</span>
-      </div>
-      <div class="header-actions">
-        <ion-button fill="clear" color="dark">
-          <ion-icon name="notifications-outline"></ion-icon>
-        </ion-button>
-        <div class="user-pill">
-          <ion-icon name="person-circle-outline"></ion-icon>
-          <ion-icon name="settings-outline"></ion-icon>
-        </div>
-      </div>
-    </header>
-
     <main class="dashboard-layout full-width">
       <!-- Main Content Area -->
       <section class="content-area">
@@ -29,6 +11,22 @@
               <div class="hub-title">
                 <h1>Chat Hub</h1>
                 <p>Connect with your community and counsellors.</p>
+              </div>
+            </div>
+
+            <div class="counsellors-row">
+              <div class="counsellor-item start-new" (click)="showUserSelection()">
+                <div class="avatar-circle">
+                  <ion-icon name="add"></ion-icon>
+                </div>
+                <span>New Chat</span>
+              </div>
+              <div class="counsellor-item">
+                <div class="avatar-circle">
+                  <ion-icon name="medkit-outline"></ion-icon>
+                  <div class="status-indicator online"></div>
+                </div>
+                <span>Support</span>
               </div>
             </div>
           </div>
@@ -86,12 +84,11 @@
               </div>
               <div class="hub-actions">
                 <button class="new-group-btn" (click)="showUserSelection(true)">
-                  <ion-icon name="person-add-outline"></ion-icon>
+                  <ion-icon name="people-outline"></ion-icon>
                   New Group
                 </button>
               </div>
             </div>
-
             <!-- Search moved under title for groups -->
             <div class="search-filter-row group-search">
               <div class="search-box">

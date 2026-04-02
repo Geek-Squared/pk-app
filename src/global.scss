@@ -227,6 +227,11 @@ ion-button {
 }
 
 // Custom Dashboard Layout
+ion-header.root-shell-header {
+  background: transparent !important;
+  --background: transparent !important;
+}
+
 .dashboard-wrapper {
   width: 100%;
   margin: 0 auto;
@@ -234,18 +239,27 @@ ion-button {
   max-width: 1400px;
 }
 
+.dashboard-header-wrapper {
+  width: 100%;
+  padding: 1.5rem 2rem 0;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: transparent;
+}
+
 .top-navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
 
   .breadcrumb {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: #64748b;
-    font-size: 0.875rem;
+    font-size: 1rem;
+    font-weight: 500;
 
     .root {
       cursor: pointer;
@@ -287,3 +301,15 @@ ion-button {
     }
   }
 }
+
+// Ensure the page content does not overlap the custom shell header
+ion-router-outlet.has-header {
+  top: 72px; /* Set so content starts just beneath the global custom header */
+}
+
+@media (max-width: 767px) {
+  .desktop-only-title {
+    display: none !important;
+  }
+}
+

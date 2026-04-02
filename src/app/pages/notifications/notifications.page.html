@@ -1,45 +1,36 @@
-<ion-header translucent="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button></app-back-button>
-    </ion-buttons>
-    <ion-title>Notifications</ion-title>
-    <ion-buttons slot="end">
-      <ion-menu-button autoHide="false"></ion-menu-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
 <ion-content [fullscreen]="true" class="page-content">
-  <div class="text-center" *ngIf="isLoading">
-    <br /><br />
-    <ion-spinner name="crescent"></ion-spinner>
-    <br /><br />
-  </div>
+  <div class="dashboard-wrapper">
+    <div class="text-center" *ngIf="isLoading">
+      <br /><br />
+      <ion-spinner name="crescent"></ion-spinner>
+      <br /><br />
+    </div>
 
-  <div class="empty-state" *ngIf="!isLoading && notifications?.length < 1">
-    <ion-icon name="notifications-outline"></ion-icon>
-    <p>No notifications yet.</p>
-  </div>
+    <div class="empty-state" *ngIf="!isLoading && notifications?.length < 1">
+      <ion-icon name="notifications-outline"></ion-icon>
+      <p>No notifications yet.</p>
+    </div>
 
-  <ion-list class="notifications-list" *ngIf="!isLoading && notifications?.length">
-    <ion-item
-      lines="none"
-      *ngFor="let note of notifications"
-      (click)="openNotification(note)"
-      [class.is-unread]="!note?.read"
-    >
-      <ion-icon name="notifications-outline" slot="start"></ion-icon>
-      <ion-label>
-        <h2>{{ note?.title }}</h2>
-        <p>{{ note?.body }}</p>
-        <small
-          >{{
-            note?.createdAt?.toDate
-              ? (note?.createdAt?.toDate() | date: 'medium')
-              : (note?.createdAt | date: 'medium')
-          }}</small
-        >
-      </ion-label>
-    </ion-item>
-  </ion-list>
+    <ion-list class="notifications-list" *ngIf="!isLoading && notifications?.length">
+      <ion-item
+        lines="none"
+        *ngFor="let note of notifications"
+        (click)="openNotification(note)"
+        [class.is-unread]="!note?.read"
+      >
+        <ion-icon name="notifications-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h2>{{ note?.title }}</h2>
+          <p>{{ note?.body }}</p>
+          <small
+            >{{
+              note?.createdAt?.toDate
+                ? (note?.createdAt?.toDate() | date: 'medium')
+                : (note?.createdAt | date: 'medium')
+            }}</small
+          >
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
 </ion-content>

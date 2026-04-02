@@ -4,6 +4,7 @@ import { MenuController, Platform } from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { AuthenticationService } from './services/authentication.service';
+import { TitleService } from './services/title.service';
 import { App as CapacitorApp } from '@capacitor/app';
 
 @Component({
@@ -14,16 +15,37 @@ import { App as CapacitorApp } from '@capacitor/app';
 })
 export class AppComponent {
   public showBottomNav = true;
+  public currentPageTitle = 'Dashboard';
   private readonly bottomNavHiddenRoutes = ['/home'];
+  
+  private routeTitleMap: { [key: string]: string } = {
+    '/': 'Dashboard',
+    '/home': 'Dashboard',
+    '/dashboard': 'Dashboard',
+    '/messages': 'Messages',
+    '/about': 'About',
+    '/interventions': 'Interventions',
+    '/my-work-book': 'My Workbook',
+    '/ai-assistant': 'AI Assistant',
+    '/feedback': 'Feedback',
+    '/referrals': 'Referrals',
+    '/bookings': 'Bookings',
+    '/surveys': 'Surveys',
+    '/introduction': 'Introduction'
+  };
 
   constructor(
     private platform: Platform,
     public authenticationService: AuthenticationService,
     private menu: MenuController,
-    private router: Router
+    private router: Router,
+    private titleService: TitleService
   ) {
     this.initializeApp();
     this.watchRouteChanges();
+    this.titleService.title$.subscribe(title => {
+      this.currentPageTitle = title;
+    });
     CapacitorApp.addListener('backButton', ({ canGoBack }) => {
       if (!canGoBack) {
         CapacitorApp.exitApp();
@@ -66,10 +88,26 @@ export class AppComponent {
         ? normalizedUrl.slice(0, -1)
         : normalizedUrl;
 
+    // Detect chat details and other dynamic routes
+    if (trimmedUrl.startsWith('/messages/chat/')) {
+      // Don't override title here, let ChatComponent do it via TitleService
+    } else if (normalizedUrl.includes('/posts/')) {
+      this.titleService.setTitle('Stories');
+    } else if (normalizedUrl.includes('/questions/')) {
+      this.titleService.setTitle('Questions');
+    } else {
+      this.titleService.setTitle(this.routeTitleMap[trimmedUrl] || 'Dashboard');
+    }
+
     const shouldHideOnHome = this.bottomNavHiddenRoutes.includes(trimmedUrl);
     const shouldHideOnRoot = trimmedUrl === '/' || trimmedUrl === '';
 
     this.showBottomNav = !(shouldHideOnHome || shouldHideOnRoot);
+  }
+
+  public isDashboardRoute(): boolean {
+    const url = this.router.url.split('?')[0].split('#')[0];
+    return url === '/' || url === '/home' || url === '/dashboard' || url === '';
   }
 
   private async configureStatusBar(): Promise<void> {

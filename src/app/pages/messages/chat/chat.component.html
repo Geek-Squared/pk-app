@@ -1,23 +1,13 @@
-<ion-header class="ion-no-border">
-  <div class="chat-navbar">
-    <div class="breadcrumb">
-      <span class="root" routerLink="/messages">MESSAGES</span>
-      <span class="separator">/</span>
-      <div class="current-wrapper">
-        <span class="current">{{ chat?.recipientName || chat?.displayName || 'Chat' }}</span>
-        <!-- Add Member Icon for Groups -->
-        <button class="add-member-btn" *ngIf="chat?.type === 'group'" (click)="addMember()">
-          <ion-icon name="add-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
-    <div class="navbar-actions">
-    </div>
-  </div>
-</ion-header>
-
 <ion-content [fullscreen]="true" class="page-content chat-page" #content>
   <div class="chat-thread-wrapper">
+    <!-- Group Management Action (Top) -->
+    <div class="group-management-bar" *ngIf="chat?.type === 'group'">
+      <span class="group-label">Group Chat</span>
+      <button class="add-member-pill-btn" (click)="addMember()">
+        <ion-icon name="person-add-outline"></ion-icon>
+        <span>Add Member</span>
+      </button>
+    </div>
     <ng-container *ngFor="let msg of chat?.messages; index as index; trackBy: trackByCreated">
       <!-- Date Divider -->
       <div class="date-divider" *ngIf="isDifferentDay(index)">

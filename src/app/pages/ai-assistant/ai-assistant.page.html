@@ -1,61 +1,48 @@
-<ion-header translucent="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button></app-back-button>
-    </ion-buttons>
-    <ion-title>Peekay AI</ion-title>
-    <ion-buttons slot="end">
-      <ion-menu-button autoHide="false"></ion-menu-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="page-content assistant-content">
+  <div class="dashboard-wrapper">
+    <div class="assistant-shell">
+      <section class="support-card">
+        <div class="support-copy">
+          <h2>We are here for you</h2>
+          <p>
+            Choose a starter prompt or type anything on your mind. Your wellbeing companion responds in moments with empathetic, practical guidance.
+          </p>
+          <ion-note color="medium">
+            The assistant provides peer-style support and is not a substitute for emergency services.
+          </ion-note>
+        </div>
 
-<ion-content [fullscreen]="true" class="page-content" class="assistant-content">
-  <div class="assistant-shell">
+        <div class="suggestions" *ngIf="suggestions.length">
+          <button
+            type="button"
+            class="suggestion-chip"
+            *ngFor="let suggestion of suggestions"
+            (click)="useSuggestion(suggestion)"
+          >
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>{{ suggestion }}</span>
+          </button>
+        </div>
+      </section>
 
-
-    <section class="support-card">
-      <div class="support-copy">
-        <h2>We are here for you</h2>
-        <p>
-          Choose a starter prompt or type anything on your mind. Your wellbeing companion responds in moments with empathetic, practical guidance.
-        </p>
-        <ion-note color="medium">
-          The assistant provides peer-style support and is not a substitute for emergency services.
-        </ion-note>
-      </div>
-
-      <div class="suggestions" *ngIf="suggestions.length">
-        <button
-          type="button"
-          class="suggestion-chip"
-          *ngFor="let suggestion of suggestions"
-          (click)="useSuggestion(suggestion)"
-        >
-          <ion-icon name="sparkles-outline"></ion-icon>
-          <span>{{ suggestion }}</span>
-        </button>
-      </div>
-    </section>
-
-    <section class="peekay-actions">
-      <h3>Peekay can help with</h3>
-      <div class="actions-grid">
-        <button
-          type="button"
-          class="action-pill"
-          *ngFor="let action of supportActions"
-          (click)="handleSupportAction(action)"
-        >
-          <ion-icon [name]="action.icon"></ion-icon>
-          <div class="action-text">
-            <strong>{{ action.title }}</strong>
-            <span>{{ action.description }}</span>
-          </div>
-          <ion-icon name="arrow-forward-outline" class="chevron"></ion-icon>
-        </button>
-      </div>
-    </section>
+      <section class="peekay-actions">
+        <h3>Peekay can help with</h3>
+        <div class="actions-grid">
+          <button
+            type="button"
+            class="action-pill"
+            *ngFor="let action of supportActions"
+            (click)="handleSupportAction(action)"
+          >
+            <ion-icon [name]="action.icon"></ion-icon>
+            <div class="action-text">
+              <strong>{{ action.title }}</strong>
+              <span>{{ action.description }}</span>
+            </div>
+            <ion-icon name="arrow-forward-outline" class="chevron"></ion-icon>
+          </button>
+        </div>
+      </section>
 
       <div class="chat-thread">
         <div
@@ -74,39 +61,44 @@
           <span>Assistant is thinking...</span>
         </div>
       </div>
+    </div>
   </div>
 </ion-content>
 
 <ion-footer class="composer-footer">
   <ion-toolbar>
-    <form class="composer-form" [formGroup]="form" (ngSubmit)="sendMessage()">
-      <ion-item lines="none" class="composer-item">
-        <ion-textarea
-          #composer
-          autoGrow="true"
-          rows="1"
-          placeholder="Ask anything - press Enter to send..."
-          formControlName="prompt"
-          (keydown)="handleKeydown($event)"
-          [disabled]="pending"
-        ></ion-textarea>
-        <ion-buttons slot="end">
-          <ion-button
-            color="primary"
-            type="submit"
-            [disabled]="!canSend"
-          >
-            <ion-icon slot="icon-only" name="send"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-item>
-    </form>
-    <ion-text color="danger" *ngIf="errorMessage" class="status-text">
-      {{ errorMessage }}
-    </ion-text>
-    <ion-text color="medium" class="status-text">
-      For emergencies please contact your healthcare provider or local support
-      services immediately.
-    </ion-text>
+    <div class="dashboard-wrapper footer-content">
+      <form class="composer-form" [formGroup]="form" (ngSubmit)="sendMessage()">
+        <ion-item lines="none" class="composer-item">
+          <ion-textarea
+            #composer
+            autoGrow="true"
+            rows="1"
+            placeholder="Ask anything - press Enter to send..."
+            formControlName="prompt"
+            (keydown)="handleKeydown($event)"
+            [disabled]="pending"
+          ></ion-textarea>
+          <ion-buttons slot="end">
+            <ion-button
+              color="primary"
+              type="submit"
+              [disabled]="!canSend"
+            >
+              <ion-icon slot="icon-only" name="send"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-item>
+      </form>
+      <div class="status-notes">
+        <ion-text color="danger" *ngIf="errorMessage" class="status-text">
+          {{ errorMessage }}
+        </ion-text>
+        <ion-text color="medium" class="status-text">
+          For emergencies please contact your healthcare provider or local support
+          services immediately.
+        </ion-text>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-footer>
