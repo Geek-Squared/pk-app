@@ -54,12 +54,21 @@
   --ion-color-step-900: #052b32;
   --ion-color-step-950: #001f20;
 
-  --pk-blue: #0f63ff;
+  --pk-blue: #1a4f8b;
   --pk-pink: #f04ecf;
   --pk-teal: #18c6d9;
   --pk-violet: #7f2de8;
   --pk-midnight: #0f142c;
   --pk-sand: #fff6e9;
+  --heading-color: #1a4f8b;
+}
+
+h1, h2, h3, h4, h5, h6,
+ion-title,
+ion-card-title {
+  color: var(--heading-color) !important;
+  font-family: var(--ion-font-family) !important;
+  font-weight: 700 !important;
 }
 
 ion-app {
@@ -203,8 +212,8 @@ ion-button {
 
         h1 {
           font-size: 1.75rem;
-          font-weight: 600;
-          color: #1e293b;
+          font-weight: 700;
+          color: var(--heading-color);
           margin: 0;
         }
       }

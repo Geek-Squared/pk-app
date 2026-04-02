@@ -18,8 +18,8 @@
   background: #fff;
   border-radius: 24px;
   padding: 1.4rem;
-  box-shadow: 0 20px 45px rgba(35, 64, 123, 0.12);
-  border: 1px solid rgba(35, 64, 123, 0.08);
+  box-shadow: 0 12px 28px rgba(26, 79, 139, 0.06);
+  border: 1px solid var(--pk-border, #e2e8f0);
 }
 
 .balance-card .card-header {
@@ -41,7 +41,7 @@
   font-size: 2.75rem;
   font-weight: 700;
   margin: 0.4rem 0;
-  color: #1d2a44;
+  color: var(--heading-color);
 }
 
 .subtitle {
@@ -200,8 +200,8 @@ ion-item {
 
   p {
     margin: 0 0 0.6rem;
-    font-weight: 600;
-    color: #1d2a44;
+    font-weight: 700;
+    color: var(--heading-color);
   }
 }
 

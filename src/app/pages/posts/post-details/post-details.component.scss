@@ -1,7 +1,10 @@
 h3 {
-  font-size: 20px;
-  background: #eee;
-  padding: 5px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--heading-color);
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--pk-border, #eee);
+  margin-bottom: 1.5rem;
 }
 .card-img {
   padding: 3px;

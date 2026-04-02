@@ -5,12 +5,12 @@
 // Mobile Hero Section
 .mobile-hero {
   display: block;
-  background: linear-gradient(135deg, rgba(45, 114, 173, 0.95), rgba(115, 194, 251, 0.85));
+  background: linear-gradient(135deg, #1a4f8b 0%, #4fc3f7 100%);
   color: #fff;
   border-radius: 24px;
   padding: 1.4rem 1.5rem;
   margin: 1.25rem 1.25rem 0;
-  box-shadow: 0 18px 32px rgba(45, 114, 173, 0.25);
+  box-shadow: 0 18px 32px rgba(26, 79, 139, 0.25);
 
   .hero-eyebrow {
     margin: 0;
@@ -25,6 +25,7 @@
     font-size: 1.75rem;
     font-weight: 700;
     line-height: 1.2;
+    color: white;
   }
 
   .hero-subtitle {
@@ -32,6 +33,7 @@
     font-size: 0.95rem;
     line-height: 1.45;
     opacity: 0.92;
+    color: rgba(255, 255, 255, 0.95);
   }
 }
 
@@ -70,7 +72,7 @@
   .page-description {
     display: block;
     text-align: center;
-    color: #64748b;
+    color: var(--pk-gray, #64748b);
     font-size: 1.1rem;
     line-height: 1.6;
     margin-bottom: 2rem;

@@ -94,14 +94,14 @@ ion-content {
 
         ion-icon {
           font-size: 4rem;
-          color: #2d72ad;
+          color: var(--pk-blue);
           margin-bottom: 1rem;
         }
 
         h2 {
-          font-size: 2rem;
-          font-weight: 600;
-          color: #1e293b;
+          font-size: 2.25rem;
+          font-weight: 700;
+          color: var(--heading-color);
           margin: 0 0 1rem 0;
         }
 

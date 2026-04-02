@@ -74,13 +74,13 @@
           <ion-icon 
             name="arrow-back-outline" 
             (click)="navigateBack()" 
-            style="font-size: 1.25rem; cursor: pointer; color: #64748b; margin-right: 12px; transition: color 0.2s ease;"
-            onMouseOver="this.style.color='#0f172a';"
-            onMouseOut="this.style.color='#64748b';"
+            style="font-size: 1.25rem; cursor: pointer; color: var(--pk-gray, #64748b); margin-right: 12px; transition: color 0.2s ease;"
+            onMouseOver="this.style.color='var(--heading-color)';"
+            onMouseOut="this.style.color='var(--pk-gray, #64748b)';"
           ></ion-icon>
           <span class="root" routerLink="/">Dashboard</span>
           <ion-icon name="chevron-forward-outline"></ion-icon>
-          <span class="current">{{ currentPageTitle }}</span>
+          <span class="current" style="color: var(--heading-color); font-weight: 700;">{{ currentPageTitle }}</span>
         </div>
         <div class="header-actions">
           <ion-button fill="clear" color="dark">

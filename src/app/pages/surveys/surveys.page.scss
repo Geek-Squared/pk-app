@@ -41,8 +41,8 @@
 
         &:hover {
           transform: translateY(-4px);
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-          border-color: #2d72ad;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+          border-color: var(--pk-blue);
         }
 
         .survey-icon {
@@ -51,8 +51,8 @@
 
           ion-icon {
             font-size: 3rem;
-            color: #2d72ad;
-            background: linear-gradient(135deg, rgba(45, 114, 173, 0.1), rgba(79, 195, 247, 0.15));
+            color: var(--pk-blue);
+            background: #f1f5f9;
             padding: 1.5rem;
             border-radius: 50%;
             display: inline-block;
@@ -67,8 +67,8 @@
 
           h3 {
             font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e293b;
+            font-weight: 700;
+            color: var(--heading-color);
             margin: 0 0 1rem 0;
             line-height: 1.4;
           }
@@ -86,11 +86,11 @@
             margin-top: auto;
 
             .take-btn {
-              background: linear-gradient(135deg, #2d72ad, #4fc3f7);
+              background: linear-gradient(135deg, var(--pk-blue), #4fc3f7);
               color: white;
               padding: 0.75rem 1.5rem;
               border-radius: 8px;
-              font-weight: 500;
+              font-weight: 600;
               display: flex;
               align-items: center;
               gap: 0.5rem;
@@ -102,7 +102,7 @@
               }
 
               &:hover {
-                background: linear-gradient(135deg, #1e4f78, #2d72ad);
+                background: linear-gradient(135deg, #1e4f78, var(--pk-blue));
                 transform: translateX(2px);
               }
             }

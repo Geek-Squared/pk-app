@@ -86,7 +86,7 @@ ion-card-content {
     padding: 2rem;
 
     .dashboard-header {
-      background: linear-gradient(135deg, #2d72ad 0%, #4fc3f7 100%);
+      background: linear-gradient(135deg, #1a4f8b 0%, #4fc3f7 100%);
       color: white;
       padding: 3rem 2rem;
       margin-bottom: 2rem;
@@ -120,8 +120,8 @@ ion-card-content {
 
         h2 {
           font-size: 1.75rem;
-          font-weight: 600;
-          color: #1e293b;
+          font-weight: 700;
+          color: var(--heading-color);
           margin-bottom: 1.5rem;
         }
 
@@ -138,7 +138,7 @@ ion-card-content {
             display: flex;
             align-items: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--pk-border, #e2e8f0);
             transition: all 0.3s ease;
 
             &:hover {
@@ -147,7 +147,7 @@ ion-card-content {
             }
 
             .stat-icon {
-              background: linear-gradient(135deg, #2d72ad, #4fc3f7);
+              background: linear-gradient(135deg, #1a4f8b, #4fc3f7);
               border-radius: 10px;
               padding: 1rem;
               margin-right: 1rem;
@@ -163,8 +163,8 @@ ion-card-content {
 
               h3 {
                 font-size: 1.25rem;
-                font-weight: 600;
-                color: #1e293b;
+                font-weight: 700;
+                color: var(--heading-color);
                 margin: 0 0 0.25rem 0;
               }
 
@@ -181,8 +181,8 @@ ion-card-content {
       .actions-section {
         h2 {
           font-size: 1.75rem;
-          font-weight: 600;
-          color: #1e293b;
+          font-weight: 700;
+          color: var(--heading-color);
           margin-bottom: 1.5rem;
         }
 
@@ -224,8 +224,8 @@ ion-card-content {
 
               h3 {
                 font-size: 1.25rem;
-                font-weight: 600;
-                color: #1e293b;
+                font-weight: 700;
+                color: var(--heading-color);
                 margin: 0;
               }
             }
@@ -241,7 +241,7 @@ ion-card-content {
               justify-content: flex-end;
 
               .action-btn {
-                background: linear-gradient(135deg, #2d72ad, #4fc3f7);
+                background: linear-gradient(135deg, #1a4f8b, #4fc3f7);
                 color: white;
                 padding: 0.5rem 1rem;
                 border-radius: 6px;

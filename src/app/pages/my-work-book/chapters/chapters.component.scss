@@ -12,10 +12,10 @@
   gap: 1rem;
   width: 100%;
   padding: 1rem 1.1rem;
-  border: 1px solid rgba(45, 114, 173, 0.12);
+  border: 1px solid var(--pk-border, #e2e8f0);
   border-radius: 20px;
   background: #fff;
-  box-shadow: 0 12px 28px rgba(45, 114, 173, 0.12);
+  box-shadow: 0 12px 28px rgba(26, 79, 139, 0.08);
   text-align: left;
   color: inherit;
   font: inherit;
@@ -40,15 +40,11 @@
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(79, 195, 247, 0.18),
-    rgba(45, 114, 173, 0.26)
-  );
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.12), rgba(26, 79, 139, 0.15));
 
   ion-icon {
     font-size: 1.6rem;
-    color: #2d72ad;
+    color: var(--pk-blue);
   }
 }
 
@@ -59,8 +55,8 @@
   h3 {
     margin: 0;
     font-size: 1.05rem;
-    font-weight: 600;
-    color: #1d2a44;
+    font-weight: 700;
+    color: var(--heading-color);
   }
 
   p {
@@ -73,7 +69,8 @@
 
 .item-caret {
   font-size: 1.25rem;
-  color: rgba(45, 114, 173, 0.6);
+  color: var(--pk-gray, #64748b);
+  opacity: 0.5;
 }
 
 .chapter-header {
@@ -81,12 +78,13 @@
 
   h2 {
     margin: 0.4rem 0 0.2rem;
-    color: #1d2a44;
+    color: var(--heading-color);
+    font-weight: 700;
   }
 
   p {
     margin: 0;
-    color: rgba(29, 42, 68, 0.7);
+    color: var(--pk-gray, rgba(29, 42, 68, 0.7));
     font-size: 0.9rem;
   }
 }

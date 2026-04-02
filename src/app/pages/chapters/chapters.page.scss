@@ -20,7 +20,7 @@
     margin: 0;
     font-size: 1.6rem;
     font-weight: 700;
-    color: #1d2a44;
+    color: var(--heading-color);
   }
 
   ion-searchbar {
@@ -47,8 +47,8 @@
   padding: 0.9rem 1rem;
   border-radius: 16px;
   background: #ffffff;
-  border: 1px solid rgba(29, 42, 68, 0.08);
-  box-shadow: 0 10px 20px rgba(29, 42, 68, 0.08);
+  border: 1px solid var(--pk-border, #e2e8f0);
+  box-shadow: 0 10px 20px rgba(29, 42, 68, 0.05);
   text-align: left;
   color: inherit;
   font: inherit;
@@ -77,8 +77,8 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(79, 195, 247, 0.18), rgba(107, 44, 145, 0.2));
-  color: #2d72ad;
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.12), rgba(26, 79, 139, 0.15));
+  color: var(--pk-blue);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -92,8 +92,8 @@
   h2 {
     margin: 0;
     font-size: 1rem;
-    font-weight: 600;
-    color: #1d2a44;
+    font-weight: 700;
+    color: var(--heading-color);
   }
 
   p {

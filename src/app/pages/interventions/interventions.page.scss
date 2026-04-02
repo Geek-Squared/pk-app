@@ -12,11 +12,11 @@
 }
 
 .mobile-hero {
-  background: linear-gradient(135deg, rgba(45, 114, 173, 0.95), rgba(115, 194, 251, 0.85));
+  background: linear-gradient(135deg, #1a4f8b 0%, #4fc3f7 100%);
   color: #fff;
   border-radius: 24px;
   padding: 1.4rem 1.5rem;
-  box-shadow: 0 18px 32px rgba(45, 114, 173, 0.25);
+  box-shadow: 0 18px 32px rgba(26, 79, 139, 0.25);
 
   .hero-eyebrow {
     margin: 0;
@@ -53,10 +53,10 @@
   gap: 1rem;
   width: 100%;
   padding: 1rem 1.1rem;
-  border: 1px solid rgba(45, 114, 173, 0.12);
+  border: 1px solid var(--pk-border, #e2e8f0);
   border-radius: 20px;
   background: #fff;
-  box-shadow: 0 12px 28px rgba(45, 114, 173, 0.12);
+  box-shadow: 0 12px 28px rgba(26, 79, 139, 0.08);
   text-align: left;
   color: inherit;
   font: inherit;
@@ -79,11 +79,11 @@
     width: 48px;
     height: 48px;
     border-radius: 16px;
-    background: linear-gradient(135deg, rgba(79, 195, 247, 0.18), rgba(45, 114, 173, 0.26));
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.12), rgba(26, 79, 139, 0.15));
 
     ion-icon {
       font-size: 1.6rem;
-      color: #2d72ad;
+      color: var(--pk-blue);
     }
   }
 
@@ -93,8 +93,8 @@
     h2 {
       margin: 0;
       font-size: 1.05rem;
-      font-weight: 600;
-      color: #1d2a44;
+      font-weight: 700;
+      color: var(--heading-color);
     }
 
     p {
@@ -107,7 +107,8 @@
 
   .item-caret {
     font-size: 1.25rem;
-    color: rgba(45, 114, 173, 0.6);
+    color: var(--pk-gray, #64748b);
+    opacity: 0.5;
   }
 }
 
@@ -176,8 +177,8 @@
 
       &:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-        border-color: #2d72ad;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+        border-color: var(--pk-blue);
       }
 
       .intervention-icon {
@@ -186,12 +187,8 @@
 
         ion-icon {
           font-size: 3rem;
-          color: #2d72ad;
-          background: linear-gradient(
-            135deg,
-            rgba(45, 114, 173, 0.1),
-            rgba(79, 195, 247, 0.15)
-          );
+          color: var(--pk-blue);
+          background: #f1f5f9;
           padding: 1.5rem;
           border-radius: 50%;
           display: inline-block;
@@ -206,8 +203,8 @@
 
         h3 {
           font-size: 1.5rem;
-          font-weight: 600;
-          color: #1e293b;
+          font-weight: 700;
+          color: var(--heading-color);
           margin: 0 0 1rem;
         }
 
@@ -223,11 +220,11 @@
           justify-content: center;
 
           .start-btn {
-            background: linear-gradient(135deg, #2d72ad, #4fc3f7);
+            background: linear-gradient(135deg, var(--pk-blue), #4fc3f7);
             color: #fff;
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
-            font-weight: 500;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -238,7 +235,7 @@
             }
 
             &:hover {
-              background: linear-gradient(135deg, #1e4f78, #2d72ad);
+              background: linear-gradient(135deg, #1e4f78, var(--pk-blue));
               transform: translateX(2px);
             }
           }

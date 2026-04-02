@@ -57,15 +57,15 @@ strong {
 
         &:hover {
           transform: translateY(-4px);
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-          border-color: #2d72ad;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+          border-color: var(--pk-blue);
         }
 
         .referral-avatar {
           width: 60px;
           height: 60px;
           border-radius: 50%;
-          background: #2d72ad;
+          background: var(--pk-blue);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -84,8 +84,8 @@ strong {
 
           h3 {
             font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e293b;
+            font-weight: 700;
+            color: var(--heading-color);
             margin: 0 0 0.75rem 0;
           }
 
@@ -99,7 +99,7 @@ strong {
             font-size: 0.9rem;
 
             ion-icon {
-              color: #2d72ad;
+              color: var(--pk-blue);
               font-size: 1rem;
             }
           }
