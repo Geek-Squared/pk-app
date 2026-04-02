@@ -54,14 +54,13 @@ ion-item a {
     z-index: 1000;
 
     .sidebar-header {
-      padding: 2rem 1.5rem;
+      padding: 0.5em;
       text-align: center;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
       .sidebar-logo {
         width: 80px;
         height: auto;
-        margin-bottom: 1rem;
         filter: brightness(0) invert(1);
       }
 
