@@ -95,8 +95,8 @@
     </div>
   </ion-header>
 
-  <div class="main-content-layout" [class.authenticated]="authenticationService.isLoggedIn">
-    <ion-router-outlet id="main" [class.has-header]="authenticationService.isLoggedIn && !isDashboardRoute()"></ion-router-outlet>
+  <div *ngIf="authenticationService.isLoggedIn" class="main-content-layout authenticated">
+    <ion-router-outlet id="main" [class.has-header]="!isDashboardRoute()"></ion-router-outlet>
   </div>
 
   <ion-router-outlet *ngIf="!authenticationService.isLoggedIn" id="main"></ion-router-outlet>

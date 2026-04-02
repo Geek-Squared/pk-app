@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
-import { Location } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
-import { MenuController, Platform } from '@ionic/angular';
+import { MenuController, NavController, Platform } from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { AuthenticationService } from './services/authentication.service';
@@ -41,7 +40,7 @@ export class AppComponent {
     private menu: MenuController,
     private router: Router,
     private titleService: TitleService,
-    private location: Location
+    private navCtrl: NavController
   ) {
     this.initializeApp();
     this.watchRouteChanges();
@@ -52,7 +51,7 @@ export class AppComponent {
       if (!canGoBack) {
         CapacitorApp.exitApp();
       } else {
-        window.history.back();
+        this.navCtrl.back();
       }
     });
   }
@@ -74,7 +73,7 @@ export class AppComponent {
   }
 
   navigateBack() {
-    this.location.back();
+    this.navCtrl.back();
   }
 
   private watchRouteChanges(): void {
