@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { IonContent, IonTextarea } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AiChatMessage, AiChatService } from 'src/app/services/ai-chat.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -15,19 +16,12 @@ export class AiAssistantPage implements OnDestroy {
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('composer') composer?: IonTextarea;
 
-  messages: AiChatMessage[] = [
-    {
-      role: 'assistant',
-      content:
-        "Hi, I'm Peekay — your Positive Konnections companion. I can walk you back to workbook chapters, guide a breathing pause, or just listen whenever you need to vent. What would you like support with?",
-      createdAt: Date.now(),
-    },
-  ];
+  messages: AiChatMessage[] = [];
 
   readonly suggestions: string[] = [
-    'Remind me which workbook chapter covers resilience.',
-    'Walk me through a two-minute breathing exercise.',
-    'Give me a prompt to rewrite my story as a superhero.',
+    'Analyze my sleep pattern',
+    'Suggest a 10m workout',
+    'How can I stress less?',
   ];
 
   readonly supportActions: Array<{
@@ -86,8 +80,21 @@ export class AiAssistantPage implements OnDestroy {
   constructor(
     private readonly fb: FormBuilder,
     private readonly aiChatService: AiChatService,
-    private readonly router: Router
+    private readonly router: Router,
+    public readonly authService: AuthenticationService
   ) {}
+
+  get userName(): string {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.displayName?.split(' ')[0] || 'Hero';
+  }
+
+  get greeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
 
   ngOnDestroy(): void {
     this.activeRequest?.unsubscribe();
