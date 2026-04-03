@@ -1,0 +1,146 @@
+.workbook-answers-scroller {
+  padding: 1.5rem 0;
+  
+  .answer-module-group {
+    margin-bottom: 2.5rem;
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding: 0 0.5rem;
+
+      .module-icon-box {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        
+        ion-icon {
+          font-size: 1.2rem;
+        }
+      }
+
+      .module-meta {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .module-tag {
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: #a855f7;
+          letter-spacing: 0.1em;
+          line-height: 1.2;
+        }
+
+        .module-date {
+          font-size: 0.8rem;
+          color: #94a3b8;
+          font-weight: 500;
+        }
+      }
+
+      .module-actions {
+        .action-btn {
+          background: transparent;
+          color: #ccd2da;
+          padding: 8px;
+          display: flex;
+          align-items: center;
+          transition: color 0.2s;
+          cursor: pointer;
+
+          &:hover { color: #f87171; }
+          ion-icon { font-size: 1.3rem; }
+        }
+      }
+    }
+
+    .question-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .question-answer-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        
+        .card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 1rem;
+          margin-bottom: 1.25rem;
+
+          .question-narrative {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.4;
+            margin: 0;
+            flex: 1;
+            color: var(--heading-color) !important;
+          }
+
+          .edit-trigger {
+            background: rgba(26, 79, 139, 0.05);
+            color: #1a4f8b;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            cursor: pointer;
+
+            &:active { transform: scale(0.9); }
+            ion-icon { font-size: 1.1rem; }
+          }
+        }
+
+        .answer-container {
+          background: #f1f5f9;
+          border-radius: 12px;
+          padding: 1.25rem 1.5rem;
+          position: relative;
+
+          .response-text {
+            font-size: 1.05rem;
+            color: #64748b;
+            font-style: italic;
+            line-height: 1.6;
+            margin: 0;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+
+  .empty-workbook {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #94a3b8;
+
+    ion-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    h3 {
+      color: #1e293b;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+  }
+}

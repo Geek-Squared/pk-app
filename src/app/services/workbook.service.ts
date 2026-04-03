@@ -46,9 +46,9 @@ export class WorkbookService {
             .pipe(
               map((actions) => {
                 return actions.map((a) => {
-                  const data: Object = a.payload.doc.data();
+                  const data: any = a.payload.doc.data();
                   const id = a.payload.doc.id;
-                  return data;
+                  return { id, ...data };
                 });
               })
             );
@@ -90,6 +90,37 @@ export class WorkbookService {
 
     return runInInjectionContext(this.injector, () => {
       return this.afs.collection('workbooks').add(data);
+    });
+  }
+
+  async updateWorkbookResponse(workbookId: string, responseIndex: number, newResponse: string, elementKey: string) {
+    return runInInjectionContext(this.injector, async () => {
+      const ref = this.afs.collection('workbooks').doc(workbookId);
+      const doc = await ref.get().toPromise();
+      const docData = doc.data() as any;
+      
+      const responses = docData?.responses || [];
+      if (responses[responseIndex]) {
+        responses[responseIndex].content[elementKey].response = newResponse;
+        responses[responseIndex].updatedAt = Date.now();
+        return ref.update({ responses });
+      }
+      return Promise.reject('Response not found');
+    });
+  }
+
+  async deleteWorkbookResponse(workbookId: string, responseIndex: number) {
+    return runInInjectionContext(this.injector, async () => {
+      const ref = this.afs.collection('workbooks').doc(workbookId);
+      const doc = await ref.get().toPromise();
+      const docData = doc.data() as any;
+      
+      const responses = docData?.responses || [];
+      if (responses[responseIndex]) {
+        responses.splice(responseIndex, 1);
+        return ref.update({ responses });
+      }
+      return Promise.reject('Response not found');
     });
   }
 

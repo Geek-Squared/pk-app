@@ -8,6 +8,7 @@ import { ChaptersService } from 'src/app/services/chapters.service';
 import { PostsService } from 'src/app/services/posts.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
+import { AlertController, ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-question-answers',
@@ -17,6 +18,7 @@ import { WorkbookService } from 'src/app/services/workbook.service';
 })
 export class QuestionAnswersComponent implements OnInit {
   public workbook = [];
+  public workbookId: string | null = null;
   public questionAnswers;
   public selectedPostId: string | null = null;
   public selectedInterventionId: string | null = null;
@@ -44,7 +46,9 @@ export class QuestionAnswersComponent implements OnInit {
     private chaptersService: ChaptersService,
     private postsService: PostsService,
     public route: ActivatedRoute,
-    private utilsService: UtilitiesService
+    private utilsService: UtilitiesService,
+    private alertController: AlertController,
+    private toastController: ToastController
   ) {}
 
   ngOnInit() {
@@ -54,9 +58,7 @@ export class QuestionAnswersComponent implements OnInit {
     this.selectedChapterId = this.route.snapshot.paramMap.get('chapterId');
     this.filterReady = !(this.selectedInterventionId || this.selectedChapterId);
 
-    const workbook$ = this.workbookService.getUserQuestionResponses().pipe(
-      map((res: any) => res?.[0]?.responses ?? [])
-    );
+    const workbook$ = this.workbookService.getUserQuestionResponses();
 
     const filter$ = this.selectedInterventionId
       ? combineLatest([
@@ -96,17 +98,90 @@ export class QuestionAnswersComponent implements OnInit {
         : of({ chapterIds: new Set<string>(), postIds: new Set<string>() });
 
     combineLatest([workbook$, filter$]).subscribe(
-      ([workbook, filter]) => {
+      ([workbooks, filter]) => {
         this.allowedChapterIds = filter.chapterIds;
         this.allowedPostIds = filter.postIds;
         this.filterReady = true;
-        this.workbook = this.applyWorkbookFilter(workbook);
+        
+        if (workbooks && workbooks.length > 0) {
+          this.workbookId = workbooks[0].id;
+          this.workbook = this.applyWorkbookFilter(workbooks[0].responses);
+        } else {
+          this.workbook = [];
+        }
+        
         this.utilsService.dismissLoader();
       },
       () => {
         this.utilsService.dismissLoader();
       }
     );
+  }
+
+  async editResponse(itemIndex: number, elementKey: string, currentResponse: string) {
+    const alert = await this.alertController.create({
+      header: 'Edit Reflection',
+      cssClass: 'workbook-edit-alert',
+      inputs: [
+        {
+          name: 'response',
+          type: 'textarea',
+          value: currentResponse,
+          placeholder: 'Type your reflection here...'
+        }
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Save Changes',
+          handler: (data) => {
+            if (this.workbookId) {
+              this.workbookService.updateWorkbookResponse(this.workbookId, itemIndex, data.response, elementKey)
+                .then(() => this.showToast('Reflection updated successfully'))
+                .catch(() => this.showToast('Error updating reflection', 'danger'));
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async deleteResponse(itemIndex: number) {
+    const alert = await this.alertController.create({
+      header: 'Delete Reflection',
+      message: 'Are you sure you want to remove this reflection from your workbook? This action cannot be undone.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            if (this.workbookId) {
+              this.workbookService.deleteWorkbookResponse(this.workbookId, itemIndex)
+                .then(() => this.showToast('Reflection removed'))
+                .catch(() => this.showToast('Error deleting reflection', 'danger'));
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async showToast(message: string, color: string = 'success') {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color,
+      position: 'bottom'
+    });
+    toast.present();
+  }
+
+  getModuleBgColor(index: number) {
+    const colors = ['#f04ecf', '#18c6d9', '#a855f7'];
+    return colors[index % colors.length];
   }
 
   public shouldShowAnswer(item: any, element: any): boolean {

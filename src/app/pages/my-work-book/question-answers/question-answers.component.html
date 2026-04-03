@@ -1,20 +1,47 @@
-<span>My Workbook</span> / <span>Question Answers</span>
+<div class="workbook-answers-scroller">
+  <div class="answer-module-group" *ngFor="let item of workbook; let i = index">
+    <!-- Module Header -->
+    <div class="module-header">
+      <div class="module-icon-box" [style.background]="getModuleBgColor(i)">
+        <ion-icon name="flask-outline" *ngIf="i % 3 === 0"></ion-icon>
+        <ion-icon name="leaf-outline" *ngIf="i % 3 === 1"></ion-icon>
+        <ion-icon name="heart-outline" *ngIf="i % 3 === 2"></ion-icon>
+      </div>
+      <div class="module-meta">
+        <span class="module-tag">MODULE {{ i + 1 | number:'2.0' }}</span>
+        <span class="module-date">{{ item?.createdAt | date:'MMM d • h:mm a' }}</span>
+      </div>
+      <div class="module-actions">
+        <button class="action-btn" (click)="deleteResponse(i)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
 
-<ion-list>
-  <div *ngFor="let item of workbook">
-    <ng-container *ngFor="let element of item?.content | keyvalue: sortAnswers">
-      <ng-container *ngIf="shouldShowAnswer(item, element)">
-        <ion-list>
-          <ion-item-divider>
-            <ion-label> {{ element?.value?.questionNarrative }} </ion-label>
-          </ion-item-divider>
-          <ion-item>
-            <ion-text>{{ element?.value?.response }}</ion-text>
-          </ion-item>
-        </ion-list>
+    <!-- Question Components -->
+    <div class="question-list">
+      <ng-container *ngFor="let element of item?.content | keyvalue: sortAnswers">
+        <div class="question-answer-card" *ngIf="shouldShowAnswer(item, element)">
+          <div class="card-top">
+            <h2 class="question-narrative">{{ element?.value?.questionNarrative }}</h2>
+            <button class="edit-trigger" (click)="editResponse(i, element.key, element?.value?.response)">
+              <ion-icon name="pencil-outline"></ion-icon>
+            </button>
+          </div>
+          
+          <div class="answer-container">
+            <p class="response-text">
+              "{{ element?.value?.response }}"
+            </p>
+          </div>
+        </div>
       </ng-container>
-    </ng-container>
-    <hr />
-    <br />
+    </div>
   </div>
-</ion-list>
+
+  <div class="empty-workbook" *ngIf="workbook.length === 0">
+    <ion-icon name="book-outline"></ion-icon>
+    <h3>Your reflections will appear here</h3>
+    <p>Complete a chapter intervention to see your growth entries.</p>
+  </div>
+</div>
