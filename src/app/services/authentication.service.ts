@@ -39,7 +39,12 @@ export class AuthenticationService {
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
         this.userData = user;
-        this.router.navigate(['home']);
+        
+        // Only redirect to home if we are currently on the login page or at the root
+        const currentUrl = this.router.url;
+        if (currentUrl === '/login' || currentUrl === '/' || !currentUrl) {
+          this.router.navigate(['home']);
+        }
       } else {
         this.SignOut();
       }

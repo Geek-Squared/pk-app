@@ -336,4 +336,27 @@ export class ChatService {
         error: (err) => console.log('FCM failed:', err),
       });
   }
+
+  async deleteMessage(chatId: string, msg: any) {
+    if (!chatId || !msg) return;
+
+    return runInInjectionContext(this.injector, () => {
+      const ref = this.afs.collection('chats').doc(chatId);
+      
+      return ref.get().toPromise().then(doc => {
+        if (doc.exists) {
+          const data: any = doc.data();
+          const messages = data.messages || [];
+          
+          // Filter out the message to delete
+          // We match by uid and createdAt as a reliable composite key
+          const newMessages = messages.filter(m => {
+            return !(m.uid === msg.uid && m.createdAt === msg.createdAt);
+          });
+
+          return ref.update({ messages: newMessages });
+        }
+      });
+    });
+  }
 }

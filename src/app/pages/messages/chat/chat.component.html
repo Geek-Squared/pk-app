@@ -27,6 +27,9 @@
 
         <!-- Bubble Container -->
         <div class="bubble-container">
+          <button class="msg-options-btn" *ngIf="msg.uid === currentUser?.uid" (click)="presentMessageOptions($event, msg)">
+            <ion-icon name="ellipsis-vertical"></ion-icon>
+          </button>
           <!-- Text Bubble -->
           <div class="bubble" *ngIf="msg?.type === 'text' || !msg?.type">
             <p>{{ msg?.content || msg?.message }}</p>

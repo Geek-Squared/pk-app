@@ -136,6 +136,43 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    position: relative;
+
+    .msg-options-btn {
+      position: absolute;
+      top: 0;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 4px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s, color 0.2s;
+      z-index: 10;
+      
+      &:hover {
+        color: var(--pk-blue);
+      }
+    }
+    
+    &:hover .msg-options-btn {
+      opacity: 1;
+    }
+  }
+
+  &.sender .msg-options-btn {
+    left: -32px;
+  }
+
+  &.recipient .msg-options-btn {
+    right: -32px;
+  }
+
+  @media (max-width: 991px) {
+    .msg-options-btn {
+      opacity: 0.4 !important;
+    }
   }
 
   .bubble {

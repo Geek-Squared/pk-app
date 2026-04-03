@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { IonicModule, GestureController } from '@ionic/angular';
+import { IonicModule, GestureController, ActionSheetController } from '@ionic/angular';
 import { Subject, Subscription, take, takeUntil } from 'rxjs';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ChatService } from 'src/app/services/chat.service';
@@ -56,8 +56,48 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     private fileStorageService: FileStorageService,
     private utilsService: UtilitiesService,
     private modalController: ModalController,
-    private titleService: TitleService
+    private titleService: TitleService,
+    private actionSheetCtrl: ActionSheetController
   ) {}
+
+  async presentMessageOptions(event: any, msg: any) {
+    // Only allow deletion of own messages for now
+    if (msg.uid !== this.currentUser?.uid) return;
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Message Options',
+      buttons: [
+        {
+          text: 'Delete Message',
+          role: 'destructive',
+          icon: 'trash-outline',
+          handler: () => {
+            this.deleteOneMessage(msg);
+          }
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          icon: 'close-outline'
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
+  async deleteOneMessage(msg: any) {
+    this.utilsService.presentLoading('Deleting message...');
+    try {
+      await this.cs.deleteMessage(this.chat.id, msg);
+      this.utilsService.dismissLoader();
+      this.utilsService.presentToast('Message deleted');
+    } catch (err) {
+      console.error('Delete error:', err);
+      this.utilsService.dismissLoader();
+      this.utilsService.presentToast('Failed to delete message');
+    }
+  }
 
   async addMember() {
     const modal = await this.modalController.create({
