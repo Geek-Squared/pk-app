@@ -17,6 +17,15 @@ export class UsersService {
     });
   }
 
+  updateUser(userId: string, data: any) {
+    return runInInjectionContext(this.injector, () => {
+      return this.firestore
+        .collection('users')
+        .doc(userId)
+        .update(data);
+    });
+  }
+
   updateWebFcmToken(userId: string, token: string) {
     if (!userId || !token) {
       return Promise.resolve();

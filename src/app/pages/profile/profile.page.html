@@ -6,12 +6,16 @@
     </div>
     
     <div class="profile-hero" *ngIf="!loading && user">
+      <!-- Hidden file input -->
+      <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none">
+      
       <div class="avatar-container">
-        <div class="avatar-ring">
+        <div class="avatar-ring" (click)="fileInput.click()">
           <img *ngIf="user.photoURL" [src]="user.photoURL" class="profile-img" alt="Profile" />
           <div *ngIf="!user.photoURL" class="initials-avatar">{{ initials }}</div>
           <div class="edit-badge">
-            <ion-icon name="camera-outline"></ion-icon>
+            <ion-spinner *ngIf="uploading" name="dots" size="small" color="primary"></ion-spinner>
+            <ion-icon *ngIf="!uploading" name="camera-outline"></ion-icon>
           </div>
         </div>
       </div>

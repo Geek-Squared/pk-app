@@ -6,6 +6,8 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { AuthenticationService } from './services/authentication.service';
 import { TitleService } from './services/title.service';
 import { App as CapacitorApp } from '@capacitor/app';
+import { UsersService } from './services/users.service';
+import { Observable, filter, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +18,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 export class AppComponent {
   public showBottomNav = true;
   public currentPageTitle = 'Dashboard';
+  public user$: Observable<any>;
   private readonly bottomNavHiddenRoutes = ['/home'];
   
   private routeTitleMap: { [key: string]: string } = {
@@ -41,10 +44,22 @@ export class AppComponent {
     private menu: MenuController,
     private router: Router,
     private titleService: TitleService,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private usersService: UsersService
   ) {
     this.initializeApp();
     this.watchRouteChanges();
+
+    this.user$ = this.authenticationService.afAuth.authState.pipe(
+      switchMap(user => {
+        if (user) {
+          return this.usersService.getUserById(user.uid);
+        } else {
+          return of(null);
+        }
+      })
+    );
+
     this.titleService.title$.subscribe(title => {
       this.currentPageTitle = title;
     });

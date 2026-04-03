@@ -83,7 +83,8 @@
       </ion-title>
       <ion-buttons slot="end">
         <div class="mobile-profile-avatar" routerLink="/profile">
-          <ion-icon name="person"></ion-icon>
+          <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" class="header-avatar-img" />
+          <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person"></ion-icon>
         </div>
       </ion-buttons>
     </ion-toolbar>
@@ -109,7 +110,10 @@
             <ion-icon name="notifications-outline"></ion-icon>
           </ion-button>
           <div class="user-pill" routerLink="/profile">
-            <ion-icon name="person-circle-outline"></ion-icon>
+            <div class="pill-avatar">
+              <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" />
+              <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person-circle-outline"></ion-icon>
+            </div>
             <ion-icon name="settings-outline"></ion-icon>
           </div>
         </div>
