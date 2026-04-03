@@ -39,19 +39,7 @@
 
           <!-- Audio Bubble -->
           <div class="bubble audio-bubble" *ngIf="msg?.type === 'audio'">
-            <div class="audio-player-wrapper">
-              <ion-button fill="clear" class="play-btn">
-                <ion-icon name="play-sharp"></ion-icon>
-              </ion-button>
-              <div class="waveform-placeholder">
-                <div class="bar" style="height: 40%"></div>
-                <div class="bar active" style="height: 60%"></div>
-                <div class="bar active" style="height: 80%"></div>
-                <div class="bar active" style="height: 50%"></div>
-                <div class="bar" style="height: 30%"></div>
-              </div>
-              <span class="audio-duration">0:42</span>
-            </div>
+            <app-voice-note [url]="msg.content" [isSender]="msg.uid === currentUser?.uid"></app-voice-note>
           </div>
 
           <!-- Timestamp Below -->
@@ -66,14 +54,29 @@
 <ion-footer class="ion-no-border chat-footer">
   <div class="chat-footer-wrapper">
     <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
-    <div class="footer-actions-left">
+    <div class="footer-actions-left" *ngIf="!recording">
       <button class="icon-btn" (click)="triggerFileSelect()"><ion-icon name="add-circle-outline"></ion-icon></button>
       <button class="icon-btn" (click)="triggerFileSelect()"><ion-icon name="image-outline"></ion-icon></button>
     </div>
-    <div class="input-container">
+    
+    <div class="input-container" *ngIf="!recording">
       <input type="text" placeholder="Type your message..." [(ngModel)]="newMsg" (keydown.enter)="submit(chat)" />
       <button class="emoji-btn"><ion-icon name="happy-outline"></ion-icon></button>
     </div>
+
+    <!-- WhatsApp-style Recording Overlay -->
+    <div class="recording-overlay" *ngIf="recording">
+      <div class="recording-indicators">
+        <div class="pulse-dot"></div>
+        <span class="status-label">Recording...</span>
+        <span class="timer">{{ durationDisplay || '0:00' }}</span>
+      </div>
+      <div class="slide-to-cancel" (click)="cancelRecording()">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+        <span>Swipe or tap to cancel</span>
+      </div>
+    </div>
+
     <div class="footer-actions-right">
       <button 
         class="mic-btn" 
@@ -83,10 +86,11 @@
         (touchend)="stopRecording()"
         (mousedown)="startRecording()"
         (mouseup)="stopRecording()"
+        (mouseleave)="stopRecording()"
       >
-        <ion-icon name="mic-outline"></ion-icon>
+        <ion-icon [name]="recording ? 'mic' : 'mic-outline'"></ion-icon>
       </button>
-      <button class="send-btn" (click)="submit(chat)">
+      <button class="send-btn" (click)="submit(chat)" *ngIf="!recording">
         <ion-icon name="send-sharp"></ion-icon>
       </button>
     </div>

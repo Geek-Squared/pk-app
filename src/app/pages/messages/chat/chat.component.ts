@@ -24,12 +24,14 @@ import { UserSelectionComponent } from '../user-selection/user-selection.compone
 import firebase from 'firebase/compat/app';
 import { TitleService } from 'src/app/services/title.service';
 
+import { VoiceNoteComponent } from 'src/app/components/voice-note/voice-note.component';
+
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent]
+  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent, VoiceNoteComponent]
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('content') private content: any;
@@ -87,7 +89,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       this.currentUser = user;
       console.log('Current User Chat:', user);
     });
-    VoiceRecorder.requestAudioRecordingPermission();
     const chatId = this.route.snapshot.paramMap.get('chatId');
     const source$ = this.cs.get(chatId);
     this.utilsService.presentLoading();
@@ -143,33 +144,33 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  submit(chat: any) {
+  async submit(chat: any) {
     const trimmedMsg = this.newMsg?.trim();
     if (!trimmedMsg && !this.newRecording) {
       return;
     }
 
     if (chat?.type === 'group') {
-      this.handleGroupChatSubmit(chat, trimmedMsg);
+      await this.handleGroupChatSubmit(chat, trimmedMsg);
     } else {
-      this.handleDirectChatSubmit(chat, trimmedMsg);
+      await this.handleDirectChatSubmit(chat, trimmedMsg);
     }
   }
 
-  handleGroupChatSubmit(chat: any, content: string) {
-    this.usersService.getUsers().pipe(take(1)).subscribe((res: any) => {
+  async handleGroupChatSubmit(chat: any, content: string) {
+    this.usersService.getUsers().pipe(take(1)).subscribe(async (res: any) => {
       const users = this.mapUsers(res);
       const groupMembers = this.filterGroupMembers(users, chat);
 
-      this.sendMessageToGroup(chat, groupMembers, content);
+      await this.sendMessageToGroup(chat, groupMembers, content);
       this.resetMessage();
       this.scrollBottom();
       this.updateChat(chat);
     });
   }
 
-  handleDirectChatSubmit(chat: any, content: string) {
-    this.sendMessageToDirectChat(chat, content);
+  async handleDirectChatSubmit(chat: any, content: string) {
+    await this.sendMessageToDirectChat(chat, content);
     this.resetMessage();
     this.scrollBottom();
     this.updateChat(chat);
@@ -258,34 +259,90 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.destroyed$.complete();
   }
 
-  startRecording() {
+  private recordingInterval: any;
+
+  async startRecording() {
+    if (this.recording) return;
+
+    const { value } = await VoiceRecorder.hasAudioRecordingPermission();
+    if (!value) {
+      const result = await VoiceRecorder.requestAudioRecordingPermission();
+      if (!result.value) {
+        this.utilsService.presentToast('Microphone permission is required to record voice notes.');
+        return;
+      }
+    }
+
     this.recording = true;
-    VoiceRecorder.startRecording();
+    this.duration = 0;
+    this.durationDisplay = '0:00';
+    
+    Haptics.impact({ style: ImpactStyle.Medium });
+
+    VoiceRecorder.startRecording()
+      .then(() => {
+        this.recordingInterval = setInterval(() => {
+          this.calculateDuration();
+        }, 1000);
+      })
+      .catch(err => {
+        this.recording = false;
+        console.error('Recording error', err);
+      });
   }
 
-  stopRecording() {
+  async stopRecording() {
     if (!this.recording) return;
+
     this.recording = false;
-    VoiceRecorder.stopRecording().then((res: RecordingData) => {
+    clearInterval(this.recordingInterval);
+    
+    Haptics.impact({ style: ImpactStyle.Light });
+
+    try {
+      const res: RecordingData = await VoiceRecorder.stopRecording();
       if (res.value && res.value.recordDataBase64) {
-        this.newRecording = res.value.recordDataBase64;
-        this.fileStorageService
-          .pushFileToStorage(this.newRecording, new Date().getTime().toString())
-          .then((res) => {
-            this.newRecording = res;
-            return this.submit(this.chat);
-          });
+        if (this.duration < 1) {
+          // Message too short
+          return;
+        }
+        
+        this.utilsService.presentLoading('Sending voice note...');
+        const downloadUrl = await this.fileStorageService.pushFileToStorage(
+          res.value.recordDataBase64, 
+          `voice_${new Date().getTime().toString()}`
+        );
+        this.newRecording = downloadUrl;
+        await this.submit(this.chat);
+        this.utilsService.dismissLoader();
       }
-    });
+    } catch (err) {
+      console.error('Error stopping recording', err);
+      this.utilsService.dismissLoader();
+    } finally {
+      this.duration = 0;
+      this.durationDisplay = '';
+    }
+  }
+
+  async cancelRecording() {
+    if (!this.recording) return;
+    
+    this.recording = false;
+    clearInterval(this.recordingInterval);
+    Haptics.notification({ type: ImpactStyle.Medium as any });
+    
+    try {
+      await VoiceRecorder.stopRecording();
+      this.duration = 0;
+      this.durationDisplay = '';
+      this.newRecording = null;
+    } catch (err) {
+      console.error('Error cancelling recording', err);
+    }
   }
 
   calculateDuration() {
-    if (!this.recording) {
-      this.duration = 0;
-      this.durationDisplay = '';
-      return;
-    }
-
     this.duration += 1;
     const minutes = Math.floor(this.duration / 60);
     const seconds = Math.floor(this.duration % 60)

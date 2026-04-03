@@ -1,0 +1,111 @@
+:host {
+  display: block;
+  min-width: 240px;
+}
+
+.voice-note-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 4px 0;
+
+  .voice-play-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f5f9;
+    color: #1a4f8b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+    &:active {
+      transform: scale(0.92);
+      background: #e2e8f0;
+    }
+
+    ion-icon {
+      font-size: 1.5rem;
+      margin-left: 2px;
+    }
+  }
+
+  &.sender {
+    .voice-play-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      
+      &:active {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .bar-background {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .bar-progress {
+      background: #ffffff;
+    }
+
+    .voice-time, .voice-duration {
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+}
+
+.voice-wave-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.waveform-progress {
+  height: 4px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+
+  .bar-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #e2e8f0;
+    border-radius: 2px;
+  }
+
+  .bar-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #1a4f8b;
+    border-radius: 2px;
+    z-index: 1;
+    transition: width 0.1s linear;
+  }
+}
+
+.voice-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .voice-time, .voice-duration {
+    font-size: 0.725rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #64748b;
+  }
+}

@@ -162,44 +162,34 @@
     }
 
     &.audio-bubble {
-      min-width: 280px;
+      padding: 0.75rem 1rem !important;
+      display: flex !important;
+      align-items: center;
+      min-width: 250px;
+    }
+  }
 
-      .audio-player-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
+  &.recipient {
+    align-self: flex-start;
 
-        .play-btn {
-          --color: #0369a1;
-          --background: #f0f9ff;
-          --border-radius: 999px;
-          margin: 0;
-          width: 44px;
-          height: 44px;
+    .bubble {
+      background: white;
+      color: #1e293b;
+      border-radius: 4px 16px 16px 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+      &.audio-bubble {
+        .voice-play-btn {
+          background: #f1f5f9;
+          color: #1a4f8b;
         }
-
-        .waveform-placeholder {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          gap: 3px;
-          height: 24px;
-
-          .bar {
-            flex: 1;
-            background: #e2e8f0;
-            border-radius: 99px;
-            
-            &.active {
-              background: #0369a1;
-            }
-          }
+        .voice-progress-bar {
+          background: #f1f5f9;
+          &::after { background: #1a4f8b; }
         }
-
-        .audio-duration {
-          font-size: 0.8rem;
-          font-weight: 600;
+        .voice-duration, .message-timestamp-inline {
           color: #64748b;
+          opacity: 1;
         }
       }
     }
@@ -213,10 +203,11 @@
   }
 }
 
-/* Footer Style */
+/* Footer Position Fix */
 .chat-footer {
   background: white;
-  margin-bottom: var(--bottom-nav-height) !important;
+  width: 100%;
+  padding-bottom: var(--bottom-nav-height) !important;
 }
 
 .chat-footer-wrapper {
@@ -239,9 +230,73 @@
     color: #64748b;
     font-size: 1.5rem;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     
     &:hover { color: var(--pk-blue); }
+
+    &.recording {
+      color: #ef4444;
+      transform: scale(1.4);
+      z-index: 100;
+    }
+  }
+
+  /* Recording Overlay Styles */
+  .recording-overlay {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.5rem;
+    animation: slideIn 0.2s ease-out;
+
+    .recording-indicators {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .pulse-dot {
+        width: 12px;
+        height: 12px;
+        background: #ef4444;
+        border-radius: 50%;
+        animation: pulse 1.2s infinite;
+      }
+
+      .status-label {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #ef4444;
+        margin-right: 0.5rem;
+      }
+
+      .timer {
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        min-width: 45px;
+      }
+    }
+
+    .slide-to-cancel {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      font-weight: 600;
+      animation: slideText 2s infinite;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 1.2rem;
+      }
+
+      &:active {
+        color: #64748b;
+      }
+    }
   }
 
   .input-container {
@@ -296,4 +351,21 @@
       transform: scale(1.05);
     }
   }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideText {
+  0% { transform: translateX(0); opacity: 0.6; }
+  50% { transform: translateX(-15px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 0.6; }
 }

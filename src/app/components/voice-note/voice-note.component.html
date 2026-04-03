@@ -1,0 +1,17 @@
+<div class="voice-note-container" [class.sender]="isSender">
+  <button class="voice-play-btn" (click)="togglePlay()" type="button">
+    <ion-icon [name]="isPlaying ? 'pause' : 'play-sharp'"></ion-icon>
+  </button>
+  
+  <div class="voice-wave-container">
+    <div class="waveform-progress">
+      <div class="bar-progress" [style.width.%]="progress"></div>
+      <div class="bar-background"></div>
+    </div>
+    
+    <div class="voice-meta">
+      <span class="voice-time">{{ isPlaying ? currentTime : 'Voice note' }}</span>
+      <span class="voice-duration" *ngIf="!isPlaying">{{ duration }}</span>
+    </div>
+  </div>
+</div>
