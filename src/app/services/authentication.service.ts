@@ -173,4 +173,30 @@ export class AuthenticationService {
   SignInWithGoogle() {
     return this.AuthLogin(new firebase.auth.GoogleAuthProvider());
   }
+
+  async UpdateProfile(displayName: string) {
+    const user = await this.afAuth.currentUser;
+    if (user) {
+      await user.updateProfile({ displayName });
+      // Also update Firestore to keep it in sync
+      return this.SetUserData(user, displayName);
+    }
+  }
+
+  async DeleteAccount() {
+    const user = await this.afAuth.currentUser;
+    if (user) {
+      const uid = user.uid;
+      // 1. Delete Firestore user data
+      await this.usersService.deleteUser(uid);
+      // 2. Unsubscribe from notifications
+      this.fcmService.unsubscribeFromTopic();
+      // 3. Delete auth account
+      await user.delete();
+      // 4. Clear local storage
+      localStorage.clear();
+      // 5. Navigate to login
+      this.router.navigate(['login']);
+    }
+  }
 }

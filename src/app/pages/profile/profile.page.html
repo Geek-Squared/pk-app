@@ -19,7 +19,29 @@
           </div>
         </div>
       </div>
-      <h1 class="user-display-name">{{ user.displayName || 'Unnamed User' }}</h1>
+      <div class="user-name-wrapper">
+        <h1 class="user-display-name" *ngIf="!editing">{{ user.displayName || 'Unnamed User' }}</h1>
+        <ion-item lines="none" class="edit-mode-input" *ngIf="editing">
+          <ion-input [(ngModel)]="editData.displayName" placeholder="Enter name" class="name-input"></ion-input>
+        </ion-item>
+        
+        <div class="action-buttons">
+          <ion-button fill="clear" mode="ios" (click)="toggleEditing()" *ngIf="!editing" class="edit-info-btn">
+            <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          
+          <div class="editing-actions" *ngIf="editing">
+            <ion-button fill="clear" mode="ios" class="cancel-btn" (click)="toggleEditing()">
+              <ion-icon name="close-outline" slot="start"></ion-icon>
+              Cancel
+            </ion-button>
+            <ion-button fill="outline" mode="ios" class="save-btn" (click)="saveProfile()">
+              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+              Save
+            </ion-button>
+          </div>
+        </div>
+      </div>
       <p class="user-subtitle">Wellness Member</p>
     </div>
   </div>
@@ -34,7 +56,10 @@
           </div>
           <ion-label>
             <p>Full Name</p>
-            <h3>{{ user.displayName || '-' }}</h3>
+            <h3 *ngIf="!editing">{{ user.displayName || '-' }}</h3>
+            <div class="edit-input-field" *ngIf="editing">
+              <ion-input [(ngModel)]="editData.displayName" placeholder="Display Name"></ion-input>
+            </div>
           </ion-label>
         </ion-item>
         
@@ -59,9 +84,9 @@
           <ion-label>Notifications</ion-label>
           <ion-toggle slot="end" checked="true" color="primary"></ion-toggle>
         </ion-item>
-        <ion-item lines="none" button class="settings-item">
-          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
-          <ion-label>Privacy & Security</ion-label>
+        <ion-item lines="none" button class="settings-item delete-acc-item" (click)="confirmDelete()">
+          <ion-icon name="trash-outline" slot="start" color="danger"></ion-icon>
+          <ion-label color="danger">Delete Account</ion-label>
           <ion-icon name="chevron-forward" slot="end" class="chevron"></ion-icon>
         </ion-item>
       </div>

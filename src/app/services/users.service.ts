@@ -44,6 +44,7 @@ export class UsersService {
     });
   }
 
+
   getUserById(userId: string) {
     return runInInjectionContext(this.injector, () => {
       return this.firestore.collection('users').doc(userId).valueChanges();
@@ -53,6 +54,12 @@ export class UsersService {
   getUsers() {
     return runInInjectionContext(this.injector, () => {
       return this.firestore.collection('users').snapshotChanges();
+    });
+  }
+
+  deleteUser(userId: string) {
+    return runInInjectionContext(this.injector, () => {
+      return this.firestore.collection('users').doc(userId).delete();
     });
   }
 }

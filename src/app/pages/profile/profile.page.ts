@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { UsersService } from 'src/app/services/users.service';
-import { NavController, ToastController } from '@ionic/angular';
+import { NavController, ToastController, AlertController } from '@ionic/angular';
 import { FileStorageService } from 'src/app/services/file-storage.service';
 
 @Component({
@@ -14,13 +14,18 @@ export class ProfilePage implements OnInit {
   user: any;
   loading = true;
   uploading = false;
+  editing = false;
+  editData: any = {
+    displayName: ''
+  };
 
   constructor(
     public authService: AuthenticationService,
     private usersService: UsersService,
     private navCtrl: NavController,
     private fileStorage: FileStorageService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController
   ) {}
 
   ngOnInit() {
@@ -104,6 +109,99 @@ export class ProfilePage implements OnInit {
       errorToast.present();
     } finally {
       this.uploading = false;
+    }
+  }
+
+  toggleEditing() {
+    this.editing = !this.editing;
+    if (this.editing) {
+      this.editData.displayName = this.user?.displayName || '';
+    }
+  }
+
+  async saveProfile() {
+    if (!this.editData.displayName.trim()) {
+      const toast = await this.toastCtrl.create({
+        message: 'Name cannot be empty.',
+        duration: 2000,
+        color: 'warning'
+      });
+      toast.present();
+      return;
+    }
+
+    this.loading = true;
+    try {
+      await this.authService.UpdateProfile(this.editData.displayName);
+      this.user.displayName = this.editData.displayName;
+      
+      // Update local storage
+      const localUser = JSON.parse(localStorage.getItem('user'));
+      localUser.displayName = this.editData.displayName;
+      localStorage.setItem('user', JSON.stringify(localUser));
+
+      this.editing = false;
+      const toast = await this.toastCtrl.create({
+        message: 'Profile updated successfully!',
+        duration: 2000,
+        color: 'success'
+      });
+      toast.present();
+    } catch (error) {
+      console.error('Error updating profile', error);
+      const toast = await this.toastCtrl.create({
+        message: 'Error updating profile. Please try again.',
+        duration: 2000,
+        color: 'danger'
+      });
+      toast.present();
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async confirmDelete() {
+    const alert = await this.alertCtrl.create({
+      header: 'Delete Account?',
+      message: 'This action is permanent and cannot be undone. All your data will be removed.',
+      cssClass: 'delete-confirm-alert',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.deleteAccount();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async deleteAccount() {
+    this.loading = true;
+    try {
+      await this.authService.DeleteAccount();
+    } catch (error: any) {
+      console.error('Error deleting account', error);
+      let message = 'Error deleting account. Please try again.';
+      if (error.code === 'auth/requires-recent-login') {
+        message = 'For security reasons, please logout and log back in before deleting your account.';
+      }
+      const toast = await this.toastCtrl.create({
+        message: message,
+        duration: 5000,
+        color: 'danger'
+      });
+      toast.present();
+    } finally {
+      this.loading = false;
     }
   }
 

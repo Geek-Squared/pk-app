@@ -101,17 +101,83 @@
         }
       }
 
-      .user-display-name {
-        margin: 0;
-        color: white !important;
-        font-size: 1.75rem;
-        font-weight: 800;
-        letter-spacing: -0.01em;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      .user-name-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        padding: 0 40px;
+
+        .user-display-name {
+          margin: 0;
+          color: white !important;
+          font-size: 1.75rem;
+          font-weight: 800;
+          letter-spacing: -0.01em;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .edit-mode-input {
+          --background: transparent;
+          --padding-start: 0;
+          --inner-padding-end: 0;
+          width: 100%;
+          max-width: 250px;
+          margin: -5px auto 0;
+
+          .name-input {
+            --color: white;
+            --placeholder-color: rgba(255, 255, 255, 0.6);
+            --placeholder-opacity: 1;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+          }
+        }
+
+        .action-buttons {
+          margin-top: 5px;
+          min-height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          .edit-info-btn {
+            --color: white;
+            opacity: 0.8;
+            margin: 0;
+          }
+
+          .editing-actions {
+            display: flex;
+            gap: 10px;
+
+            ion-button {
+              --border-radius: 12px;
+              font-weight: 700;
+              margin: 0;
+              height: 36px;
+              font-size: 0.85rem;
+            }
+
+            .cancel-btn {
+              --color: white;
+            }
+
+            .save-btn {
+              --background: white;
+              --color: #1a4f8b;
+              --border-color: white;
+              --border-width: 1px;
+              --border-style: solid;
+            }
+          }
+        }
       }
 
       .user-subtitle {
-        margin: 0.35rem 0 0 0;
+        margin: 0;
         color: white !important;
         opacity: 0.9;
         font-weight: 600;
@@ -184,6 +250,17 @@
               font-weight: 700;
               color: #1e293b;
             }
+
+            .edit-input-field {
+              ion-input {
+                --padding-start: 0;
+                --padding-top: 0;
+                --padding-bottom: 0;
+                --color: #1a4f8b;
+                font-size: 1.05rem;
+                font-weight: 700;
+              }
+            }
           }
         }
 
@@ -199,6 +276,15 @@
 
           ion-label { font-weight: 700; color: #334155; margin-left: 0.5rem; }
           .chevron { font-size: 1rem; color: #cbd5e1; }
+
+          &.delete-acc-item {
+            border-top: 1px solid #fee2e2;
+            margin-top: 5px;
+            
+            ion-label {
+              font-weight: 700;
+            }
+          }
         }
       }
     }
