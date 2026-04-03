@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { IonicModule, GestureController, ActionSheetController } from '@ionic/angular';
+import { IonicModule, GestureController, ActionSheetController, PopoverController } from '@ionic/angular';
 import { Subject, Subscription, take, takeUntil } from 'rxjs';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ChatService } from 'src/app/services/chat.service';
@@ -25,13 +25,14 @@ import firebase from 'firebase/compat/app';
 import { TitleService } from 'src/app/services/title.service';
 
 import { VoiceNoteComponent } from 'src/app/components/voice-note/voice-note.component';
+import { EmojiPickerComponent } from 'src/app/components/emoji-picker/emoji-picker.component';
 
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent, VoiceNoteComponent]
+  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent, VoiceNoteComponent, EmojiPickerComponent]
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('content') private content: any;
@@ -57,8 +58,26 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     private utilsService: UtilitiesService,
     private modalController: ModalController,
     private titleService: TitleService,
-    private actionSheetCtrl: ActionSheetController
+    private actionSheetCtrl: ActionSheetController,
+    private popoverCtrl: PopoverController
   ) {}
+
+  async openEmojiPicker(event: any) {
+    const modal = await this.modalController.create({
+      component: EmojiPickerComponent,
+      breakpoints: [0, 0.4],
+      initialBreakpoint: 0.4,
+      cssClass: 'emoji-modal',
+      handle: true
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      this.newMsg = (this.newMsg || '') + data;
+    }
+  }
 
   async presentMessageOptions(event: any, msg: any) {
     // Only allow deletion of own messages for now
