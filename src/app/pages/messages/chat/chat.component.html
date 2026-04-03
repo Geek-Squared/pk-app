@@ -54,12 +54,11 @@
 
 </ion-content>
 
-<ion-footer class="ion-no-border chat-footer">
+<div class="chat-footer">
   <div class="chat-footer-wrapper">
     <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
     <div class="footer-actions-left" *ngIf="!recording">
-      <button class="icon-btn" (click)="triggerFileSelect()"><ion-icon name="add-circle-outline"></ion-icon></button>
-      <button class="icon-btn" (click)="triggerFileSelect()"><ion-icon name="image-outline"></ion-icon></button>
+      <button class="icon-btn" (click)="presentAttachmentOptions()"><ion-icon name="add-circle-outline"></ion-icon></button>
     </div>
     
     <div class="input-container" *ngIf="!recording">
@@ -81,9 +80,16 @@
     </div>
 
     <div class="footer-actions-right">
+      <!-- Show Send button ONLY when there is text -->
+      <button class="send-btn" (click)="submit(chat)" *ngIf="!recording && newMsg?.trim()?.length > 0">
+        <ion-icon name="send-sharp"></ion-icon>
+      </button>
+
+      <!-- Show Mic button ONLY when there is NO text -->
       <button 
         class="mic-btn" 
         #recordBtn
+        *ngIf="(!newMsg || newMsg?.trim()?.length === 0) || recording"
         [class.recording]="recording"
         (touchstart)="startRecording()" 
         (touchend)="stopRecording()"
@@ -93,9 +99,6 @@
       >
         <ion-icon [name]="recording ? 'mic' : 'mic-outline'"></ion-icon>
       </button>
-      <button class="send-btn" (click)="submit(chat)" *ngIf="!recording">
-        <ion-icon name="send-sharp"></ion-icon>
-      </button>
     </div>
   </div>
-</ion-footer>
+</div>

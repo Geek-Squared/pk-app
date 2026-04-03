@@ -86,6 +86,35 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     await actionSheet.present();
   }
 
+  async presentAttachmentOptions() {
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Attach',
+      buttons: [
+        {
+          text: 'Image',
+          icon: 'image-outline',
+          handler: () => {
+            this.triggerFileSelect();
+          }
+        },
+        {
+          text: 'Video',
+          icon: 'videocam-outline',
+          handler: () => {
+            this.utilsService.presentToast('Video uploads coming soon');
+          }
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          icon: 'close'
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
   async deleteOneMessage(msg: any) {
     this.utilsService.presentLoading('Deleting message...');
     try {
