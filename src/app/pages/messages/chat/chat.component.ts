@@ -21,18 +21,17 @@ import { UtilitiesService } from 'src/app/services/utilities.service';
 import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 import { ModalController } from '@ionic/angular';
 import { UserSelectionComponent } from '../user-selection/user-selection.component';
-import firebase from 'firebase/compat/app';
-import { TitleService } from 'src/app/services/title.service';
-
+import { ReactionPickerComponent } from 'src/app/components/reaction-picker/reaction-picker.component';
 import { VoiceNoteComponent } from 'src/app/components/voice-note/voice-note.component';
 import { EmojiPickerComponent } from 'src/app/components/emoji-picker/emoji-picker.component';
+import { TitleService } from 'src/app/services/title.service';
 
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent, VoiceNoteComponent, EmojiPickerComponent]
+  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent, VoiceNoteComponent, EmojiPickerComponent, ReactionPickerComponent]
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('content') private content: any;
@@ -61,6 +60,45 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     private actionSheetCtrl: ActionSheetController,
     private popoverCtrl: PopoverController
   ) {}
+
+  async openReactionPicker(event: any, msg: any) {
+    if (!this.selectedChat?.id || !msg) return;
+
+    const popover = await this.popoverCtrl.create({
+      component: ReactionPickerComponent,
+      event: event,
+      translucent: true,
+      cssClass: 'reaction-popover',
+      side: 'top',
+      alignment: 'center'
+    });
+
+    await popover.present();
+
+    // Haptic feedback for "opening"
+    await Haptics.impact({ style: ImpactStyle.Light });
+
+    const { data } = await popover.onDidDismiss();
+    if (data) {
+      await this.cs.reactToMessage(this.selectedChat.id, msg, data, this.currentUser.uid);
+      // Haptic feedback for "reacting"
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    }
+  }
+
+  getReactionGroups(reactions: any[]) {
+    if (!reactions || !reactions.length) return [];
+    
+    const groups: any = {};
+    reactions.forEach(r => {
+      groups[r.emoji] = (groups[r.emoji] || 0) + 1;
+    });
+    
+    return Object.keys(groups).map(emoji => ({
+      emoji,
+      count: groups[emoji]
+    }));
+  }
 
   async openEmojiPicker(event: any) {
     const modal = await this.modalController.create({

@@ -359,4 +359,36 @@ export class ChatService {
       });
     });
   }
+
+  async reactToMessage(chatId: string, msg: any, emoji: string, userId: string) {
+    if (!chatId || !msg || !emoji || !userId) return;
+
+    return runInInjectionContext(this.injector, () => {
+      const ref = this.afs.collection('chats').doc(chatId);
+      
+      return ref.get().toPromise().then(doc => {
+        if (doc.exists) {
+          const data: any = doc.data();
+          const messages = data.messages || [];
+          
+          const newMessages = messages.map((m: any) => {
+            if (m.uid === msg.uid && m.createdAt === msg.createdAt) {
+              const reactions = m.reactions || [];
+              const existingIndex = reactions.findIndex((r: any) => r.uid === userId && r.emoji === emoji);
+              
+              if (existingIndex > -1) {
+                reactions.splice(existingIndex, 1);
+              } else {
+                reactions.push({ emoji, uid: userId });
+              }
+              return { ...m, reactions };
+            }
+            return m;
+          });
+
+          return ref.update({ messages: newMessages });
+        }
+      });
+    });
+  }
 }

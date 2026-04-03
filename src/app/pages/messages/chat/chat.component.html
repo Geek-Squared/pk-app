@@ -27,22 +27,39 @@
 
         <!-- Bubble Container -->
         <div class="bubble-container">
-          <button class="msg-options-btn" *ngIf="msg.uid === currentUser?.uid" (click)="presentMessageOptions($event, msg)">
-            <ion-icon name="ellipsis-vertical"></ion-icon>
-          </button>
-          <!-- Text Bubble -->
-          <div class="bubble" *ngIf="msg?.type === 'text' || !msg?.type">
-            <p>{{ msg?.content || msg?.message }}</p>
-          </div>
+          <div class="message-bubble" [class.media]="msg.type === 'image' || msg.type === 'voice'">
+            <!-- Reaction Button (Hover/Options) -->
+            <div class="message-actions-overlay">
+              <button class="reaction-trigger" (click)="openReactionPicker($event, msg)">
+                <ion-icon name="happy-outline"></ion-icon>
+              </button>
+              <button class="options-trigger" (click)="presentMessageOptions($event, msg)">
+                <ion-icon name="ellipsis-vertical"></ion-icon>
+              </button>
+            </div>
 
-          <!-- Image Bubble -->
-          <div class="bubble image-bubble" *ngIf="msg?.type === 'image'">
-            <img [src]="msg.content" />
-          </div>
+            <!-- Text Bubble -->
+            <div class="bubble" *ngIf="msg?.type === 'text' || !msg?.type">
+              <p>{{ msg?.content || msg?.message }}</p>
+            </div>
 
-          <!-- Audio Bubble -->
-          <div class="bubble audio-bubble" *ngIf="msg?.type === 'audio'">
-            <app-voice-note [url]="msg.content" [isSender]="msg.uid === currentUser?.uid"></app-voice-note>
+            <!-- Image Bubble -->
+            <div class="bubble image-bubble" *ngIf="msg?.type === 'image'">
+              <img [src]="msg.content" />
+            </div>
+
+            <!-- Audio Bubble -->
+            <div class="bubble audio-bubble" *ngIf="msg?.type === 'audio'">
+              <app-voice-note [url]="msg.content" [isSender]="msg.uid === currentUser?.uid"></app-voice-note>
+            </div>
+
+            <!-- Reactions Display -->
+            <div class="message-reactions" *ngIf="msg.reactions?.length">
+              <div class="reaction-pill" *ngFor="let group of getReactionGroups(msg.reactions)">
+                <span class="emoji">{{ group.emoji }}</span>
+                <span class="count" *ngIf="group.count > 1">{{ group.count }}</span>
+              </div>
+            </div>
           </div>
 
           <!-- Timestamp Below -->

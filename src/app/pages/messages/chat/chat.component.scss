@@ -133,32 +133,101 @@
   }
 
   .bubble-container {
+    max-width: 85%;
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    position: relative;
+    gap: 4px;
 
-    .msg-options-btn {
+    /* Overlay for triggers (emoji/options) */
+    .message-actions-overlay {
       position: absolute;
-      top: 0;
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      padding: 4px;
-      font-size: 1.1rem;
-      cursor: pointer;
+      top: -10px;
+      right: -10px;
+      display: flex;
+      gap: 6px;
       opacity: 0;
-      transition: opacity 0.2s, color 0.2s;
+      transform: translateY(5px);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 10;
-      
-      &:hover {
-        color: var(--pk-blue);
+      pointer-events: none;
+
+      button {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+        color: #64748b;
+        pointer-events: auto;
+
+        &:hover {
+          color: var(--pk-blue);
+          transform: scale(1.1);
+          background: #f8fafc;
+        }
+
+        ion-icon { font-size: 1.1rem; }
       }
     }
-    
-    &:hover .msg-options-btn {
+
+    &:hover .message-actions-overlay {
       opacity: 1;
+      transform: translateY(0);
     }
+  }
+
+  .message-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: -12px;
+    margin-left: 10px;
+    z-index: 10;
+
+    .reaction-pill {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 2px 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+      .emoji { font-size: 0.9rem; }
+      .count {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+      }
+    }
+  }
+
+  /* Sent Messages Adjustments */
+  .message-row.sent {
+    .message-actions-overlay {
+      left: -10px;
+      right: auto;
+      flex-direction: row-reverse;
+    }
+    .message-reactions {
+      justify-content: flex-end;
+      margin-left: 0;
+      margin-right: 10px;
+    }
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
   }
 
   &.sender .msg-options-btn {
