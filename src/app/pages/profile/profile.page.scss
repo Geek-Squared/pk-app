@@ -1,0 +1,242 @@
+.profile-content {
+  --background: #f8fafc;
+  --ion-font-family: inherit;
+
+  .profile-header-background {
+    height: 320px;
+    background: linear-gradient(135deg, #1a4f8b 0%, #4fc3f7 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: env(safe-area-inset-top);
+
+    .header-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.15), transparent);
+    }
+
+    .back-button-floating {
+      position: absolute;
+      top: calc(env(safe-area-inset-top) + 20px);
+      left: 20px;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.4rem;
+      cursor: pointer;
+      z-index: 10;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .profile-hero {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      
+      .avatar-container {
+        display: inline-block;
+        margin-bottom: 1.25rem;
+
+        .avatar-ring {
+          position: relative;
+          padding: 6px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+
+          img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: white;
+          }
+
+          .initials-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            color: #1a4f8b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+          }
+
+          .edit-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a4f8b;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 2px solid #1a4f8b11;
+          }
+        }
+      }
+
+      .user-display-name {
+        margin: 0;
+        color: white !important;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      }
+
+      .user-subtitle {
+        margin: 0.35rem 0 0 0;
+        color: white !important;
+        opacity: 0.9;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+    }
+  }
+
+  .profile-details-wrapper {
+    margin-top: -30px;
+    background: #f8fafc;
+    border-radius: 30px 30px 0 0;
+    padding: 2.5rem 1.5rem;
+    position: relative;
+    z-index: 5;
+    min-height: 400px;
+    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.03);
+
+    .details-section {
+      margin-bottom: 2rem;
+
+      .section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        padding-left: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .details-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+
+        .detail-item {
+          --padding-start: 1.25rem;
+          --padding-bottom: 1.25rem;
+          --padding-top: 1.25rem;
+          --inner-padding-bottom: 0;
+          --inner-padding-top: 0;
+
+          .icon-circle {
+            width: 44px;
+            height: 44px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a4f8b;
+            font-size: 1.3rem;
+          }
+
+          ion-label {
+            margin-left: 1rem;
+            
+            p {
+              font-size: 0.75rem;
+              font-weight: 700;
+              color: #94a3b8;
+              margin-bottom: 0.25rem;
+            }
+
+            h3 {
+              font-size: 1.05rem;
+              font-weight: 700;
+              color: #1e293b;
+            }
+
+            .uid-text {
+              font-family: 'Courier New', Courier, monospace;
+              font-size: 0.9rem;
+              opacity: 0.8;
+            }
+          }
+        }
+
+        .settings-item {
+          --padding-start: 1rem;
+          --padding-top: 0.85rem;
+          --padding-bottom: 0.85rem;
+          
+          ion-icon {
+            font-size: 1.4rem;
+            color: #64748b;
+          }
+
+          ion-label { font-weight: 700; color: #334155; margin-left: 0.5rem; }
+          .chevron { font-size: 1rem; color: #cbd5e1; }
+        }
+      }
+    }
+
+    .logout-wrapper {
+      margin-top: 3rem;
+      padding-bottom: 2rem;
+
+      .logout-pilled-btn {
+        --background: #fff;
+        --color: #f45c5c;
+        --border-color: #fee2e2;
+        --border-style: solid;
+        --border-width: 1px;
+        --border-radius: 16px;
+        --box-shadow: 0 4px 10px rgba(244, 92, 92, 0.05);
+        font-weight: 700;
+        height: 60px;
+        
+        ion-icon { font-size: 1.4rem; }
+      }
+    }
+  }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: #94a3b8;
+    
+    p { margin-top: 1rem; font-weight: 600; }
+  }
+}

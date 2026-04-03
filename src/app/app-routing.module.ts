@@ -92,6 +92,10 @@ const routes: Routes = [
       {
         path: 'referrals',
         loadChildren: () => import('./pages/referrals/referrals.module').then( m => m.ReferralsPageModule)
+      },
+      {
+        path: 'profile',
+        loadChildren: () => import('./pages/profile/profile.module').then( m => m.ProfilePageModule)
       }
     ],
   },

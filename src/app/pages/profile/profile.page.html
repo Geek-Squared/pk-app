@@ -1,0 +1,87 @@
+<ion-content [fullscreen]="true" class="profile-content">
+  <div class="profile-header-background">
+    <div class="header-overlay"></div>
+    <div class="back-button-floating" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </div>
+    
+    <div class="profile-hero" *ngIf="!loading && user">
+      <div class="avatar-container">
+        <div class="avatar-ring">
+          <img *ngIf="user.photoURL" [src]="user.photoURL" class="profile-img" alt="Profile" />
+          <div *ngIf="!user.photoURL" class="initials-avatar">{{ initials }}</div>
+          <div class="edit-badge">
+            <ion-icon name="camera-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+      <h1 class="user-display-name">{{ user.displayName || 'Unnamed User' }}</h1>
+      <p class="user-subtitle">Wellness Member</p>
+    </div>
+  </div>
+
+  <div class="profile-details-wrapper" *ngIf="!loading && user">
+    <div class="details-section">
+      <h2 class="section-title">Personal Information</h2>
+      <div class="details-card">
+        <ion-item lines="none" class="detail-item">
+          <div class="icon-circle" slot="start">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <p>Full Name</p>
+            <h3>{{ user.displayName || '-' }}</h3>
+          </ion-label>
+        </ion-item>
+        
+        <ion-item lines="none" class="detail-item">
+          <div class="icon-circle" slot="start">
+            <ion-icon name="mail-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <p>Email Address</p>
+            <h3>{{ user.email || '-' }}</h3>
+          </ion-label>
+        </ion-item>
+
+        <ion-item lines="none" class="detail-item">
+          <div class="icon-circle" slot="start">
+            <ion-icon name="finger-print-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <p>User ID</p>
+            <h3 class="uid-text">{{ user.uid }}</h3>
+          </ion-label>
+        </ion-item>
+      </div>
+    </div>
+
+    <div class="details-section">
+      <h2 class="section-title">Account Settings</h2>
+      <div class="details-card">
+        <ion-item lines="full" button class="settings-item">
+          <ion-icon name="notifications-outline" slot="start"></ion-icon>
+          <ion-label>Notifications</ion-label>
+          <ion-toggle slot="end" checked="true" color="primary"></ion-toggle>
+        </ion-item>
+        <ion-item lines="none" button class="settings-item">
+          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+          <ion-label>Privacy & Security</ion-label>
+          <ion-icon name="chevron-forward" slot="end" class="chevron"></ion-icon>
+        </ion-item>
+      </div>
+    </div>
+
+    <div class="logout-wrapper">
+      <ion-button expand="block" mode="ios" class="logout-pilled-btn" (click)="logout()">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Logout Securely
+      </ion-button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Retrieving your account...</p>
+  </div>
+</ion-content>

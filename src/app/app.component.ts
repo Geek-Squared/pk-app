@@ -31,7 +31,8 @@ export class AppComponent {
     '/referrals': 'Referrals',
     '/bookings': 'Bookings',
     '/surveys': 'Surveys',
-    '/introduction': 'Introduction'
+    '/introduction': 'Introduction',
+    '/profile': 'My Profile'
   };
 
   constructor(
