@@ -63,6 +63,16 @@ export class ProfilePage implements OnInit {
     return this.user.displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
 
+  get userRole() {
+    if (this.user?.role) {
+      if (typeof this.user.role === 'object' && this.user.role.name) {
+        return this.user.role.name;
+      }
+      return this.user.role;
+    }
+    return 'Wellness Member';
+  }
+
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
