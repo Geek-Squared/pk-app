@@ -74,4 +74,12 @@
   --ion-color-light-contrast-rgb: 17, 20, 48;
   --ion-color-light-shade: #d8dae0;
   --ion-color-light-tint: #f7f9ff;
+
+  --bottom-nav-height: 0px;
+}
+
+@media (max-width: 991px) {
+  ion-app.has-bottom-nav {
+    --bottom-nav-height: calc(72px + env(safe-area-inset-bottom));
+  }
 }

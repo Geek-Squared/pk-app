@@ -214,11 +214,12 @@
 }
 
 /* Footer Style */
+.chat-footer {
+  background: white;
+  margin-bottom: var(--bottom-nav-height) !important;
+}
+
 .chat-footer-wrapper {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   padding: 1.25rem 2rem;

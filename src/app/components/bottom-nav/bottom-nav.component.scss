@@ -1,5 +1,5 @@
 .bottom-nav-spacer {
-  height: calc(72px + env(safe-area-inset-bottom));
+  height: var(--bottom-nav-height);
 }
 
 .bottom-nav {

@@ -1,4 +1,4 @@
-<ion-app [class.logged-in]="authenticationService.isLoggedIn">
+<ion-app [class.logged-in]="authenticationService.isLoggedIn" [class.has-bottom-nav]="showBottomNav">
   <ion-menu *ngIf="authenticationService.isLoggedIn" side="end" menuId="first" contentId="main">
     <!-- <ion-header>
       <ion-toolbar color="primary">

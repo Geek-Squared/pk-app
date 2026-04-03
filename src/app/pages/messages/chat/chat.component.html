@@ -61,8 +61,10 @@
     </ng-container>
   </div>
 
-  <!-- Polished Footer -->
-  <div class="chat-footer-wrapper" slot="fixed">
+</ion-content>
+
+<ion-footer class="ion-no-border chat-footer">
+  <div class="chat-footer-wrapper">
     <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
     <div class="footer-actions-left">
       <button class="icon-btn" (click)="triggerFileSelect()"><ion-icon name="add-circle-outline"></ion-icon></button>
@@ -89,4 +91,4 @@
       </button>
     </div>
   </div>
-</ion-content>
+</ion-footer>

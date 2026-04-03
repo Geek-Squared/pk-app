@@ -141,7 +141,7 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   padding: 0;
-  margin-bottom: 76px !important; /* Lock above the bottom tab navigation */
+  margin-bottom: var(--bottom-nav-height) !important; /* Lock above the bottom tab navigation */
   box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
 
   .chat-footer-wrapper {
