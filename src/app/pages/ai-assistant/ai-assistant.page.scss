@@ -138,11 +138,16 @@
 
 /* Shared Style Footer / Composer Locked to Bottom */
 .ai-assistant-footer {
+  position: fixed !important;
+  bottom: 0 !important; // Touch the very bottom to fill the space
+  left: 0;
+  right: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   padding: 0;
-  margin-bottom: var(--bottom-nav-height) !important; /* Lock above the bottom tab navigation */
   box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+  z-index: 50 !important; // LOWER than bottom-nav (100)
+  padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important; // Slightly more clearance
 
   .chat-footer-wrapper {
     padding: 1.25rem 1.5rem;

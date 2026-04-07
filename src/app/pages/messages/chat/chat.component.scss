@@ -312,14 +312,15 @@
 /* Footer Position Fix - SOLID FLOOR STRATEGY */
 .chat-footer {
   position: fixed !important;
-  bottom: 0 !important; /* Touch the very bottom to cover all messages */
+  bottom: 0 !important; // Touch the very bottom to fill the space
   left: 0;
+  right: 0;
   width: 100%;
-  background: #ffffff !important;
-  z-index: 1000 !important; /* Above everything */
+  background: #ffffff !important; // Solid background
+  z-index: 50 !important; // LOWER than bottom-nav (100)
   border-top: 1px solid #f1f5f9;
-  padding-bottom: calc(48px + env(safe-area-inset-bottom)) !important; /* Sit closer to nav icons */
-  box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.05);
+  padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important; // Slightly more clearance
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.05);
 }
 
 /* Ensure the last message can be scrolled UP and out from behind the footer */
