@@ -1,112 +1,121 @@
-<ion-content [fullscreen]="true" class="page-content assistant-content">
-  <div class="dashboard-wrapper">
-    <!-- Mobile High Fidelity View -->
-    <div class="mobile-only-assistant">
-      <div class="peekay-hero">
-        <h1>I'm Peekay</h1>
-        <p>Your AI companion for mindful living</p>
+<ion-content [fullscreen]="true" class="page-content ai-canvas">
+  <div class="ai-wrapper">
+    
+    <!-- AI Identity Header Section -->
+    <header class="ai-identity-section">
+      <div class="ai-avatar-group">
+        <div class="ai-avatar-gradient-border">
+          <div class="ai-avatar-inner shadow-lg">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGFMe4hfEhp9lQsjj60zFRmxzZdosqmWaGukiZLB2ezi84C6BOebM8lI4Zz2U50lPKBOflAG4Py3Gl_0eY_8_m1cPetbFWU8CAMd1-v5Xh6A5IfUf2Oyc-ZwMepLmsio17Hazi8hJFsr2heTDVT5Dxj9QMqcILjZdODc1Q5nPwQhKbpcQFJ_r67ZETOUubhw1fDyoh0g90yFkCcCYHD83rGhSeMcq4XPYy_bFrI7HfnOqwOw8hRSnE93ULs9FlsUkfFtDVGzIKhJBx" alt="Peekay AI" />
+          </div>
+          <span class="status-dot-online"></span>
+        </div>
       </div>
+      <div class="identity-text text-center mt-6">
+        <h2 class="assistant-name">Peekay Assistant</h2>
+        <p class="curator-greeting">Your personal wellness curator. {{ greeting }}, {{ userName }}!</p>
+      </div>
+    </header>
 
-    </div>
-
-    <!-- Desktop Hero -->
-    <div class="ai-hero-section desktop-only">
-      <h1 class="main-greeting">{{ greeting }}, {{ userName }}.</h1>
-      <p class="sub-greeting">Your resilient sanctuary is ready. How can I guide your wellness journey today?</p>
-    </div>
-
-    <div class="chat-thread-wrapper">
+    <!-- Chat History / Messages Thread -->
+    <div class="chat-thread-container">
       <div class="chat-thread">
-        <!-- Welcoming Assistant Message -->
-        <div class="message-row recipient" *ngIf="messages.length === 0">
-          <div class="message-meta-avatar">
-            <div class="avatar-circle peekay-avatar">
-              <img src="assets/images/logo.png" />
-            </div>
+        
+        <!-- Welcome Message (Peekay) -->
+        <div class="message-row peekay" *ngIf="messages.length === 0">
+          <div class="mini-avatar">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK30kXom2Ap6NGCK9Sz2bbV3yzdrCZgp39Dmka0cUQHi6RU-mc5m6lLiVsiytBqozm6wiQHANwRFdGFEfVql8PddVHZNmI6aLfPm47TDeB9R50kQYy5J28iC2l7WW2LrOTeb0CqyxTY1EW5kfQ6Qz0jUA9iE6ZlRSBf34mN6XB8gq6ERqYVHC1A24F8Y-LagEN-rAHmzydLgLUR5jNBlhkWwO2RGKsCUjYgTQQVv7YFyofgZAMtaocw-BLgKPBUkMpmjSmR2-LaS0s" alt="P" />
           </div>
-          <div class="bubble-container">
-            <div class="bubble">
-              <p>Hello! I've been tracking your activity. You seem to be having a productive day. How is your focus level feeling right now?</p>
-            </div>
-            <span class="message-timestamp">Peekay • Just now</span>
+          <div class="bubble editorial-bubble">
+            <p>Good morning! I noticed your sleep data indicates a slightly restless night. Would you like to try a 5-minute restorative grounding exercise before we start our day?</p>
+            <span class="time-stamp">8:30 AM</span>
           </div>
         </div>
 
-        <!-- Dynamic Messages -->
-        <div 
-          *ngFor="let message of messages; trackBy: trackByTimestamp" 
-          class="message-row"
-          [class.sender]="message.role === 'user'"
-          [class.recipient]="message.role === 'assistant'"
-        >
-          <!-- Assistant Avatar -->
-          <div class="message-meta-avatar" *ngIf="message.role === 'assistant'">
-            <div class="avatar-circle peekay-avatar">
-              <img src="assets/images/logo.png" />
+        <ng-container *ngFor="let msg of messages; trackBy: trackByTimestamp">
+          <!-- Assistant Message -->
+          <div class="message-row peekay" *ngIf="msg.role === 'assistant'">
+            <div class="mini-avatar">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK30kXom2Ap6NGCK9Sz2bbV3yzdrCZgp39Dmka0cUQHi6RU-mc5m6lLiVsiytBqozm6wiQHANwRFdGFEfVql8PddVHZNmI6aLfPm47TDeB9R50kQYy5J28iC2l7WW2LrOTeb0CqyxTY1EW5kfQ6Qz0jUA9iE6ZlRSBf34mN6XB8gq6ERqYVHC1A24F8Y-LagEN-rAHmzydLgLUR5jNBlhkWwO2RGKsCUjYgTQQVv7YFyofgZAMtaocw-BLgKPBUkMpmjSmR2-LaS0s" alt="P" />
+            </div>
+            <div class="bubble editorial-bubble">
+              <div [innerHTML]="msg.content"></div>
+              <span class="time-stamp">{{ msg.createdAt | date:'shortTime' }}</span>
             </div>
           </div>
 
-          <div class="bubble-container">
-            <div class="bubble">
-              <p>{{ message.content }}</p>
+          <!-- User Message -->
+          <div class="message-row user" *ngIf="msg.role === 'user'">
+            <div class="bubble user-bubble shadow-md">
+              <p>{{ msg.content }}</p>
+              <span class="time-stamp text-right">{{ msg.createdAt | date:'shortTime' }}</span>
             </div>
-            <span class="message-timestamp">
-              {{ message.role === 'assistant' ? 'Peekay' : 'You' }} • {{ message.createdAt | date:'h:mm a' }}
-            </span>
+          </div>
+        </ng-container>
+
+        <!-- Typing Indicator -->
+        <div class="message-row peekay thinking" *ngIf="pending">
+          <div class="mini-avatar thinking-pulse">
+            <span class="material-symbols-outlined">auto_awesome</span>
+          </div>
+          <div class="bubble thinking-bubble">
+            <div class="dot-typing"></div>
           </div>
         </div>
 
-        <!-- Pending State -->
-        <div class="message-row recipient" *ngIf="pending">
-          <div class="message-meta-avatar">
-            <div class="avatar-circle peekay-avatar">
-              <img src="assets/images/logo.png" />
-            </div>
-          </div>
-          <div class="bubble-container">
-            <div class="bubble typing-bubble">
-              <ion-spinner name="dots" color="primary"></ion-spinner>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-  </div>
-</ion-content>
 
-<!-- Shared Style Footer Locked to Bottom -->
-<ion-footer class="ion-no-border ai-assistant-footer">
-  <div class="chat-footer-wrapper">
-    <form [formGroup]="form" (ngSubmit)="sendMessage()" class="composer-form" style="width: 100%; display: flex; align-items: center; gap: 1.5rem;">
-      <div class="footer-actions-left">
-        <button type="button" class="icon-btn"><ion-icon name="add-circle-outline"></ion-icon></button>
-      </div>
-      
-      <div class="input-container">
-        <ion-textarea
-          #composer
-          formControlName="prompt"
-          placeholder="Message Peekay..."
-          [autoGrow]="true"
-          rows="1"
-          (keydown)="handleKeydown($event)"
-          class="composer-textarea"
-        ></ion-textarea>
-      </div>
-
-      <div class="footer-actions-right">
+    <!-- Suggestion Chips Section -->
+    <section class="suggestions-hub" *ngIf="messages.length < 5">
+      <div class="suggestion-scroll">
         <button 
-          class="send-btn" 
-          type="submit"
-          [disabled]="!canSend"
+          class="chip-primary" 
+          *ngFor="let suggestion of suggestions"
+          (click)="useSuggestion(suggestion)"
         >
-          <ion-icon name="send-sharp"></ion-icon>
+          {{ suggestion }}
         </button>
       </div>
+    </section>
+
+    <!-- Asymmetric Bento Resilience Card -->
+    <section class="context-card-section" *ngIf="messages.length < 3">
+      <div class="resilience-card-gradient">
+        <div class="resilience-card-inner glass-effect shadow-sm">
+          <div class="icon-box-resilience">
+            <span class="material-symbols-outlined">self_care</span>
+          </div>
+          <div class="resilience-text">
+            <h4 class="card-title">Daily Resilience Habit</h4>
+            <p class="card-p">Grounding exercises can lower cortisol by up to 20% when practiced daily.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+  </div>
+
+  <!-- Message Input Dock (Floating) -->
+  <div class="ai-input-dock fixed-bottom-clear" slot="fixed">
+    <form [formGroup]="form" (ngSubmit)="sendMessage()" class="input-form-inner glass-panel shadow-lg">
+      <button type="button" class="dock-action-btn" (click)="focusComposer()">
+        <span class="material-symbols-outlined">add_circle</span>
+      </button>
+      <input 
+        type="text" 
+        formControlName="prompt"
+        class="dock-text-input" 
+        placeholder="Tell Peekay how you're feeling..."
+        autocomplete="off"
+      />
+      <button 
+        type="submit" 
+        class="dock-send-btn shadow-md"
+        [disabled]="!canSend"
+      >
+        <span class="material-symbols-outlined">{{ pending ? 'hourglass_empty' : 'send' }}</span>
+      </button>
     </form>
   </div>
-  
-  <div class="safety-note" *ngIf="!errorMessage">
-    For emergencies, contact local support.
-  </div>
-</ion-footer>
+</ion-content>
