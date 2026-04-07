@@ -339,7 +339,7 @@ ion-header.root-shell-header {
 // Ensure the page content does not overlap the custom shell header
 // Global outlet offsets based on visibility of the premium header
 ion-router-outlet.has-header {
-  top: 104px !important; // 80px header + 24px air gap
+  top: 80px !important; // Exactly 80px header height (Zero air gap here, handle in page)
 }
 
 ion-router-outlet:not(.has-header) {

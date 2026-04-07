@@ -1,110 +1,135 @@
-<ion-content [fullscreen]="true" class="page-content chat-page" #content>
-  <div class="chat-thread-wrapper">
-    <!-- Group Management Action (Top) -->
-    <div class="group-management-bar" *ngIf="chat?.type === 'group'">
-      <span class="group-label">Group Chat</span>
-      <button class="add-member-pill-btn" (click)="addMember()">
-        <ion-icon name="person-add-outline"></ion-icon>
-        <span>Add Member</span>
-      </button>
-    </div>
-    <ng-container *ngFor="let msg of chat?.messages; index as index; trackBy: trackByCreated">
-      <!-- Date Divider -->
-      <div class="date-divider" *ngIf="isDifferentDay(index)">
-        <span class="date-pill">{{ msg?.createdAt | date : 'EEEE' | uppercase }}</span>
+<!-- Premium Glassmorphism Header -->
+<header class="chat-editorial-header">
+  <div class="header-inner">
+    <div class="user-profile">
+      <app-back-button class="custom-back" defaultHref="/messages"></app-back-button>
+      
+      <div class="avatar-box">
+        <img *ngIf="chat?.recipientPhoto" [src]="chat.recipientPhoto" alt="Avatar" />
+        <div *ngIf="!chat?.recipientPhoto" class="initial-avatar">{{ (chat?.recipientName || 'C') | slice:0:1 }}</div>
+        <span class="status-indicator online"></span>
       </div>
 
-      <!-- Message Structure -->
-      <div class="message-row" [class.sender]="msg.uid === currentUser?.uid" [class.recipient]="msg.uid !== currentUser?.uid">
-        
-        <!-- Recipient Avatar -->
-        <div class="message-meta-avatar" *ngIf="msg.uid !== currentUser?.uid">
-          <div class="avatar-circle">
-            <span *ngIf="!msg.user?.photoURL">{{ (msg.user?.displayName || 'C') | slice:0:1 }}</span>
-            <img [src]="msg.user?.photoURL" *ngIf="msg.user?.photoURL" />
-          </div>
-        </div>
+      <div class="text-meta">
+        <span class="name">{{ chat?.recipientName || chat?.displayName || 'Chat' }}</span>
+        <span class="status-label">Online</span>
+      </div>
+    </div>
 
-        <!-- Bubble Container -->
-        <div class="bubble-container">
-          <div class="message-bubble" [class.media]="msg.type === 'image' || msg.type === 'voice'">
-            <!-- Reaction Button (Hover/Options) -->
-            <div class="message-actions-overlay">
-              <button class="reaction-trigger" (click)="openReactionPicker($event, msg)">
-                <ion-icon name="happy-outline"></ion-icon>
-              </button>
-              <button class="options-trigger" (click)="presentMessageOptions($event, msg)">
-                <ion-icon name="ellipsis-vertical"></ion-icon>
-              </button>
-            </div>
+    <div class="header-actions">
+      <button class="action-btn"><span class="material-symbols-outlined">videocam</span></button>
+      <button class="action-btn"><span class="material-symbols-outlined">more_vert</span></button>
+    </div>
+  </div>
+</header>
 
-            <!-- Text Bubble -->
-            <div class="bubble" *ngIf="msg?.type === 'text' || !msg?.type">
-              <p>{{ msg?.content || msg?.message }}</p>
-            </div>
+<ion-content [fullscreen]="true" class="page-content chat-canvas" #content>
+  <div class="chat-thread-wrapper">
+    
+    <ng-container *ngFor="let msg of chat?.messages; index as index; trackBy: trackByCreated">
+      <!-- Editorial Date Divider -->
+      <div class="date-marker" *ngIf="isDifferentDay(index)">
+        <span class="pill">{{ msg?.createdAt | date : 'EEEE, MMM d' | uppercase }}</span>
+      </div>
 
-            <!-- Image Bubble -->
-            <div class="bubble image-bubble" *ngIf="msg?.type === 'image'">
-              <img [src]="msg.content" />
-            </div>
-
-            <!-- Audio Bubble -->
-            <div class="bubble audio-bubble" *ngIf="msg?.type === 'audio'">
-              <app-voice-note [url]="msg.content" [isSender]="msg.uid === currentUser?.uid"></app-voice-note>
-            </div>
-
-            <!-- Reactions Display -->
-            <div class="message-reactions" *ngIf="msg.reactions?.length">
-              <div class="reaction-pill" *ngFor="let group of getReactionGroups(msg.reactions)">
-                <span class="emoji">{{ group.emoji }}</span>
-                <span class="count" *ngIf="group.count > 1">{{ group.count }}</span>
-              </div>
-            </div>
+      <!-- Lumina Message Bubble System -->
+      <div 
+        class="chat-bubble-row" 
+        [class.incoming]="msg.uid !== currentUser?.uid" 
+        [class.outgoing]="msg.uid === currentUser?.uid"
+      >
+        <div class="bubble-stack">
+          <!-- Text Bubble -->
+          <div class="bubble" *ngIf="msg?.type === 'text' || !msg?.type">
+            <p>{{ msg?.content || msg?.message }}</p>
           </div>
 
-          <!-- Timestamp Below -->
-          <span class="message-timestamp">{{ msg?.createdAt | date : 'hh:mm a' }}</span>
+          <!-- Image Bubble -->
+          <div class="bubble media-bubble" *ngIf="msg?.type === 'image'">
+            <img [src]="msg.content" />
+          </div>
+
+          <!-- Voice Note Bubble -->
+          <div class="bubble audio-bubble" *ngIf="msg?.type === 'audio'">
+            <app-voice-note [url]="msg.content" [isSender]="msg.uid === currentUser?.uid"></app-voice-note>
+          </div>
+
+          <!-- Meta Info (Time + Status) -->
+          <div class="bubble-meta">
+            <span class="time">{{ msg?.createdAt | date : 'hh:mm a' }}</span>
+            <span class="material-symbols-outlined status-icon" *ngIf="msg.uid === currentUser?.uid">done_all</span>
+          </div>
+
+          <!-- Reactions Display -->
+          <div class="reactions-container" *ngIf="msg.reactions?.length">
+            <div class="reaction" *ngFor="let group of getReactionGroups(msg.reactions)">
+              {{ group.emoji }} <span class="count" *ngIf="group.count > 1">{{ group.count }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </ng-container>
-  </div>
 
+    <!-- Typing Indicator -->
+    <div class="typing-indicator" *ngIf="false"> <!-- Placeholder for future state -->
+      <div class="dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="label">{{ chat?.recipientName }} is typing</span>
+    </div>
+
+  </div>
 </ion-content>
 
-<div class="chat-footer">
-  <div class="chat-footer-wrapper">
-    <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
-    <div class="footer-actions-left" *ngIf="!recording">
-      <button class="icon-btn" (click)="presentAttachmentOptions()"><ion-icon name="add-circle-outline"></ion-icon></button>
-    </div>
+<!-- Premium Floating Input Bar -->
+<footer class="chat-editorial-footer">
+  <div class="footer-inner">
+    <!-- Attachment Button -->
+    <button class="attach-btn" (click)="presentAttachmentOptions()" *ngIf="!recording">
+      <span class="material-symbols-outlined">add_circle</span>
+    </button>
     
+    <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
+
+    <!-- Text Input Area -->
     <div class="input-container" *ngIf="!recording">
-      <input type="text" placeholder="Type your message..." [(ngModel)]="newMsg" (keydown.enter)="submit(chat)" />
-      <button class="emoji-btn" (click)="openEmojiPicker($event)"><ion-icon name="happy-outline"></ion-icon></button>
+      <input 
+        type="text" 
+        placeholder="Type your message..." 
+        [(ngModel)]="newMsg" 
+        (keydown.enter)="submit(chat)"
+      />
+      <button class="emoji-btn" (click)="openEmojiPicker($event)">
+        <span class="material-symbols-outlined">mood</span>
+      </button>
     </div>
 
-    <!-- WhatsApp-style Recording Overlay -->
-    <div class="recording-overlay" *ngIf="recording">
-      <div class="recording-indicators">
-        <div class="pulse-dot"></div>
-        <span class="status-label">Recording...</span>
+    <!-- Voice Recording UI -->
+    <div class="recording-bar" *ngIf="recording">
+      <div class="pulse-box">
+        <div class="dot"></div>
         <span class="timer">{{ durationDisplay || '0:00' }}</span>
       </div>
-      <div class="slide-to-cancel" (click)="cancelRecording()">
-        <ion-icon name="chevron-back-outline"></ion-icon>
-        <span>Swipe or tap to cancel</span>
+      <div class="cancel-prompt" (click)="cancelRecording()">
+        <span class="material-symbols-outlined">chevron_left</span>
+        Swipe to cancel
       </div>
     </div>
 
-    <div class="footer-actions-right">
-      <!-- Show Send button ONLY when there is text -->
-      <button class="send-btn" (click)="submit(chat)" *ngIf="!recording && newMsg?.trim()?.length > 0">
-        <ion-icon name="send-sharp"></ion-icon>
+    <!-- Main Action Button (Send or Mic) -->
+    <div class="action-dispatch">
+      <!-- Send Button -->
+      <button 
+        class="dispatch-btn send" 
+        (click)="submit(chat)" 
+        *ngIf="!recording && newMsg?.trim()?.length > 0"
+      >
+        <span class="material-symbols-outlined">send</span>
       </button>
 
-      <!-- Show Mic button ONLY when there is NO text -->
+      <!-- Record Button -->
       <button 
-        class="mic-btn" 
+        class="dispatch-btn mic" 
         #recordBtn
         *ngIf="(!newMsg || newMsg?.trim()?.length === 0) || recording"
         [class.recording]="recording"
@@ -112,10 +137,10 @@
         (touchend)="stopRecording()"
         (mousedown)="startRecording()"
         (mouseup)="stopRecording()"
-        (mouseleave)="stopRecording()"
       >
-        <ion-icon [name]="recording ? 'mic' : 'mic-outline'"></ion-icon>
+        <span class="material-symbols-outlined">{{ recording ? 'mic' : 'mic_none' }}</span>
       </button>
     </div>
+
   </div>
-</div>
+</footer>
