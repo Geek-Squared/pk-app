@@ -1,13 +1,10 @@
 import { CommonModule } from '@angular/common';
 import {
-  AfterViewInit,
   Component,
-  ElementRef,
   OnInit,
-  ViewChild,
 } from '@angular/core';
-import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { GestureController, IonicModule, ModalController } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ChatService } from 'src/app/services/chat.service';
@@ -27,13 +24,14 @@ import { TitleService } from 'src/app/services/title.service';
 })
 export class MessagesPage implements OnInit {
   searchTerm$ = new BehaviorSubject<string>('');
-  displayView: string = 'chats';
   
   userChats$: Observable<any>;
   groupChats$: Observable<any>;
-  
   filteredChats$: Observable<any>;
   filteredGroups$: Observable<any>;
+  availableUsers$: Observable<any>;
+  
+  currentUser: any;
 
   constructor(
     public auth: AuthenticationService,
@@ -45,33 +43,62 @@ export class MessagesPage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.auth.user$.subscribe(user => console.log('Current User Messages:', user));
+    this.titleService.setTitle('Network');
+    
+    this.auth.user$.pipe(take(1)).subscribe(user => {
+      this.currentUser = user;
+    });
     
     this.userChats$ = this.cs.getUserChats();
     this.groupChats$ = this.cs.getGroupChats();
 
+    // Filtered My Team (Existing Individual Chats)
     this.filteredChats$ = combineLatest([this.userChats$, this.searchTerm$]).pipe(
-      map(([chats, term]) => this.filterChatList(chats, term))
+      map(([chats, term]) => {
+        if (!chats) return [];
+        return chats.filter(c => 
+          c.recipientName?.toLowerCase().includes(term.toLowerCase())
+        );
+      })
     );
 
+    // Filtered Community Spaces (Group Chats)
     this.filteredGroups$ = combineLatest([this.groupChats$, this.searchTerm$]).pipe(
-      map(([groups, term]) => this.filterGroupList(groups, term))
+      map(([groups, term]) => {
+        if (!groups) return [];
+        return groups.filter(g => 
+          g.displayName?.toLowerCase().includes(term.toLowerCase())
+        );
+      })
     );
-  }
 
-  filterChatList(chats: any[], term: string) {
-    if (!chats) return [];
-    if (!term) return chats;
-    return chats.filter(c => 
-      c.recipientName?.toLowerCase().includes(term.toLowerCase())
+    // Available Counselors (Discovery)
+    const allUsers$ = this.usersService.getUsers().pipe(
+      map(actions => actions.map(a => {
+        const data: any = a.payload.doc.data();
+        const id = a.payload.doc.id;
+        return { id, uid: id, ...data };
+      }))
     );
-  }
 
-  filterGroupList(groups: any[], term: string) {
-    if (!groups) return [];
-    if (!term) return groups;
-    return groups.filter(g => 
-      g.displayName?.toLowerCase().includes(term.toLowerCase())
+    this.availableUsers$ = combineLatest([allUsers$, this.userChats$, this.searchTerm$]).pipe(
+      map(([users, chats, term]) => {
+        if (!users) return [];
+        
+        let available = users.filter(u => u.uid !== this.currentUser?.uid && u.role === 'counsellor');
+        
+        const chattedUids = chats?.map(c => c.recipientId) || [];
+        available = available.filter(u => !chattedUids.includes(u.uid));
+        
+        if (term) {
+          available = available.filter(u => 
+            u.displayName?.toLowerCase().includes(term.toLowerCase()) ||
+            u.email?.toLowerCase().includes(term.toLowerCase())
+          );
+        }
+
+        return available;
+      })
     );
   }
 
@@ -79,9 +106,8 @@ export class MessagesPage implements OnInit {
     this.searchTerm$.next(event.target.value);
   }
 
-  setView(view: 'chats' | 'group') {
-    this.displayView = view;
-    this.titleService.setTitle(view === 'chats' ? 'Chat Hub' : 'Group Chats');
+  startNewChat(user: any) {
+    this.cs.create(user);
   }
 
   async showUserSelection(isGroup: boolean = false) {
@@ -102,119 +128,16 @@ export class MessagesPage implements OnInit {
     }
   }
 
-  startNewChat(user: any) {
-    this.cs.create(user);
-  }
-
-  change(event) {
-    const value = event?.detail?.value;
-    if (value) {
-      this.displayView = value;
-    }
-  }
-
-  getTotalUnread(chat) {
-    const userUid = JSON.parse(localStorage.getItem('user'))?.uid;
+  getTotalUnread(chat: any) {
+    const userUid = this.currentUser?.uid;
     const hasReadCount = chat?.hasRead?.[userUid];
-    const totalMessages = chat?.messages?.length;
+    const totalMessages = chat?.messages?.length || 0;
 
-    if (chat?.hasRead && hasReadCount) {
+    if (chat?.hasRead && hasReadCount !== undefined) {
       const unreadCount = totalMessages - hasReadCount;
-      if (unreadCount > 0) {
-        return unreadCount;
-      } else {
-        return 0;
-      }
+      return unreadCount > 0 ? unreadCount : 0;
     } else {
       return totalMessages;
     }
   }
-
-  createChat() {
-    this.cs.create();
-  }
-
-  updateChatUnread(chat) {
-    return this.cs.updateChat(chat, chat.messages?.length).then();
-  }
-
-  // vn:
-  /*   calculateDuration() {
-    if (!this.recording) {
-      this.duration = 0;
-      this.durationDisplay = '';
-      return;
-    }
-
-    this.duration += 1;
-    const minutes = Math.floor(this.duration / 60);
-    const seconds = (this.duration % 60).toString().padStart(2, '0');
-    this.durationDisplay = `${minutes}:${seconds}`;
-
-    setTimeout(() => {
-      this.calculateDuration();
-    }, 1000);
-  }
-
-  async loadFiles() {
-    Filesystem.readdir({
-      path: '',
-      directory: Directory.Data,
-    }).then((result) => {
-      
-      this.storedFileNames = result.files;
-    });
-  }
-
-  startRecording() {
-    if (this.recording) {
-      return;
-    }
-    this.recording = true;
-    VoiceRecorder.startRecording();
-  }
-
-  stopRecording() {
-    if (!this.recording) {
-      return;
-    }
-    VoiceRecorder.stopRecording().then(async (result: RecordingData) => {
-      this.recording = false;
-
-      if (result.value && result.value.recordDataBase64) {
-        const recordData = result.value.recordDataBase64;
-        
-        const fileName = new Date().getTime() + '.wav';
-        await Filesystem.writeFile({
-          path: fileName,
-          directory: Directory.Data,
-          data: recordData,
-        });
-        this.loadFiles();
-      }
-    });
-  }
-
-  async playFile(fileName) {
-    const audioFile = await Filesystem.readFile({
-      path: fileName,
-      directory: Directory.Data,
-    });
-    
-    const base64Sound = audioFile.data;
-
-    const audioRef = new Audio(`data:audio/aac;base64,${base64Sound}`);
-    audioRef.oncanplaythrough = () => audioRef.play();
-    audioRef.load();
-  }
-
-  async deleteRecording(fileName) {
-    await Filesystem.deleteFile({
-      directory: Directory.Data,
-      path: fileName,
-    });
-    this.loadFiles();
-    this.stopRecording();
-  } */
-  // end vn
 }

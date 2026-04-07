@@ -1,158 +1,131 @@
-<ion-content [fullscreen]="true" class="page-content">
-  <div class="dashboard-wrapper">
-    <main class="dashboard-layout full-width">
-      <!-- Main Content Area -->
-      <section class="content-area">
-        
-        <!-- Private Chats View -->
-        <ng-container *ngIf="displayView === 'chats'">
-          <div class="dashboard-content">
-            <div class="chat-hub-header">
-              <div class="hub-title">
-                <h1>Chat Hub</h1>
-                <p>Connect with your community and counsellors.</p>
-              </div>
+<ion-content [fullscreen]="true" class="page-content network-canvas">
+  <div class="network-wrapper">
+    
+    <!-- Editorial Header Section -->
+    <header class="editorial-title-section">
+      <h2 class="title">Network</h2>
+      <p class="description">Connect with your dedicated care team or discover collaborative community spaces.</p>
+    </header>
+
+    <!-- Professional Search Bar -->
+    <div class="search-container">
+      <div class="search-inner">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input 
+          type="text" 
+          placeholder="Search team, groups, or experts..." 
+          (input)="onSearchChange($event)"
+          [(ngModel)]="searchTerm$.value"
+        />
+      </div>
+    </div>
+
+    <!-- Categorized Sections: My Team (Individual) -->
+    <section class="network-section my-team" *ngIf="(filteredChats$ | async)?.length">
+      <div class="section-header">
+        <h3 class="section-label">My Team</h3>
+        <span class="count-pill">{{ (filteredChats$ | async)?.length }} Active</span>
+      </div>
+
+      <div class="contact-list">
+        <div 
+          class="contact-card" 
+          *ngFor="let chat of filteredChats$ | async"
+          [routerLink]="'chat/' + chat.id"
+        >
+          <div class="profile-block">
+            <div class="avatar-box">
+              <img *ngIf="chat?.recipientPhoto" [src]="chat.recipientPhoto" alt="Avatar" />
+              <div *ngIf="!chat?.recipientPhoto" class="initial-avatar">{{ (chat?.recipientName || 'C') | slice:0:1 }}</div>
+              <div class="status-indicator online" *ngIf="chat?.recipientOnline"></div>
             </div>
-
-            <div class="counsellors-row">
-              <div class="counsellor-item start-new" (click)="showUserSelection()">
-                <div class="avatar-circle">
-                  <ion-icon name="add"></ion-icon>
-                </div>
-                <span>New Chat</span>
-              </div>
-              <div class="counsellor-item">
-                <div class="avatar-circle">
-                  <ion-icon name="medkit-outline"></ion-icon>
-                  <div class="status-indicator online"></div>
-                </div>
-                <span>Support</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="search-filter-row">
-            <div class="search-box">
-              <ion-icon name="search-outline"></ion-icon>
-              <input type="text" placeholder="Find a chat..." (input)="onSearchChange($event)" />
-            </div>
-          </div>
-
-          <div class="tab-switcher">
-            <button [class.active]="displayView === 'chats'" (click)="setView('chats')">Private Chats</button>
-            <button [class.active]="displayView === 'group'" (click)="setView('group')">Group Chats</button>
-          </div>
-
-          <div class="conversations-list">
-            <div 
-              class="chat-card" 
-              *ngFor="let chat of filteredChats$ | async" 
-              [routerLink]="'chat/' + chat.id"
-            >
-              <div class="avatar-wrapper">
-                <div class="avatar-circle">
-                  <ion-icon name="person-outline" *ngIf="!chat.recipientName"></ion-icon>
-                  <span *ngIf="chat.recipientName">{{ chat.recipientName | slice:0:1 }}</span>
-                </div>
-                <div class="status-indicator online" *ngIf="chat.recipientOnline"></div>
-              </div>
-              <div class="chat-info">
-                <div class="chat-header">
-                  <h3>{{ chat.recipientName || 'Private Chat' }}</h3>
-                  <span class="timestamp">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' || 'JUST NOW' }}</span>
-                </div>
-                <div class="chat-body">
-                  <p class="last-message">
-                    {{ chat.messages[chat.messages.length - 1]?.content || 'Tap to start conversation...' }}
-                  </p>
-                  <div class="unread-count" *ngIf="getTotalUnread(chat) > 0">
-                    {{ getTotalUnread(chat) }}
-                  </div>
-                </div>
-              </div>
+            <div class="text-meta">
+              <h4 class="name">{{ chat?.recipientName || chat?.displayName || 'Care Provider' }}</h4>
+              <p class="role">{{ chat.messages[chat.messages.length - 1]?.content || 'Connected' }}</p>
             </div>
           </div>
-        </ng-container>
+          <div class="action-spread">
+            <button class="icon-action chat">
+              <span class="material-symbols-outlined">chat</span>
+              <div class="unread-dot" *ngIf="getTotalUnread(chat) > 0"></div>
+            </button>
+            <button class="icon-action video">
+              <span class="material-symbols-outlined">videocam</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <!-- Group Chats View -->
-        <ng-container *ngIf="displayView === 'group'">
-          <div class="group-chats-wrapper">
-            <div class="hub-header">
-              <div class="hub-title">
-                <h1>Group Chats</h1>
-                <p>Connect with your communities. Stay resilient, together.</p>
-              </div>
-              <div class="hub-actions">
-                <button class="new-group-btn" (click)="showUserSelection(true)">
-                  <ion-icon name="people-outline"></ion-icon>
-                  New Group
-                </button>
+    <!-- Categorized Sections: Community Spaces (Groups) -->
+    <section class="network-section group-spaces" *ngIf="(filteredGroups$ | async)?.length">
+      <div class="section-header">
+        <h3 class="section-label">Community Spaces</h3>
+        <span class="count-pill">Discussion Groups</span>
+      </div>
+
+      <div class="contact-list">
+        <div 
+          class="contact-card group-card" 
+          *ngFor="let group of filteredGroups$ | async"
+          [routerLink]="['chat/' + group.id, { chatType: 'group' }]"
+        >
+          <div class="profile-block">
+            <div class="avatar-box group-box">
+              <div class="initial-avatar">{{ (group.displayName || 'G') | slice:0:1 }}</div>
+              <div class="member-overlay">
+                <span class="material-symbols-outlined">groups</span>
               </div>
             </div>
-            <!-- Search moved under title for groups -->
-            <div class="search-filter-row group-search">
-              <div class="search-box">
-                <ion-icon name="search-outline"></ion-icon>
-                <input type="text" placeholder="Find a group..." (input)="onSearchChange($event)" />
-              </div>
-            </div>
-
-            <div class="tab-switcher">
-              <button [class.active]="displayView === 'chats'" (click)="setView('chats')">Private Chats</button>
-              <button [class.active]="displayView === 'group'" (click)="setView('group')">Group Chats</button>
-            </div>
-
-            <div class="group-grid">
-              <div 
-                class="group-card" 
-                *ngFor="let chat of filteredGroups$ | async; let i = index" 
-                [routerLink]="['chat/' + chat.id, { chatType: 'group' }]"
-              >
-                <div class="card-top">
-                  <div class="group-badge" [attr.data-color]="i % 4">
-                    <span>{{ chat.displayName | slice:0:1 || 'G' }}</span>
-                  </div>
-                  <span class="timestamp">{{ chat.messages[chat.messages.length - 1]?.createdAt | date:'shortTime' || 'STARTED' }}</span>
-                </div>
-
-                <div class="card-content">
-                  <h2 class="group-name">{{ chat.displayName || 'Unnamed Group' }}</h2>
-
-                  <p class="last-mention">
-                    <span class="sender">{{ chat.messages[chat.messages.length - 1]?.user?.displayName || 'System' }}:</span>
-                    "{{ chat.messages[chat.messages.length - 1]?.content || 'Tap to join the conversation...' }}"
-                  </p>
-                </div>
-
-                <div class="card-footer">
-                  <div class="avatar-stack">
-                    <div class="stack-avatar" style="background: #e0f2fe; color: #0369a1;">A</div>
-                    <div class="stack-avatar" style="background: #fef2f2; color: #ef4444;">B</div>
-                    <div class="stack-avatar" style="background: #f0fdf4; color: #22c55e;">M</div>
-                    <div class="stack-avatar more">+{{ chat.messages?.length || 2 }}</div>
-                  </div>
-                  <ion-icon name="arrow-forward-outline" class="nav-arrow"></ion-icon>
-                </div>
-              </div>
-
-              <!-- Create Placeholder -->
-              <div class="create-placeholder" (click)="showUserSelection()">
-                <div class="placeholder-icon">
-                  <ion-icon name="add-outline"></ion-icon>
-                </div>
-                <h3>Create New Space</h3>
-                <p>ASSEMBLE YOUR TEAM</p>
-              </div>
+            <div class="text-meta">
+              <h4 class="name">{{ group.displayName || 'Community Space' }}</h4>
+              <p class="role">{{ group.messages[group.messages.length - 1]?.content || 'Join the conversation' }}</p>
             </div>
           </div>
-        </ng-container>
-      </section>
-    </main>
+          <div class="action-spread">
+            <button class="icon-action chat">
+              <span class="material-symbols-outlined">forum</span>
+              <div class="unread-dot" *ngIf="getTotalUnread(group) > 0"></div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Available Counselors Section (Discovery) -->
+    <section class="network-section discovery" *ngIf="(availableUsers$ | async)?.length">
+      <div class="section-header">
+        <h3 class="section-label">Available Counselors</h3>
+        <span class="count-pill">Expert Discovery</span>
+      </div>
+
+      <div class="expert-grid">
+        <div 
+          class="expert-row" 
+          *ngFor="let user of availableUsers$ | async"
+          (click)="startNewChat(user)"
+        >
+          <div class="expert-profile">
+            <img 
+              [src]="user.photoURL || 'assets/images/placeholder.png'" 
+              class="expert-avatar grayscale" 
+              alt="Expert" 
+            />
+            <div class="expert-info">
+              <h5 class="expert-name">{{ user.displayName || 'Clinical Expert' }}</h5>
+              <p class="expert-role">{{ user.email || 'Practitioner' }}</p>
+            </div>
+          </div>
+          <button class="connect-btn">Connect</button>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="showUserSelection()" class="custom-fab">
-      <ion-icon name="add"></ion-icon>
+    <ion-fab-button (click)="showUserSelection(true)" class="editorial-fab">
+      <ion-icon name="people"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>
