@@ -5,6 +5,8 @@ import { ChaptersService } from 'src/app/services/chapters.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { WorkbookResponse } from 'src/app/models/workbook.interface';
+import { InterventionsService } from 'src/app/services/interventions.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-chapters',
@@ -16,11 +18,15 @@ export class ChaptersPage implements OnInit {
   public chapters: Chapter[] = [];
   public filteredChapters: Chapter[] = [];
   public isLoading = false;
+  public interventionName = 'Chapters';
+  public activeChapterIndex = 0;
+  public progressPercentage = 0;
   private workbookResponses: WorkbookResponse[] = [];
   private readonly MIN_MEANINGFUL_SCORE = 5;
 
   constructor(
     private chaptersService: ChaptersService,
+    private interventionsService: InterventionsService,
     private utilsService: UtilitiesService,
     private route: ActivatedRoute,
     private workbookService: WorkbookService,
@@ -32,31 +38,46 @@ export class ChaptersPage implements OnInit {
     this.listenForWorkbookProgress();
   }
 
-  private getChapters(): void {
+  private async getChapters(): Promise<void> {
     this.isLoading = true;
-    this.utilsService.presentLoading();
-    this.chaptersService
-      .getChaptersByInterventionId(
-        this.route.snapshot.paramMap.get('interventionId')
-      )
-      .subscribe(
-        (data) => {
-          this.chapters = data
-            .map((e: any) => ({
-              id: e.payload.doc.id,
-              ...e.payload.doc.data(),
-            }))
-            .sort((a, b) => (a.order > b.order ? 1 : b.order > a.order ? -1 : 0));
+    const interventionId = this.route.snapshot.paramMap.get('interventionId');
+    
+    if (interventionId) {
+      // 1. Fetch intervention name
+      this.interventionsService.getInterventionById(interventionId).subscribe(int => {
+        if (int) this.interventionName = int.name;
+      });
 
-          this.filteredChapters = [...this.chapters];
-          this.isLoading = false;
-          this.utilsService.dismissLoader();
-        },
-        () => {
-          this.isLoading = false;
-          this.utilsService.dismissLoader();
-        }
-      );
+      // 2. Fetch chapters
+      this.chaptersService.getChaptersByInterventionId(interventionId).subscribe(data => {
+        this.chapters = data
+          .map((e: any) => ({
+            id: e.payload.doc.id,
+            ...e.payload.doc.data(),
+          }))
+          .sort((a, b) => (a.order > b.order ? 1 : b.order > a.order ? -1 : 0));
+
+        this.filteredChapters = [...this.chapters];
+        this.updateProgressCalculations();
+        this.isLoading = false;
+      });
+    }
+  }
+
+  private updateProgressCalculations(): void {
+    if (!this.chapters.length) return;
+    
+    const completedCount = this.countMeaningfulResponses();
+    this.activeChapterIndex = Math.min(completedCount, this.chapters.length - 1);
+    this.progressPercentage = Math.round((completedCount / this.chapters.length) * 100);
+  }
+
+  public isChapterCompleted(index: number): boolean {
+    return index < this.countMeaningfulResponses();
+  }
+
+  public isChapterActive(index: number): boolean {
+    return index === this.countMeaningfulResponses();
   }
 
   handleChapterClick(chapterId: string, index: number): void {

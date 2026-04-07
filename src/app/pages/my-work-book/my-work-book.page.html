@@ -1,27 +1,10 @@
-<ion-content [fullscreen]="true" class="page-content workbook-content">
+<ion-content [fullscreen]="true" class="page-content workbook-content text-on-surface">
   <div class="dashboard-wrapper">
-    <!-- Mobile Hero (shows only on mobile) -->
-    <div class="mobile-hero">
-      <p class="hero-eyebrow">My Work Book</p>
-      <h1>Your Progress Journey</h1>
-      <p class="hero-subtitle">
-        Track your personal growth and explore your completed exercises and reflections.
-      </p>
-    </div>
-
+    
     <!-- Main Content Shell -->
-    <div class="page-shell">
-
-    <div class="page-body">
-      <div class="page-title desktop-only-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-        <ion-icon name="book-outline" style="font-size: 1.5rem; color: var(--pk-blue);"></ion-icon>
-        <h1 style="margin: 0;">My Workbook</h1>
-      </div>
-      <p class="page-description">
-        Choose an intervention to review your saved questions and answers.
-      </p>
+    <main class="workbook-main-content">
       <router-outlet></router-outlet>
-    </div>
-    </div>
+    </main>
+
   </div>
 </ion-content>

@@ -1,58 +1,145 @@
-<ng-container *ngIf="!isLoading; else loadingState">
-  <ng-container *ngIf="selectedInterventionId; else interventionsList">
-    <div class="chapter-header">
-      <h2>{{ selectedInterventionName || 'Chapters' }}</h2>
-      <p>Select a chapter to review its saved questions and answers.</p>
-    </div>
+<div class="chapters-container">
+  <ng-container *ngIf="!isLoading; else loadingState">
+    
+    <!-- IF AN INTERVENTION IS SELECTED (Show Chapter Roadmap) -->
+    <ng-container *ngIf="selectedInterventionId; else interventionsList">
+      
+      <!-- Editorial Header Section for Specific Intervention -->
+      <section class="chapter-editorial-header">
+        <span class="overline">Chapter Overview</span>
+        <h2>{{ selectedInterventionName || 'Chapters' }}</h2>
+        
+        <!-- Local Progress Journey Card -->
+        <div class="chapter-progress-card">
+          <div class="glow-orb"></div>
+          <div class="card-content">
+            <h3>Curriculum Tracker</h3>
+            <div class="stat-row">
+              <span class="label">Section Progress</span>
+              <span class="value">{{ progressPercentage }}%</span>
+            </div>
+            <div class="track">
+              <div class="fill" [style.width.%]="progressPercentage"></div>
+            </div>
+            <p class="hint">
+              {{ completedModulesCount }} of {{ totalChaptersCount }} chapters explored.
+            </p>
+          </div>
+        </div>
+      </section>
 
-    <div class="chapters-list" *ngIf="chapters.length; else emptyState">
-      <button
-        type="button"
-        class="chapter-item"
-        *ngFor="let chapter of chapters"
-        [routerLink]="['/my-work-book/questionAnswers/chapter', chapter.id]"
-      >
-        <div class="chapter-item-icon">
-          <ion-icon name="folder-open-outline"></ion-icon>
+      <!-- Roadmap List -->
+      <div class="chapters-timeline" *ngIf="chapters.length; else emptyChapters">
+        <button
+          type="button"
+          class="timeline-item"
+          *ngFor="let chapter of chapters; let i = index"
+          [ngClass]="{
+            'state-completed': isChapterCompleted(i),
+            'state-active': isChapterActive(i),
+            'state-locked': !canAccessChapter(i)
+          }"
+          [disabled]="!canAccessChapter(i)"
+          [routerLink]="['/my-work-book/questionAnswers/chapter', chapter.id]"
+        >
+          <div class="status-icon-box">
+             <span class="material-symbols-outlined" *ngIf="isChapterCompleted(i)">check_circle</span>
+             <span class="material-symbols-outlined" *ngIf="isChapterActive(i)">play_circle</span>
+             <span class="material-symbols-outlined" *ngIf="!canAccessChapter(i)">lock</span>
+          </div>
+          <div class="content">
+            <span class="active-badge" *ngIf="isChapterActive(i)">Active Now</span>
+            <h4>{{ chapter.title }}</h4>
+            <p *ngIf="isChapterCompleted(i)">Review Reflection</p>
+            <p *ngIf="isChapterActive(i)">Continue journey</p>
+            <p *ngIf="!canAccessChapter(i)">Locked</p>
+          </div>
+          <span class="material-symbols-outlined action-chevron">chevron_right</span>
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- IF NO INTERVENTION SELECTED (Workbook Home: Categories) -->
+    <ng-template #interventionsList>
+      <header class="chapter-editorial-header" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 2.5rem; letter-spacing: -0.04em;">Your Workbook</h2>
+        <p style="color: #444653; font-weight: 500; font-size: 1.1rem; margin-top: 0.5rem;">Guided interventions for personal growth.</p>
+        
+        <!-- Global Progress Journey Card -->
+        <div class="chapter-progress-card" style="margin-top: 2rem;">
+          <div class="glow-orb"></div>
+          <div class="card-content">
+            <h3>Global Progress Journey</h3>
+            <div class="stat-row">
+              <span class="label">Total Curriculum</span>
+              <span class="value">{{ progressPercentage }}%</span>
+            </div>
+            <div class="track">
+              <div class="fill" [style.width.%]="progressPercentage"></div>
+            </div>
+            <div class="flex justify-between items-center">
+              <p class="hint" style="margin: 0;">{{ completedModulesCount }} of {{ totalChaptersCount }} modules completed</p>
+              <button class="bg-white/20 hover:bg-white/30 text-white rounded-full px-4 py-1.5 text-xs font-bold transition-colors">
+                Continue Path
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="chapter-item-content">
-          <h3>{{ chapter?.title }}</h3>
+      </header>
+
+      <section class="category-section">
+        <h4 class="section-title">Curated Categories</h4>
+        
+        <div class="category-grid" *ngIf="interventions.length; else emptyInterventions">
+          <button
+            type="button"
+            class="category-card group"
+            *ngFor="let intervention of interventions"
+            [routerLink]="['/my-work-book/chapters', intervention.id]"
+          >
+            <div class="icon-box" [ngSwitch]="intervention.name">
+               <div *ngSwitchCase="'Adolescents & Young People'" class="inner bg-secondary-fixed">
+                  <span class="material-symbols-outlined">diversity_3</span>
+               </div>
+               <div *ngSwitchCase="'Parents & Caregivers'" class="inner bg-tertiary-fixed">
+                  <span class="material-symbols-outlined">family_restroom</span>
+               </div>
+               <div *ngSwitchCase="'Self-Care & Reflection'" class="inner bg-primary-fixed">
+                  <span class="material-symbols-outlined">favorite</span>
+               </div>
+               <div *ngSwitchDefault class="inner bg-outline-variant/20">
+                  <span class="material-symbols-outlined">school</span>
+               </div>
+            </div>
+            <div class="text-content">
+              <div class="title-row">
+                <h5>{{ intervention?.name }}</h5>
+                <span class="material-symbols-outlined chevron">chevron_right</span>
+              </div>
+              <p class="description">{{ intervention.description || 'Guided paths for resilience.' }}</p>
+            </div>
+          </button>
         </div>
-        <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
-      </button>
-    </div>
+      </section>
+
+      <!-- Mindfulness Anchor -->
+      <section class="pt-8">
+        <div class="editorial-image-card">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuARzbrjLbHrpSllHENGY0Lq29jY2YeoMbPzhVpX-NREQ0Sdz2KEXYYqMdpxNJ5ztR2dwR2YP-RqrIepkdSMPR_YiflzqVh1SKuptmtW_kPqE-7otUHSO_sez2CA_cNSI1aI8uADmupWlAqi5pkATkc6fxw2hbCw8J5QYmxumpc_zWBCMcqMy1ehnbVYy1nrTe-lB_7Lrl577_blB0W91Y9_IUdD1EkbNldWeMyLavyKj--VYxd4EObe4FED0m8_S8GEH1pKINWY-Ef_" alt="Mindfulness">
+          <div class="overlay"></div>
+          <div class="label">
+            <h6>Mindfulness in Every Action.</h6>
+          </div>
+        </div>
+      </section>
+    </ng-template>
+
   </ng-container>
-</ng-container>
 
-<ng-template #interventionsList>
-  <div class="interventions-list" *ngIf="interventions.length; else emptyState">
-    <button
-      type="button"
-      class="intervention-item"
-      *ngFor="let intervention of interventions"
-      [routerLink]="['/my-work-book/chapters', intervention.id]"
-    >
-      <div class="intervention-item-icon">
-        <ion-icon name="library-outline"></ion-icon>
-      </div>
-      <div class="intervention-item-content">
-        <h3>{{ intervention?.name }}</h3>
-        <p>Open this intervention to see its chapters.</p>
-      </div>
-      <ion-icon name="arrow-forward" class="item-caret" aria-hidden="true"></ion-icon>
-    </button>
-  </div>
-</ng-template>
-
-<ng-template #loadingState>
-  <div class="state-card">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Loading…</p>
-  </div>
-</ng-template>
-
-<ng-template #emptyState>
-  <div class="state-card">
-    <p>No content is available right now.</p>
-  </div>
-</ng-template>
+  <ng-template #loadingState>
+    <div style="padding: 2rem;">
+      <ion-skeleton-text animated style="width: 100%; height: 100px; border-radius: 24px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 100%; height: 80px; border-radius: 24px; margin-top: 1rem;"></ion-skeleton-text>
+    </div>
+  </ng-template>
+</div>
