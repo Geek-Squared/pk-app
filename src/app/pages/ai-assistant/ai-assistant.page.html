@@ -1,17 +1,9 @@
 <ion-content [fullscreen]="true" class="page-content ai-canvas">
   <div class="ai-wrapper">
     
-    <!-- AI Identity Header Section -->
-    <header class="ai-identity-section">
-      <div class="ai-avatar-group">
-        <div class="ai-avatar-gradient-border">
-          <div class="ai-avatar-inner shadow-lg">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGFMe4hfEhp9lQsjj60zFRmxzZdosqmWaGukiZLB2ezi84C6BOebM8lI4Zz2U50lPKBOflAG4Py3Gl_0eY_8_m1cPetbFWU8CAMd1-v5Xh6A5IfUf2Oyc-ZwMepLmsio17Hazi8hJFsr2heTDVT5Dxj9QMqcILjZdODc1Q5nPwQhKbpcQFJ_r67ZETOUubhw1fDyoh0g90yFkCcCYHD83rGhSeMcq4XPYy_bFrI7HfnOqwOw8hRSnE93ULs9FlsUkfFtDVGzIKhJBx" alt="Peekay AI" />
-          </div>
-          <span class="status-dot-online"></span>
-        </div>
-      </div>
-      <div class="identity-text text-center mt-6">
+    <!-- AI Identity Header Section (Streamlined) -->
+    <header class="ai-identity-section no-avatar">
+      <div class="identity-text text-center">
         <h2 class="assistant-name">Peekay Assistant</h2>
         <p class="curator-greeting">Your personal wellness curator. {{ greeting }}, {{ userName }}!</p>
       </div>
@@ -22,10 +14,7 @@
       <div class="chat-thread">
         
         <!-- Welcome Message (Peekay) -->
-        <div class="message-row peekay" *ngIf="messages.length === 0">
-          <div class="mini-avatar">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK30kXom2Ap6NGCK9Sz2bbV3yzdrCZgp39Dmka0cUQHi6RU-mc5m6lLiVsiytBqozm6wiQHANwRFdGFEfVql8PddVHZNmI6aLfPm47TDeB9R50kQYy5J28iC2l7WW2LrOTeb0CqyxTY1EW5kfQ6Qz0jUA9iE6ZlRSBf34mN6XB8gq6ERqYVHC1A24F8Y-LagEN-rAHmzydLgLUR5jNBlhkWwO2RGKsCUjYgTQQVv7YFyofgZAMtaocw-BLgKPBUkMpmjSmR2-LaS0s" alt="P" />
-          </div>
+        <div class="message-row peekay no-avatar" *ngIf="messages.length === 0">
           <div class="bubble editorial-bubble">
             <p>Good morning! I noticed your sleep data indicates a slightly restless night. Would you like to try a 5-minute restorative grounding exercise before we start our day?</p>
             <span class="time-stamp">8:30 AM</span>
@@ -34,10 +23,7 @@
 
         <ng-container *ngFor="let msg of messages; trackBy: trackByTimestamp">
           <!-- Assistant Message -->
-          <div class="message-row peekay" *ngIf="msg.role === 'assistant'">
-            <div class="mini-avatar">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK30kXom2Ap6NGCK9Sz2bbV3yzdrCZgp39Dmka0cUQHi6RU-mc5m6lLiVsiytBqozm6wiQHANwRFdGFEfVql8PddVHZNmI6aLfPm47TDeB9R50kQYy5J28iC2l7WW2LrOTeb0CqyxTY1EW5kfQ6Qz0jUA9iE6ZlRSBf34mN6XB8gq6ERqYVHC1A24F8Y-LagEN-rAHmzydLgLUR5jNBlhkWwO2RGKsCUjYgTQQVv7YFyofgZAMtaocw-BLgKPBUkMpmjSmR2-LaS0s" alt="P" />
-            </div>
+          <div class="message-row peekay no-avatar" *ngIf="msg.role === 'assistant'">
             <div class="bubble editorial-bubble">
               <div [innerHTML]="msg.content"></div>
               <span class="time-stamp">{{ msg.createdAt | date:'shortTime' }}</span>
@@ -54,10 +40,7 @@
         </ng-container>
 
         <!-- Typing Indicator -->
-        <div class="message-row peekay thinking" *ngIf="pending">
-          <div class="mini-avatar thinking-pulse">
-            <span class="material-symbols-outlined">auto_awesome</span>
-          </div>
+        <div class="message-row peekay thinking no-avatar" *ngIf="pending">
           <div class="bubble thinking-bubble">
             <div class="dot-typing"></div>
           </div>
