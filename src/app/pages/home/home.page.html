@@ -1,86 +1,177 @@
 <ion-content [fullscreen]="true" class="home-content">
-  <ion-grid class="home-mobile-grid">
-    <ion-row style="flex-grow: 0.2">
-      <ion-col>
-        <div class="card-banner">
-          <div class="overlay"></div>
-          <img src="assets/images/logo.png" style="margin: 3%; width: 40%" />
+  <!-- Mobile Redesign Section -->
+  <div class="mobile-only-design" *ngIf="platform.is('mobile') || platform.is('phablet') || platform.is('iphone') || platform.is('capacitor')">
+    <!-- TopAppBar -->
+    <header class="sanctuary-header no-border">
+      <div class="header-side">
+        <ion-buttons>
+          <ion-menu-button color="primary"></ion-menu-button>
+        </ion-buttons>
+      </div>
+      <div class="header-center">
+        <img alt="Positive Konnections Logo" class="logo-img" src="assets/images/logo.png" />
+      </div>
+      <div class="header-side" style="justify-content: flex-end;">
+        <div class="profile-trigger" routerLink="/profile">
+          <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" alt="Profile" />
+          <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person-circle-outline"></ion-icon>
         </div>
-      </ion-col>
-    </ion-row>
-    <ion-row style="flex-grow: 1">
-      <ion-col size="6">
-        <ion-card
-          class="ion-padding pink-card"
-          button="true"
-          routerLink="/interventions"
-        >
-          <ion-card-content class="ion-text-center">
-            <ion-icon name="library" size="large"></ion-icon>
-            <br />
-            <h3>Interventions</h3>
-          </ion-card-content>
-        </ion-card></ion-col
-      >
+      </div>
+    </header>
 
-      <ion-col size="6">
-        <ion-card
-          class="ion-padding blue-card-light"
-          button="true"
-          routerLink="/my-work-book"
-        >
-          <ion-card-content class="ion-text-center">
-            <ion-icon name="book" size="large"></ion-icon>
-            <br />
-            <h3>My WorkBook</h3>
-          </ion-card-content>
-        </ion-card></ion-col
-      >
+    <main class="mobile-main-content">
+      <!-- Hero Section -->
+      <section class="hero-image-container">
+        <div class="hero-bg-image"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-text">
+          <p class="hero-label">Your Lumina Pulse</p>
+          <h2 *ngIf="user$ | async as user">Hello, {{ user.displayName || 'Friend' }}. <br/><span>Let's find your focus today.</span></h2>
+          <h2 *ngIf="!(user$ | async)">Hello. <br/><span>Let's find your focus today.</span></h2>
+          <p>Choose a focus area below to begin your journey.</p>
+        </div>
+      </section>
 
-      <ion-col size="6">
-        <ion-card
-          class="ion-padding blue-card"
-          button="true"
-          routerLink="/messages"
-        >
-          <ion-card-content class="ion-text-center">
-            <ion-icon name="mail" size="large"></ion-icon>
-            <br />
+      <!-- Feature Cards List -->
+      <div class="feature-list">
+        <!-- Start Interventions -->
+        <div class="feature-card urgent-variant" routerLink="/interventions">
+          <div class="card-icon-header">
+            <div class="icon-box shadow-sm">
+              <span class="material-symbols-outlined">bolt</span>
+            </div>
+            <span class="urgent-badge">Urgent</span>
+          </div>
+          <div class="card-text">
+            <h3>Start Interventions</h3>
+            <p>Immediate techniques for moments of high intensity.</p>
+          </div>
+          <button class="card-action-btn">
+            <span>Begin Session</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </button>
+        </div>
+
+        <!-- My Workbook -->
+        <div class="feature-card standard-variant" routerLink="/my-work-book" style="--card-inner-bg: var(--pk-secondary-container); --card-inner-text: var(--pk-on-secondary-container);">
+          <div class="card-icon-header">
+            <div class="icon-box">
+              <span class="material-symbols-outlined">auto_stories</span>
+            </div>
+          </div>
+          <div class="card-text">
+            <h3>My Workbook</h3>
+            <p>Review your progress and personal reflection entries.</p>
+          </div>
+          <button class="card-action-btn">
+            <span>Open Journal</span>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+
+        <!-- Messages -->
+        <div class="feature-card standard-variant" routerLink="/messages" style="--card-inner-bg: var(--pk-tertiary-container); --card-inner-text: var(--pk-on-tertiary-container);">
+          <div class="card-icon-header">
+            <div class="icon-box">
+              <span class="material-symbols-outlined">forum</span>
+            </div>
+          </div>
+          <div class="card-text">
             <h3>Messages</h3>
-          </ion-card-content>
-        </ion-card></ion-col
-      >
+            <p>Chat with your wellness advisor and support team.</p>
+          </div>
+          <button class="card-action-btn">
+            <span>View Inbox</span>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
 
-      <ion-col size="6">
-        <ion-card
-          class="ion-padding purple-card"
-          button="true"
-          routerLink="/feedback"
-        >
-          <ion-card-content class="ion-text-center">
-            <ion-icon name="chatbubbles" size="large"></ion-icon>
-            <br />
+        <!-- Feedback -->
+        <div class="feature-card standard-variant" routerLink="/feedback" style="--card-inner-bg: var(--pk-secondary-fixed); --card-inner-text: var(--pk-secondary-dim);">
+          <div class="card-icon-header">
+            <div class="icon-box">
+              <span class="material-symbols-outlined" style="color: #006666;">rate_review</span>
+            </div>
+          </div>
+          <div class="card-text">
             <h3>Feedback</h3>
-          </ion-card-content>
-        </ion-card></ion-col
-      >
-    </ion-row>
-  </ion-grid>
+            <p>Help us evolve by sharing your recent experiences.</p>
+          </div>
+          <button class="card-action-btn">
+            <span>Give Feedback</span>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
 
-  <!-- Desktop Dashboard - Only shows on desktop -->
-  <div class="desktop-dashboard">
+        <!-- Referrals -->
+        <div class="feature-card standard-variant" routerLink="/referrals" style="--card-inner-bg: var(--pk-primary-fixed-dim); --card-inner-text: var(--pk-on-primary-fixed-variant);">
+          <div class="card-icon-header">
+            <div class="icon-box">
+              <span class="material-symbols-outlined">share</span>
+            </div>
+          </div>
+          <div class="card-text">
+            <h3>Referrals</h3>
+            <p>Share the sanctuary with friends and family.</p>
+          </div>
+          <button class="card-action-btn">
+            <span>Share App</span>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+
+        <!-- Bookings -->
+        <div class="feature-card standard-variant" routerLink="/bookings" style="--card-inner-bg: var(--pk-tertiary-fixed); --card-inner-text: var(--pk-on-tertiary-container);">
+          <div class="card-icon-header">
+            <div class="icon-box">
+              <span class="material-symbols-outlined">event</span>
+            </div>
+          </div>
+          <div class="card-text">
+            <h3>Bookings</h3>
+            <p>Schedule and manage your therapy appointments.</p>
+          </div>
+          <button class="card-action-btn">
+            <span>View Calendar</span>
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- BottomNavBar -->
+    <nav class="sanctuary-nav no-border">
+      <a class="nav-item active" routerLink="/home" routerDirection="root">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+        <span class="nav-label">Home</span>
+      </a>
+      <a class="nav-item" routerLink="/interventions">
+        <span class="material-symbols-outlined">bolt</span>
+        <span class="nav-label">Interventions</span>
+      </a>
+      <a class="nav-item" routerLink="/my-work-book">
+        <span class="material-symbols-outlined">auto_stories</span>
+        <span class="nav-label">Workbook</span>
+      </a>
+      <a class="nav-item" routerLink="/profile">
+        <span class="material-symbols-outlined">person</span>
+        <span class="nav-label">Profile</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Keep Original Desktop Dashboard Logic -->
+  <div class="desktop-dashboard" *ngIf="!platform.is('mobile') && !platform.is('phablet') && !platform.is('iphone')">
     <div class="dashboard-header">
       <div class="header-content">
-        <h1>Welcome to Your Dashboard</h1>
+        <h1 *ngIf="user$ | async as user">Welcome, {{ user.displayName }}</h1>
+        <h1 *ngIf="!(user$ | async)">Welcome to Your Dashboard</h1>
         <p>Manage your Positive Konnections and track your progress</p>
       </div>
     </div>
 
     <div class="dashboard-content">
       <div class="dashboard-grid">
-      
-
-        <!-- Action Cards -->
         <div class="actions-section">
           <h2>Quick Actions</h2>
           <div class="actions-grid">

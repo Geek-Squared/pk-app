@@ -3,6 +3,8 @@ import { MenuController, Platform } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { FcmService } from 'src/app/services/fcm.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
+import { UsersService } from 'src/app/services/users.service';
+import { Observable, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -12,14 +14,26 @@ import { WorkbookService } from 'src/app/services/workbook.service';
 })
 export class HomePage implements OnInit {
   subscription: any;
+  user$: Observable<any>;
 
   constructor(
     public workBooksService: WorkbookService,
     public platform: Platform,
     private authService: AuthenticationService,
     private fcmService: FcmService,
-    private menuCtrl: MenuController
-  ) {}
+    private menuCtrl: MenuController,
+    private usersService: UsersService
+  ) {
+    this.user$ = this.authService.afAuth.authState.pipe(
+      switchMap(user => {
+        if (user) {
+          return this.usersService.getUserById(user.uid);
+        } else {
+          return of(null);
+        }
+      })
+    );
+  }
 
   ngOnInit() {
     // Trigger the push setup
@@ -36,7 +50,9 @@ export class HomePage implements OnInit {
   }
 
   ionViewWillLeave() {
-    this.subscription.unsubscribe();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   ionViewWillEnter() {

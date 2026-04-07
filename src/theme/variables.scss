@@ -76,6 +76,25 @@
   --ion-color-light-tint: #f7f9ff;
 
   --bottom-nav-height: 0px;
+
+  /* Redesign Brand Colors */
+  --pk-surface: #f6f6fa;
+  --pk-on-surface: #2d2f32;
+  --pk-on-surface-variant: #5a5b5f;
+  --pk-primary: #0f4be0;
+  --pk-primary-container: #829bff;
+  --pk-on-primary-container: #001b62;
+  --pk-secondary-container: #79f6f5;
+  --pk-on-secondary-container: #005c5c;
+  --pk-tertiary-container: #fb82ff;
+  --pk-on-tertiary-container: #590061;
+  --pk-secondary-fixed: #79f6f5;
+  --pk-primary-fixed-dim: #6e8cff;
+  --pk-on-primary-fixed-variant: #002278;
+  --pk-tertiary-fixed: #fb82ff;
+  --pk-surface-container-lowest: #ffffff;
+  --pk-surface-container-highest: #dbdde2;
+  --pk-outline-variant: #acadb1;
 }
 
 @media (max-width: 991px) {
