@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HeroProfile } from '../models/workbook.interface';
-import { environment } from 'src/environments/environment';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 @Injectable({
   providedIn: 'root',
@@ -11,28 +10,20 @@ import { environment } from 'src/environments/environment';
 export class AvatarService {
   private readonly apiUrl = 'https://api.openai.com/v1/images/generations';
 
-  constructor(private http: HttpClient) {}
+  constructor(private fns: AngularFireFunctions) {}
 
+  /**
+   * Generates a hero avatar using the secure Backend Proxy (Phase 1).
+   * This completely avoids exposing the OpenAI API key to the client.
+   */
   generateHeroAvatar(profile: HeroProfile): Observable<string> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${environment.openaiApiKey}`,
-    });
-
-    const body = {
-      model: 'gpt-image-1',
-      prompt: this.buildPrompt(profile),
-      size: '512x512',
-      response_format: 'b64_json',
-    };
-
-    return this.http.post<any>(this.apiUrl, body, { headers }).pipe(
-      map((response) => {
-        const b64 = response?.data?.[0]?.b64_json;
-        if (!b64) {
-          throw new Error('Avatar generation failed');
+    const callable = this.fns.httpsCallable('generateHeroAvatar');
+    return from(callable({ profile })).pipe(
+      map((response: any) => {
+        if (!response?.image) {
+          throw new Error('Avatar generation failed at backend');
         }
-        return `data:image/png;base64,${b64}`;
+        return response.image;
       })
     );
   }

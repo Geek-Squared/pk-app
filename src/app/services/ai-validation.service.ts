@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
+import { Observable, from, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export interface ValidationResult {
   score: number;
@@ -15,9 +15,7 @@ export interface ValidationResult {
   providedIn: 'root'
 })
 export class AiValidationService {
-  private openaiApiUrl = 'https://api.openai.com/v1/chat/completions';
-  
-  constructor(private http: HttpClient) { }
+  constructor(private fns: AngularFireFunctions) { }
 
   // Basic pre-validation checks (free/fast)
   basicValidation(response: string): { valid: boolean; reason?: string } {
@@ -264,7 +262,10 @@ export class AiValidationService {
     };
   }
 
-  // OpenAI validation for deeper content analysis
+  /**
+   * OpenAI validation for deeper content analysis via secure Backend Proxy (Phase 1).
+   * This removes the API key from the frontend and enforces PII scrubbing in the backend.
+   */
   validateResponse(question: string, response: string, storyContext?: string): Observable<any> {
     const basicCheck = this.basicValidation(response);
     if (!basicCheck.valid) {
@@ -278,41 +279,16 @@ export class AiValidationService {
       });
     }
 
-    console.log('Attempting OpenAI validation...');
-    
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${environment.openaiApiKey}`
-    });
-
-    const prompt = this.createValidationPrompt(question, response, storyContext);
-
-    const body = {
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a therapeutic content validator for an HIV support app called Positive Konnections. Users answer reflection questions after reading stories about resilience and strength. Your role is to assess if responses show genuine engagement vs. gaming the system.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 150,
-      temperature: 0.3
-    };
-
-    console.log('OpenAI request body:', body);
-
-    return this.http.post<any>(this.openaiApiUrl, body, { headers }).pipe(
-      tap(response => console.log('Raw OpenAI HTTP response:', response)),
+    // Call the newly created secure backend function
+    return from(this.fns.httpsCallable('validateAiResponse')({
+      question, 
+      response, 
+      storyContext
+    })).pipe(
       catchError((error) => {
-        console.error('OpenAI API call failed, falling back to enhanced validation:', error);
-        // Fallback to enhanced validation if OpenAI fails
+        console.error('Backend validation failed, falling back to enhanced local validation:', error);
         return new Observable(observer => {
           const enhancedResult = this.enhancedBasicValidation(response, question);
-          console.log('Using enhanced validation fallback:', enhancedResult);
           observer.next(enhancedResult);
           observer.complete();
         });

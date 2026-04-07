@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 admin.initializeApp();
@@ -27,7 +27,7 @@ exports.generateHeroAvatar = functions
       );
     }
 
-    const apiKey = functions.config().openai?.key;
+    const apiKey = (functions.config() as any).openai?.key;
     if (!apiKey) {
       throw new functions.https.HttpsError(
         'failed-precondition',
@@ -626,4 +626,130 @@ exports.onChatMessageCreated = functions.firestore
         chatId: context.params.chatId,
       },
     });
+  });
+
+import { ai, peekayChatFlow } from './ai';
+import { openAI } from '@genkit-ai/compat-oai/openai';
+
+/**
+ * Peekay Chat Entry Point (Phase 2 - GenKit RAG Flow)
+ * Secure backend proxy for OpenAI with GenKit empathy guardrails and context memory.
+ */
+exports.peekayChat = functions
+  .runWith({ memory: '512MB', timeoutSeconds: 60 })
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'User must be signed in.');
+    }
+
+    // Pass message history and user context into the GenKit Flow
+    return await peekayChatFlow({
+      messages: data.messages,
+      userId: context.auth.uid,
+    });
+  });
+
+/**
+ * Automatic Workbook Indexer (Phase 2 - RAG Part A)
+ * Triggers on workbook change to update the AI's "Context Knowledge".
+ */
+exports.onWorkbookStoryCreated = functions.firestore
+  .document('workbooks/{workbookId}')
+  .onUpdate(async (change) => {
+    const data = change.after.data();
+    if (!data?.responses) return null;
+
+    console.log(`Indexing workbook ${change.after.id}...`);
+
+    // 1. Semantic Chunking: Concatenate responses for indexing
+    const responsesText = Array.isArray(data.responses) 
+      ? data.responses.map((r: any) => r.answer || r.content).join(' ')
+      : Object.values(data.responses).map((r: any) => r.answer || r.content).join(' ');
+
+    if (!responsesText.trim()) return null;
+
+    // 3. Save to Native Knowledge Index (For Peekay search)
+    // Using GenKit's native embedding action via our HUB
+    const embedding = await ai.embed({
+      embedder: openAI.embedder('text-embedding-3-small'),
+      content: responsesText,
+    });
+
+    await admin.firestore().collection('knowledge_index').add({
+      text: responsesText,
+      embedding: embedding,
+      metadata: {
+        uid: data.uid || 'system',
+        workbookId: change.after.id,
+        updatedAt: admin.firestore.Timestamp.now(),
+      }
+    });
+
+    return null;
+  });
+
+/**
+ * Therapeutic Content Validation (Phase 1)
+ * Analyzes user reflection workbook responses for clinical relevance and effort.
+ */
+exports.validateAiResponse = functions
+  .runWith({ memory: '512MB', timeoutSeconds: 60 })
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Validation requires authentication.');
+    }
+
+    const apiKey = (functions.config() as any).openai?.key;
+    if (!apiKey) {
+      throw new functions.https.HttpsError('failed-precondition', 'OpenAI configuration missing.');
+    }
+
+    const { question, response, storyContext } = data;
+
+    const systemPrompt = "You are a therapeutic content validator for Positive Konnections, an HIV support platform. Users provide reflections on their HERO'S journey.";
+    
+    const prompt = `
+      EVALUATE THE FOLLOWING USER REFLECTION:
+      
+      QUESTION: "${question}"
+      ${storyContext ? `CONTEXT: "${storyContext}"` : ''}
+      USER RESPONSE: "${response}"
+
+      SCORING CRITERIA (1-10):
+      - RELEVANCE: Does it touch on health, emotions, or the HIV journey? (HIV-related keywords = 8-10)
+      - EFFORT: Is it more than 5 words and non-vague?
+      - IRRELEVANCE: If it mentions "ice cream", "video games", or random off-topic items, reject (Score < 4).
+
+      Respond ONLY in JSON:
+      {
+        "score": number,
+        "is_valid": boolean,
+        "feedback": "string explaining the score",
+        "suggestions": "how to improve if score < 6"
+      }
+    `;
+
+    try {
+      const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ],
+          response_format: { type: "json_object" }
+        }),
+      });
+
+      const result = await apiResponse.json();
+      return JSON.parse(result.choices[0].message.content);
+    } catch (error) {
+      console.error('Validation Error:', error);
+      return { score: 6, is_valid: true, feedback: 'Accepted (Fallback: Validation Overloaded)' };
+    }
   });

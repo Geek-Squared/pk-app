@@ -24,6 +24,7 @@ import {
   AngularFireAnalyticsModule,
   ScreenTrackingService,
 } from '@angular/fire/compat/analytics';
+import { AngularFireFunctionsModule } from '@angular/fire/compat/functions';
 import {
   AngularFirePerformanceModule,
   PerformanceMonitoringService,
@@ -46,6 +47,7 @@ import {
     AngularFireAuthModule,
     AngularFireAnalyticsModule,
     AngularFirePerformanceModule,
+    AngularFireFunctionsModule,
     BottomNavComponent,
   ],
   providers: [

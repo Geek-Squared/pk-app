@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
+import { Observable, from } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 export type AiChatAuthor = 'system' | 'user' | 'assistant';
 
@@ -16,25 +15,20 @@ export interface AiChatMessage {
   providedIn: 'root',
 })
 export class AiChatService {
-  private readonly apiUrl = 'https://api.openai.com/v1/chat/completions';
+  constructor(private fns: AngularFireFunctions) {}
 
-  constructor(private http: HttpClient) {}
-
+  /**
+   * Securely sends messages to the 'peekayChat' backend proxy.
+   * This removes the API key from the frontend and enforces PII scrubbing + Guardrails.
+   */
   sendMessage(history: AiChatMessage[]): Observable<AiChatMessage> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${environment.openaiApiKey}`,
-    });
-
+    const callable = this.fns.httpsCallable('peekayChat');
     const body = {
-      model: 'gpt-4o-mini',
-      temperature: 0.4,
-      max_tokens: 600,
       messages: history.map(({ role, content }) => ({ role, content })),
     };
 
-    return this.http.post<any>(this.apiUrl, body, { headers }).pipe(
-      map((response) => {
+    return from(callable(body)).pipe(
+      map((response: any) => {
         const assistantMessage =
           response?.choices?.[0]?.message?.content?.trim() ??
           "I'm having trouble responding right now.";
@@ -44,15 +38,6 @@ export class AiChatService {
           content: assistantMessage,
           createdAt: Date.now(),
         };
-      }),
-      catchError((error) => {
-        console.error('Failed to reach OpenAI chat endpoint', error);
-        return throwError(
-          () =>
-            new Error(
-              'We could not reach the assistant. Please try again in a moment.'
-            )
-        );
       })
     );
   }
