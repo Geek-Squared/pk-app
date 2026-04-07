@@ -1,107 +1,150 @@
-<ion-content [fullscreen]="true" class="profile-content no-header-offset">
-  <div class="profile-header-background">
-    <div class="header-overlay"></div>
-    <div class="back-button-floating" (click)="goBack()">
-      <ion-icon name="arrow-back-outline"></ion-icon>
-    </div>
+<ion-content [fullscreen]="true" class="page-content profile-canvas">
+  <div class="profile-wrapper">
     
-    <div class="profile-hero" *ngIf="!loading && user">
-      <!-- Hidden file input -->
-      <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none">
-      
-      <div class="avatar-container">
-        <div class="avatar-ring" (click)="fileInput.click()">
-          <img *ngIf="user.photoURL" [src]="user.photoURL" class="profile-img" alt="Profile" />
-          <div *ngIf="!user.photoURL" class="initials-avatar">{{ initials }}</div>
-          <div class="edit-badge">
-            <ion-spinner *ngIf="uploading" name="dots" size="small" color="primary"></ion-spinner>
-            <ion-icon *ngIf="!uploading" name="camera-outline"></ion-icon>
-          </div>
-        </div>
-      </div>
-      <div class="user-name-wrapper">
-        <h1 class="user-display-name" *ngIf="!editing">{{ user.displayName || 'Unnamed User' }}</h1>
-        <ion-item lines="none" class="edit-mode-input" *ngIf="editing">
-          <ion-input [(ngModel)]="editData.displayName" placeholder="Enter name" class="name-input"></ion-input>
-        </ion-item>
-        
-        <div class="action-buttons">
-          <ion-button fill="clear" mode="ios" (click)="toggleEditing()" *ngIf="!editing" class="edit-info-btn">
-            <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-          
-          <div class="editing-actions" *ngIf="editing">
-            <ion-button fill="clear" mode="ios" class="cancel-btn" (click)="toggleEditing()">
-              <ion-icon name="close-outline" slot="start"></ion-icon>
-              Cancel
-            </ion-button>
-            <ion-button fill="outline" mode="ios" class="save-btn" (click)="saveProfile()">
-              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-              Save
-            </ion-button>
-          </div>
-        </div>
-      </div>
-      <p class="user-subtitle">{{ userRole }}</p>
-    </div>
-  </div>
-
-  <div class="profile-details-wrapper" *ngIf="!loading && user">
-    <div class="details-section">
-      <h2 class="section-title">Personal Information</h2>
-      <div class="details-card">
-        <ion-item lines="none" class="detail-item">
-          <div class="icon-circle" slot="start">
-            <ion-icon name="person-outline"></ion-icon>
-          </div>
-          <ion-label>
-            <p>Full Name</p>
-            <h3 *ngIf="!editing">{{ user.displayName || '-' }}</h3>
-            <div class="edit-input-field" *ngIf="editing">
-              <ion-input [(ngModel)]="editData.displayName" placeholder="Display Name"></ion-input>
+    <!-- Hero Profile Section -->
+    <section class="profile-hero">
+      <div class="hero-content">
+        <div class="avatar-stack relative group" (click)="triggerFileInput()">
+          <div class="avatar-gradient-border">
+            <div class="avatar-inner">
+              <img *ngIf="user?.photoURL" [src]="user.photoURL" alt="Profile avatar" />
+              <div *ngIf="!user?.photoURL" class="initial-avatar">{{ initials }}</div>
+              <div class="upload-loader" *ngIf="uploading">
+                <ion-spinner name="crescent"></ion-spinner>
+              </div>
             </div>
-          </ion-label>
-        </ion-item>
-        
-        <ion-item lines="none" class="detail-item">
-          <div class="icon-circle" slot="start">
-            <ion-icon name="mail-outline"></ion-icon>
           </div>
-          <ion-label>
-            <p>Email Address</p>
-            <h3>{{ user.email || '-' }}</h3>
-          </ion-label>
-        </ion-item>
+          <button class="edit-btn shadow-lg">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <input type="file" id="profile-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
+        </div>
 
+        <div class="meta-info text-center mt-6">
+          <h1 class="display-name">{{ user?.displayName || 'Wellness Explorer' }}</h1>
+          <p class="role-badge">{{ userRole }}</p>
+        </div>
       </div>
-    </div>
+      
+      <!-- Subtle Decorative Icon -->
+      <div class="hero-decoration">
+        <span class="material-symbols-outlined">psychology_alt</span>
+      </div>
+    </section>
 
-    <div class="details-section">
+    <!-- Personal Information Bento Grid -->
+    <section class="profile-section info-grid">
+      <div class="section-header">
+        <h2 class="section-title">Personal Information</h2>
+        <button class="edit-all-link" (click)="toggleEditing()">{{ editing ? 'Cancel' : 'Edit All' }}</button>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Display View -->
+        <ng-container *ngIf="!editing">
+          <div class="bento-card">
+            <p class="label">Full Name</p>
+            <p class="value">{{ user?.displayName || 'Laverne Thompson' }}</p>
+          </div>
+          <div class="bento-card">
+            <p class="label">Email Address</p>
+            <p class="value email">{{ user?.email || 'user@pk.app' }}</p>
+          </div>
+        </ng-container>
+
+        <!-- Edit View -->
+        <ng-container *ngIf="editing">
+          <div class="bento-card edit-card">
+            <p class="label">Display Name</p>
+            <input type="text" [(ngModel)]="editData.displayName" class="edit-input" />
+          </div>
+          <div class="bento-card action-card" (click)="saveProfile()">
+            <p class="label">Commit Changes</p>
+            <button class="save-btn-bento">
+              <span class="material-symbols-outlined">done_all</span> Save
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </section>
+
+    <!-- Account Settings List -->
+    <section class="profile-section settings-hub">
       <h2 class="section-title">Account Settings</h2>
-      <div class="details-card">
-        <ion-item lines="full" button class="settings-item">
-          <ion-icon name="notifications-outline" slot="start"></ion-icon>
-          <ion-label>Notifications</ion-label>
-          <ion-toggle slot="end" checked="true" color="primary"></ion-toggle>
-        </ion-item>
-        <ion-item lines="none" button class="settings-item delete-acc-item" (click)="confirmDelete()">
-          <ion-icon name="trash-outline" slot="start" color="danger"></ion-icon>
-          <ion-label color="danger">Delete Account</ion-label>
-          <ion-icon name="chevron-forward" slot="end" class="chevron"></ion-icon>
-        </ion-item>
+      
+      <div class="settings-list-container">
+        <div class="settings-list">
+          
+          <!-- Notifications -->
+          <div class="setting-item group">
+            <div class="item-leading">
+              <div class="icon-box primary-tonal">
+                <span class="material-symbols-outlined">notifications</span>
+              </div>
+              <div class="item-text">
+                <p class="item-title">Notifications</p>
+                <p class="item-sub">Manage alerts and reminders</p>
+              </div>
+            </div>
+            <span class="material-symbols-outlined arrow">chevron_right</span>
+          </div>
+
+          <!-- Security -->
+          <div class="setting-item group">
+            <div class="item-leading">
+              <div class="icon-box secondary-tonal">
+                <span class="material-symbols-outlined">lock</span>
+              </div>
+              <div class="item-text">
+                <p class="item-title">Security</p>
+                <p class="item-sub">Address and Privacy</p>
+              </div>
+            </div>
+            <span class="material-symbols-outlined arrow">chevron_right</span>
+          </div>
+
+          <!-- Subscription -->
+          <div class="setting-item group">
+            <div class="item-leading">
+              <div class="icon-box tertiary-tonal">
+                <span class="material-symbols-outlined">payments</span>
+              </div>
+              <div class="item-text">
+                <p class="item-title">Subscription</p>
+                <p class="item-sub">Premium plan details</p>
+              </div>
+            </div>
+            <span class="material-symbols-outlined arrow">chevron_right</span>
+          </div>
+
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="logout-wrapper">
-      <ion-button expand="block" mode="ios" class="logout-pilled-btn" (click)="logout()">
-        <ion-icon name="log-out-outline" slot="start"></ion-icon>
-        Logout Securely
-      </ion-button>
-    </div>
-  </div>
+    <!-- Help Banner -->
+    <section class="profile-section help-banner">
+      <div class="banner-card">
+        <div class="card-content">
+          <h3 class="banner-title">Need help?</h3>
+          <p class="banner-p">Our support team is available 24/7 for any technical issues.</p>
+          <button class="support-btn">Contact Support</button>
+        </div>
+        <div class="banner-decoration"></div>
+      </div>
+    </section>
 
-  <div class="loading-state" *ngIf="loading">
-    <ion-spinner name="crescent" color="primary"></ion-spinner>
-    <p>Retrieving your account...</p>
+    <!-- Logout & Danger Zone -->
+    <footer class="profile-footer">
+      <button class="danger-btn logout" (click)="logout()">
+        <span class="material-symbols-outlined">logout</span>
+        <span>Sign Out</span>
+      </button>
+      
+      <button class="danger-btn delete" (click)="confirmDelete()">
+        <span class="material-symbols-outlined">delete_forever</span>
+        <span>Delete Account</span>
+      </button>
+    </footer>
+
   </div>
 </ion-content>

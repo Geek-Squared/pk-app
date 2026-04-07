@@ -73,6 +73,11 @@ export class ProfilePage implements OnInit {
     return 'Wellness Member';
   }
 
+  triggerFileInput() {
+    const fileInput = document.getElementById('profile-file-input') as HTMLInputElement;
+    if (fileInput) fileInput.click();
+  }
+
   async onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
