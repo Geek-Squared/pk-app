@@ -4,6 +4,10 @@ ion-menu ion-toolbar {
   box-shadow: 1px 2px 5px #444;
 }
 
+ion-menu {
+  --background: #2e709c;
+  z-index: 9999 !important;
+}
 ion-menu ion-content {
   --background: #2e709c;
 }
@@ -194,7 +198,7 @@ ion-item a {
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 1000;
+    z-index: 100 !important;
     --background: transparent;
 
     .sanctuary-header {
@@ -257,12 +261,12 @@ ion-item a {
     }
   }
 
-  // Ensure main content doesn't overlap mobile header
+  // Content layout (Individual pages handle their own top padding via .has-header or hero styles)
   .main-content-layout.authenticated {
     padding-top: 0; 
     
     ion-router-outlet {
-      padding-top: 80px;
+      padding-top: 0;
     }
   }
 

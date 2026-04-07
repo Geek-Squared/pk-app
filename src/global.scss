@@ -244,7 +244,7 @@ ion-header.root-shell-header {
 .dashboard-wrapper {
   width: 100%;
   margin: 0 auto;
-  padding: 1.5rem 2rem;
+  padding: 0 2rem 1.5rem; // ZERO TOP PADDING
   max-width: 1400px;
 }
 
@@ -337,8 +337,13 @@ ion-header.root-shell-header {
 }
 
 // Ensure the page content does not overlap the custom shell header
+// Global outlet offsets based on visibility of the premium header
 ion-router-outlet.has-header {
-  top: 72px; /* Set so content starts just beneath the global custom header */
+  top: 104px !important; // 80px header + 24px air gap
+}
+
+ion-router-outlet:not(.has-header) {
+  top: 0 !important; // Bleeds to the top for Hero pages (Home, Profile)
 }
 
 @media (max-width: 767px) {
@@ -363,10 +368,11 @@ ion-router-outlet.has-header {
     padding-right: 16px !important;
   }
 
-  // Explicitly ensure home grid is edge-to-edge
-  ion-grid.home-mobile-grid {
-    padding: 0 !important;
-    --ion-grid-padding: 0px !important;
+
+
+  // Global bottom padding for the fixed navigation bar
+  ion-app.has-bottom-nav ion-content {
+    --padding-bottom: 110px !important;
   }
 }
 

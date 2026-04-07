@@ -3,13 +3,13 @@
   --ion-font-family: inherit;
 
   .profile-header-background {
-    height: 320px;
+    height: 400px;
     background: linear-gradient(135deg, #1a4f8b 0%, #4fc3f7 100%);
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: env(safe-area-inset-top);
+    padding-top: calc(env(safe-area-inset-top) + 104px); // 80px header + 24px gap
 
     .header-overlay {
       position: absolute;
@@ -22,7 +22,7 @@
 
     .back-button-floating {
       position: absolute;
-      top: calc(env(safe-area-inset-top) + 20px);
+      top: calc(env(safe-area-inset-top) + 124px); // 20px margin + 104px offset
       left: 20px;
       width: 44px;
       height: 44px;

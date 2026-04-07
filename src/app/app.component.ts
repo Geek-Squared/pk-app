@@ -125,7 +125,7 @@ export class AppComponent {
 
   public isDashboardRoute(): boolean {
     const url = this.router.url.split('?')[0].split('#')[0];
-    return url === '/' || url === '/home' || url === '/dashboard' || url === '';
+    return url === '/' || url === '/home' || url === '/dashboard' || url === '/profile' || url === '';
   }
 
   private async configureStatusBar(): Promise<void> {

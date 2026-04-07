@@ -1,16 +1,28 @@
-# Layout Fix: Bottom Chat Position
+# Task: Fix Global Overlap and Layout Gaps
 
-The goal is to ensure the chat input (footer) is correctly positioned at the bottom of the screen on both desktop and mobile, and on mobile, it should sit above the bottom navigation bar without overlapping.
+## 1. Research & Analysis
+- [x] Inspect `Workbook` (my-work-book) page HTML/SCSS to identify double-padding
+- [x] Inspect `Interventions` page HTML/SCSS for the same
+- [x] Check `global.scss` vs component-level paddings
+- [x] Verify if `ion-header` inside components is not hidden
 
-## Plan
+## 2. Planning (Elegant Solution)
+- [x] Define a standard padding-top for ALL pages that clear the header
+- [x] Implement a utility class for "Hero" pages to bleed correctly
+- [x] Ensure the side-menu doesn't conflict with transparency
 
-1. [x] Define a global CSS variable for the bottom navigation height in `src/theme/variables.scss`.
-2. [x] Update `app-bottom-nav` SCSS to use this height consistently.
-3. [x] Update `AiAssistantPage` SCSS to use the global variable for its footer margin-bottom.
-4. [x] Refactor `ChatPage` to use `ion-footer` instead of `slot="fixed"` for consistency with `AiAssistantPage`.
-5. [x] Ensure `ChatPage` also respects the bottom navigation height on mobile via the global variable.
-6. [x] Verify the changes.
+## 3. Implementation
+- [x] Re-align Workbook (my-work-book) page (Removed redundant top offsets)
+- [x] Re-align Interventions page (Removed redundant top offsets)
+- [x] Re-verify Home and Profile clearance (Managed via .no-header-offset and internal padding)
+- [ ] Check other pages (Surveys, Feedback, etc.)
 
-## Verification
-- Desktop (>= 992px): No bottom margin on chat footers.
-- Mobile (< 992px): Proper margin above bottom nav.
+## 4. Verification
+- [ ] Cross-page visual check (all screens mentioned)
+- [ ] Check scrolling behavior on long lists
+- [ ] Verify side-menu interactions
+
+## Review section
+- Double-padding found between `app.component.scss` (80px wrapper) and `global.scss` (80px content).
+- Consolidated to a single `104px` global offset for standard pages.
+- Applied `.no-header-offset` for pages that bleed (Home, Profile).
