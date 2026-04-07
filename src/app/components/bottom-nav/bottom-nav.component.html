@@ -1,24 +1,18 @@
-<ng-container *ngIf="show">
-  <div class="bottom-nav-spacer"></div>
-  <nav class="bottom-nav">
-    <button
-      class="nav-button"
-      [routerLink]="['/home']"
-      [class.active]="isActive('/home')"
-      routerDirection="root"
-    >
-      <ion-icon name="home-outline"></ion-icon>
-      <span>Home</span>
-    </button>
-
-    <button
-      class="nav-button"
-      [routerLink]="['/notifications']"
-      [class.active]="isActive('/notifications')"
-      routerDirection="forward"
-    >
-      <ion-icon name="notifications-outline"></ion-icon>
-      <span>Alerts</span>
-    </button>
-  </nav>
-</ng-container>
+<nav class="sanctuary-nav no-border" *ngIf="show">
+  <a class="nav-item" [routerLink]="['/home']" [class.active]="isActive('/home')" routerDirection="root">
+    <span class="material-symbols-outlined" [style.font-variation-settings]="isActive('/home') ? '\'FILL\' 1' : ''">home</span>
+    <span class="nav-label">Home</span>
+  </a>
+  <a class="nav-item" [routerLink]="['/interventions']" [class.active]="isActive('/interventions')">
+    <span class="material-symbols-outlined" [style.font-variation-settings]="isActive('/interventions') ? '\'FILL\' 1' : ''">bolt</span>
+    <span class="nav-label">Interventions</span>
+  </a>
+  <a class="nav-item" [routerLink]="['/my-work-book']" [class.active]="isActive('/my-work-book')">
+    <span class="material-symbols-outlined" [style.font-variation-settings]="isActive('/my-work-book') ? '\'FILL\' 1' : ''">auto_stories</span>
+    <span class="nav-label">Workbook</span>
+  </a>
+  <a class="nav-item" [routerLink]="['/profile']" [class.active]="isActive('/profile')">
+    <span class="material-symbols-outlined" [style.font-variation-settings]="isActive('/profile') ? '\'FILL\' 1' : ''">person</span>
+    <span class="nav-label">Profile</span>
+  </a>
+</nav>

@@ -190,52 +190,80 @@ ion-item a {
 @media (max-width: 767px) {
   .mobile-only-header {
     display: block !important;
-    background: #fff;
-    border-bottom: 1px solid #f1f5f9;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    --background: transparent;
 
-    ion-toolbar {
-      --background: #fff;
-      --padding-top: 10px;
-      --padding-bottom: 10px;
-      --min-height: 64px;
-    }
-
-    .mobile-logo-header {
-      height: 32px;
-      width: auto;
-      object-fit: contain;
-    }
-
-    .mobile-profile-avatar {
-      width: 40px;
-      height: 40px;
-      background: #0d122a; // Deep dark navy almost black from the image
-      border: 1.5px solid rgba(255, 255, 255, 0.1); 
-      border-radius: 12px; // Slightly rounded corners (rounded square)
+    .sanctuary-header {
+      background: rgba(246, 246, 250, 0.85);
+      backdrop-filter: blur(20px);
+      height: 80px;
+      padding: 0 16px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      margin-right: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-      overflow: hidden;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
 
-      .header-avatar-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      .header-side {
+        flex: 1;
+        display: flex;
+        align-items: center;
+
+        ion-buttons {
+          margin-left: -8px;
+          --color: var(--pk-primary);
+        }
       }
-      
-      ion-icon {
-        font-size: 1.4rem;
-        color: #ffffff;
-        filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
+
+      .header-center {
+        flex: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .logo-img {
+          height: 36px;
+          width: auto;
+          object-fit: contain;
+        }
+      }
+
+      .mobile-profile-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid var(--pk-primary-container, #829bff);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        
+        ion-icon {
+          font-size: 24px;
+          color: var(--pk-primary, #0f4be0);
+        }
       }
     }
   }
 
   // Ensure main content doesn't overlap mobile header
   .main-content-layout.authenticated {
-    padding-top: 0; // Default ionic content padding will handle
+    padding-top: 0; 
+    
+    ion-router-outlet {
+      padding-top: 80px;
+    }
   }
 
   // Hide desktop parts

@@ -120,10 +120,7 @@ export class AppComponent {
       this.titleService.setTitle(this.routeTitleMap[trimmedUrl] || 'Dashboard');
     }
 
-    const shouldHideOnHome = this.bottomNavHiddenRoutes.includes(trimmedUrl);
-    const shouldHideOnRoot = trimmedUrl === '/' || trimmedUrl === '';
-
-    this.showBottomNav = !(shouldHideOnHome || shouldHideOnRoot);
+    this.showBottomNav = this.authenticationService.isLoggedIn;
   }
 
   public isDashboardRoute(): boolean {

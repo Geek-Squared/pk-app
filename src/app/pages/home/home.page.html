@@ -1,23 +1,7 @@
 <ion-content [fullscreen]="true" class="home-content">
   <!-- Mobile Redesign Section -->
   <div class="mobile-only-design" *ngIf="platform.is('mobile') || platform.is('phablet') || platform.is('iphone') || platform.is('capacitor')">
-    <!-- TopAppBar -->
-    <header class="sanctuary-header no-border">
-      <div class="header-side">
-        <ion-buttons>
-          <ion-menu-button color="primary"></ion-menu-button>
-        </ion-buttons>
-      </div>
-      <div class="header-center">
-        <img alt="Positive Konnections Logo" class="logo-img" src="assets/images/logo.png" />
-      </div>
-      <div class="header-side" style="justify-content: flex-end;">
-        <div class="profile-trigger" routerLink="/profile">
-          <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" alt="Profile" />
-          <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person-circle-outline"></ion-icon>
-        </div>
-      </div>
-    </header>
+    <!-- Content starts here (Header is global) -->
 
     <main class="mobile-main-content">
       <!-- Hero Section -->

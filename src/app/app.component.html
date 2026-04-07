@@ -72,22 +72,24 @@
     </ion-content>
   </ion-menu>
   
-  <!-- Mobile-only header, hidden on Dashboard as requested -->
-  <ion-header class="ion-no-border mobile-only-header" *ngIf="authenticationService.isLoggedIn && !isDashboardRoute()">
-    <ion-toolbar mode="ios">
-      <ion-buttons slot="start">
-        <ion-menu-button color="primary"></ion-menu-button>
-      </ion-buttons>
-      <ion-title mode="ios">
-        <img src="assets/images/logo.png" class="mobile-logo-header" />
-      </ion-title>
-      <ion-buttons slot="end">
+  <!-- Global Premium Mobile Header -->
+  <ion-header class="ion-no-border mobile-only-header" *ngIf="authenticationService.isLoggedIn">
+    <header class="sanctuary-header no-border">
+      <div class="header-side">
+        <ion-buttons>
+          <ion-menu-button color="primary"></ion-menu-button>
+        </ion-buttons>
+      </div>
+      <div class="header-center">
+        <img alt="Positive Konnections Logo" class="logo-img" src="assets/images/logo.png" />
+      </div>
+      <div class="header-side" style="justify-content: flex-end;">
         <div class="mobile-profile-avatar" routerLink="/profile">
-          <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" class="header-avatar-img" />
-          <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person"></ion-icon>
+          <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" alt="Profile" />
+          <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person-circle-outline"></ion-icon>
         </div>
-      </ion-buttons>
-    </ion-toolbar>
+      </div>
+    </header>
   </ion-header>
 
   <ion-header class="ion-no-border root-shell-header" *ngIf="authenticationService.isLoggedIn && !isDashboardRoute()">
