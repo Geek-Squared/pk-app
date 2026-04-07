@@ -1,76 +1,87 @@
 <ion-content [fullscreen]="true" class="page-content interventions-content">
   <div class="dashboard-wrapper">
-    <!-- Mobile Content - Curated High Fidelity Design -->
-    <div class="mobile-wrapper">
-      <section class="curated-header">
-        <h1>Interventions</h1>
-        <p>Curated paths designed for specific life stages and roles. Choose a focus to begin your journey.</p>
-      </section>
- 
-      <ng-container *ngIf="interventions$ | async as interventions; else loadingState">
-        <ng-container *ngIf="interventions.length; else emptyState">
-          <div class="mobile-curated-list">
-            <div 
-              class="mobile-curated-card no-icons" 
-              *ngFor="let intervention of interventions"
-              [routerLink]="['/chapters', intervention.id]"
-            >
-              <!-- Content text - forced to white -->
-              <div class="card-info">
-                <h2 style="color: #ffffff !important;">{{ intervention?.name }}</h2>
-                <p style="color: #ffffff !important; opacity: 0.95;">{{ getInterventionDescription(intervention.name) }}</p>
-              </div>
-            </div>
+    
+    <!-- Editorial Header Section -->
+    <header class="intervention-editorial">
+      <h2>Your Workbook</h2>
+      <p>Guided interventions for personal growth.</p>
+    </header>
+
+    <!-- Progress Hero Card (Dashboard-style summary) -->
+    <section class="progress-hero-card">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <div class="hero-header">
+          <div>
+            <span class="status-badge">Status: Active</span>
+            <h3>Your Progress Journey</h3>
           </div>
-        </ng-container>
-      </ng-container>
- 
-      <ng-template #loadingState>
-        <div class="mobile-loading">
-          <ion-spinner name="crescent" color="primary"></ion-spinner>
-          <span>Loading curated paths…</span>
+          <span class="material-symbols-outlined hero-icon">auto_graph</span>
         </div>
-      </ng-template>
- 
-      <ng-template #emptyState>
-        <div class="mobile-empty">
-          <ion-icon name="information-circle-outline" color="medium"></ion-icon>
-          <p>No interventions are available right now. Please check back later.</p>
+        
+        <div class="progress-stats">
+          <div class="main-stat">
+            <span class="percentage">{{ progressPercentage }}<small>%</small></span>
+            <span class="modules-count">{{ completedModules }} of {{ totalModules }} Modules Completed</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+          </div>
         </div>
-      </ng-template>
-    </div>
 
-  <div class="desktop-content">
-    <div class="page-title" style="margin-bottom: 1.5rem;">
-      <ion-icon name="library-outline"></ion-icon>
-      <h1>Interventions</h1>
-    </div>
+        <button class="continue-btn" (click)="continueIntervention()">
+          Continue Intervention 
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+      </div>
+    </section>
 
-    <div class="page-description">
-      <p>Choose from our evidence-based therapeutic interventions designed to support your mental health journey.</p>
-    </div>
+    <!-- Category Grid (Dynamic Interventions List) -->
+    <section class="categories-section">
+      <h4>Curated Categories</h4>
+      
+      <div class="categories-grid" *ngIf="interventions$ | async as interventions">
+        <div 
+          class="category-card" 
+          *ngFor="let intervention of interventions"
+          [routerLink]="['/chapters', intervention.id]"
+        >
+          <div class="category-icon-box" [ngClass]="getIconClass(intervention.name)">
+            <span class="material-symbols-outlined">{{ getIconName(intervention.name) }}</span>
+          </div>
 
-    <div class="interventions-grid" *ngIf="interventions$ | async as interventions">
-      <div 
-        class="intervention-card"
-        *ngFor="let intervention of interventions"
-        [routerLink]="['/chapters', intervention.id]"
-      >
-        <div class="intervention-icon">
-          <ion-icon name="library-outline"></ion-icon>
+          <div class="category-content">
+            <div class="card-title-row">
+              <h5>{{ intervention.name }}</h5>
+              <span class="material-symbols-outlined chevron">chevron_right</span>
+            </div>
+            <p>{{ getInterventionDescription(intervention.name) }}</p>
+          </div>
         </div>
-        <div class="intervention-content">
-          <h3>{{ intervention?.name }}</h3>
-          <p>Explore this therapeutic intervention to enhance your wellbeing and develop coping strategies.</p>
-          <div class="intervention-footer">
-            <span class="start-btn">
-              Start Intervention
-              <ion-icon name="arrow-forward-outline"></ion-icon>
-            </span>
+
+        <!-- Static Fallback if no interventions yet (Mocking the design's vision if list is short) -->
+        <div class="category-card" *ngIf="interventions.length < 2">
+          <div class="category-icon-box skills">
+            <span class="material-symbols-outlined">school</span>
+          </div>
+          <div class="category-content">
+            <div class="card-title-row">
+              <h5>Skill Building</h5>
+              <span class="material-symbols-outlined chevron">chevron_right</span>
+            </div>
+            <p>Practical cognitive tools to help manage anxiety and build mental resilience.</p>
           </div>
         </div>
       </div>
-    </div>
-    </div>
+    </section>
+
+    <!-- Editorial Image Section -->
+    <section class="editorial-image-box">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuARzbrjLbHrpSllHENGY0Lq29jY2YeoMbPzhVpX-NREQ0Sdz2KEXYYqMdpxNJ5ztR2dwR2YP-RqrIepkdSMPR_YiflzqVh1SKuptmtW_kPqE-7otUHSO_sez2CA_cNSI1aI8uADmupWlAqi5pkATkc6fxw2hbCw8J5QYmxumpc_zWBCMcqMy1ehnbVYy1nrTe-lB_7Lrl577_blB0W91Y9_IUdD1EkbNldWeMyLavyKj--VYxd4EObe4FED0m8_S8GEH1pKINWY-Ef_" alt="Serene landscape" />
+      <div class="image-overlay">
+        <h6>Mindfulness in Every Action.</h6>
+      </div>
+    </section>
+
   </div>
 </ion-content>

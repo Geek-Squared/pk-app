@@ -1,256 +1,274 @@
 .interventions-content {
-  --ion-background-color: #f6f7fb;
-}
-
-.mobile-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding: 0 1.25rem 4.5rem; // ZERO TOP PADDING
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-.curated-header {
-  margin-bottom: 2rem;
+  --background: #f6fafe;
   
-  h1 {
-    font-size: 2.2rem;
+  .dashboard-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+}
+
+.intervention-editorial {
+  padding-top: 1rem;
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 2.5rem;
     font-weight: 800;
-    color: #333;
-    margin: 0 0 0.75rem 0;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.04em;
+    color: #171c1f;
+    margin: 0 0 0.5rem 0;
+    line-height: 1;
   }
 
   p {
     font-size: 1.1rem;
-    color: #666;
-    line-height: 1.5;
-    margin: 0;
+    font-weight: 500;
+    color: #444653;
+    opacity: 0.8;
   }
 }
 
-.mobile-curated-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.mobile-curated-card {
+/* Progress Hero Card */
+.progress-hero-card {
   position: relative;
-  min-height: 220px;
-  border-radius: 20px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  border-radius: 32px;
+  background: linear-gradient(135deg, #00288e 0%, #1e40af 100%);
+  padding: 2rem;
+  color: #ffffff;
+  box-shadow: 0 20px 40px rgba(0, 40, 142, 0.2);
+  margin-bottom: 3rem;
 
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &.no-icons {
-    justify-content: flex-end;
-    padding-bottom: 2rem;
-  }
-
-  // Alternating brand colors (Mental Health Palette: Blue, Green, Purple)
-  &:nth-child(3n+1) {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; // Trust Blue (Peace)
-  }
-  &:nth-child(3n+2) {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; // Vitality Green (Renewal)
-  }
-  &:nth-child(3n+3) {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%) !important; // Serenity Violet (Soul)
-  }
-
-  .card-bg-watermark {
+  .hero-glow {
     position: absolute;
-    right: -20px;
-    top: -20px;
-    font-size: 12rem;
-    opacity: 0.15;
-    transform: rotate(-10deg);
+    top: -40px;
+    right: -40px;
+    width: 250px;
+    height: 250px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    filter: blur(60px);
   }
 
-  .card-pill {
-    width: 48px;
-    height: 48px;
-    background: #fff;
-    border-radius: 14px;
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .hero-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(221, 225, 255, 0.8);
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      color: #ffffff;
+    }
+
+    .hero-icon {
+      font-size: 2.5rem;
+      opacity: 0.4;
+    }
+  }
+
+  .progress-stats {
+    .main-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 0.75rem;
+
+      .percentage {
+        font-size: 2.5rem;
+        font-weight: 800;
+        
+        small {
+          font-size: 1.1rem;
+          font-weight: 500;
+          opacity: 0.7;
+        }
+      }
+
+      .modules-count {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #dde1ff;
+      }
+    }
+
+    .progress-track {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: #64a8fe;
+        border-radius: 999px;
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+  }
+
+  .continue-btn {
+    background: #ffffff;
+    color: #00288e;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:active { transform: scale(0.96); }
+    
+    ion-icon { font-size: 1rem; }
+  }
+}
+
+/* Category Grid */
+.categories-section {
+  h4 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #171c1f;
+    margin-bottom: 1.5rem;
+    padding-left: 0.5rem;
+  }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+}
+
+.category-card {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 1px solid rgba(196, 197, 213, 0.15);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 30px rgba(0, 40, 142, 0.06);
+    border-color: rgba(0, 40, 142, 0.1);
+    
+    .chevron { transform: translateX(4px); }
+  }
+
+  .category-icon-box {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    z-index: 1;
+    
+    &.adolescents { background: #d4e3ff; color: #003c70; }
+    &.parents { background: #ffdbce; color: #611e00; }
+    &.self-care { background: #dde1ff; color: #001453; }
+    &.skills { background: #eaeef2; color: #444653; }
 
-    ion-icon {
-      font-size: 1.6rem;
-    }
+    .material-symbols-outlined { font-size: 2rem; }
   }
 
-  .card-info {
-    z-index: 1;
-    max-width: 85%;
+  .category-content {
+    flex: 1;
 
-    h2 {
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+
+      h5 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #171c1f;
+        margin: 0;
+      }
+
+      .chevron {
+        font-size: 1.25rem;
+        color: #757684;
+        transition: transform 0.3s ease;
+      }
+    }
+
+    p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #444653;
+      margin: 0;
+      opacity: 0.9;
+    }
+  }
+}
+
+/* Editorial Image */
+.editorial-image-box {
+  margin-top: 2rem;
+  position: relative;
+  height: 200px;
+  border-radius: 32px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1s ease;
+  }
+
+  &:hover img { transform: scale(1.08); }
+
+  .image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0, 40, 142, 0.4), transparent);
+    display: flex;
+    align-items: center;
+    padding: 0 2.5rem;
+
+    h6 {
+      color: #ffffff;
       font-size: 1.5rem;
       font-weight: 800;
-      margin: 0 0 0.5rem 0;
-      letter-spacing: -0.01em;
-    }
-
-    p {
-      font-size: 0.95rem;
+      max-width: 250px;
+      line-height: 1.2;
       margin: 0;
-      line-height: 1.45;
-      font-weight: 500;
-      opacity: 0.85;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-  }
-}
-
-.mobile-loading,
-.mobile-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2.5rem 1rem;
-  border-radius: 18px;
-  background: rgba(45, 114, 173, 0.06);
-  color: rgba(29, 42, 68, 0.75);
-
-  ion-icon {
-    font-size: 2rem;
-    color: #2d72ad;
-  }
-
-  span,
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-    text-align: center;
-  }
-}
-
-@media (min-width: 768px) {
-  .mobile-wrapper {
-    display: none;
-  }
-
-  .page-description {
-    margin-bottom: 2rem;
-    text-align: center;
-
-    p {
-      color: #64748b;
-      font-size: 1.1rem;
-      line-height: 1.6;
-      margin: 0;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-  }
-
-  .interventions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-    gap: 1.5rem;
-
-    .intervention-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      transition: all 0.3s ease;
-
-      &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-        border-color: var(--pk-blue);
-      }
-
-      .intervention-icon {
-        text-align: center;
-        margin-bottom: 1rem;
-
-        ion-icon {
-          font-size: 3rem;
-          color: var(--pk-blue);
-          background: #f1f5f9;
-          padding: 1.5rem;
-          border-radius: 50%;
-          display: inline-block;
-        }
-      }
-
-      .intervention-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-
-        h3 {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: var(--heading-color);
-          margin: 0 0 1rem;
-        }
-
-        p {
-          color: #64748b;
-          line-height: 1.6;
-          margin: 0 0 1.5rem;
-          flex: 1;
-        }
-
-        .intervention-footer {
-          display: flex;
-          justify-content: center;
-
-          .start-btn {
-            background: linear-gradient(135deg, var(--pk-blue), #4fc3f7);
-            color: #fff;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-
-            ion-icon {
-              font-size: 1rem;
-            }
-
-            &:hover {
-              background: linear-gradient(135deg, #1e4f78, var(--pk-blue));
-              transform: translateX(2px);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: 767px) {
-  .desktop-nav,
-  .desktop-content {
-    display: none !important;
   }
 }
