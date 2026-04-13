@@ -151,14 +151,27 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           text: 'Image',
           icon: 'image-outline',
           handler: () => {
-            this.triggerFileSelect();
+            const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
+            fileInput.accept = 'image/*';
+            fileInput.click();
           }
         },
         {
           text: 'Video',
           icon: 'videocam-outline',
           handler: () => {
-            this.utilsService.presentToast('Video uploads coming soon');
+            const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
+            fileInput.accept = 'video/*';
+            fileInput.click();
+          }
+        },
+        {
+          text: 'File',
+          icon: 'document-outline',
+          handler: () => {
+            const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
+            fileInput.accept = 'application/pdf,.doc,.docx,.xls,.xlsx,.txt';
+            fileInput.click();
           }
         },
         {
@@ -238,6 +251,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       );
 
     this.scrollBottom();
+
+    // Request mic permission proactively so Android doesn't ask on first record tap
+    this.requestMicPermission();
+  }
+
+  private async requestMicPermission() {
+    try {
+      const { value } = await VoiceRecorder.hasAudioRecordingPermission();
+      if (!value) {
+        await VoiceRecorder.requestAudioRecordingPermission();
+      }
+    } catch (e) {
+      // Not available on web/desktop — safely ignore
+    }
   }
 
   ionViewWillEnter() {
@@ -245,29 +272,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.stopRecording();
-
-    if (this.recordBtn?.nativeElement) {
-      const longPress = this.gestureCtrl.create(
-        {
-          el: this.recordBtn.nativeElement,
-          gestureName: 'long-press',
-          threshold: 0,
-          onStart: (t: any) => {
-            Haptics.impact({ style: ImpactStyle.Light });
-            this.startRecording();
-            this.calculateDuration();
-          },
-          onEnd: () => {
-            Haptics.impact({ style: ImpactStyle.Light });
-            this.stopRecording();
-          },
-        },
-        true
-      );
-  
-      longPress.enable();
-    }
+    // Gesture controller removed — recording is now tap-to-toggle via toggleRecording()
   }
 
   async submit(chat: any) {
@@ -387,6 +392,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private recordingInterval: any;
 
+  // Tap once to start, tap again to stop & send
+  async toggleRecording() {
+    if (this.recording) {
+      await this.stopRecording();
+    } else {
+      await this.startRecording();
+    }
+  }
+
   async startRecording() {
     if (this.recording) return;
 
@@ -491,24 +505,36 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const file = event.target.files[0];
     if (!file || !this.chat) return;
 
-    this.utilsService.presentLoading('Uploading image...');
+    // Determine message type by MIME type
+    let msgType: 'image' | 'video' | 'file' = 'file';
+    if (file.type.startsWith('image/')) msgType = 'image';
+    else if (file.type.startsWith('video/')) msgType = 'video';
+
+    const loadingMsg = msgType === 'image' ? 'Uploading image...' 
+                     : msgType === 'video' ? 'Uploading video...' 
+                     : 'Uploading file...';
+
+    this.utilsService.presentLoading(loadingMsg);
     try {
       const url = await this.fileStorageService.uploadFile(file);
       const user = await this.auth.getUser();
       
       if (this.chat.type === 'group') {
-        const groupMembers = this.filterGroupMembers([], this.chat); // simplify for now, the service handles the list
-        await this.cs.sendMessage(this.chat.id, url, user.uid, groupMembers, 'image');
+        const groupMembers = this.filterGroupMembers([], this.chat);
+        await this.cs.sendMessage(this.chat.id, url, user.uid, groupMembers, msgType);
       } else {
         const recipient = this.chat.uids ? this.chat.uids.find((u) => u !== user.uid) : this.chat.uid;
-        await this.cs.sendMessage(this.chat.id, url, recipient, null, 'image');
+        await this.cs.sendMessage(this.chat.id, url, recipient, null, msgType);
       }
       
+      this.scrollBottom();
       this.utilsService.dismissLoader();
+      // Reset input so same file can be picked again
+      (event.target as HTMLInputElement).value = '';
     } catch (error) {
       console.error('Upload error:', error);
       this.utilsService.dismissLoader();
-      this.utilsService.presentToast('Failed to upload image');
+      this.utilsService.presentToast('Failed to upload file. Check Firebase Storage rules.');
     }
   }
 }

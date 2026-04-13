@@ -6,7 +6,7 @@
     padding: 1.5rem 1rem 180px;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 0.35rem;
   }
 }
 
@@ -146,21 +146,21 @@
   width: 100%;
 
   .bubble-stack {
-    max-width: 85%;
+    max-width: 78%;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
     position: relative;
   }
 
   .bubble {
-    padding: 1rem 1.25rem;
+    padding: 0.6rem 1rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     
     p {
       margin: 0;
-      font-size: 15px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.45;
       font-weight: 500;
     }
   }
@@ -228,6 +228,14 @@
       object-fit: cover;
       display: block;
     }
+  }
+
+  .file-bubble {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    min-width: 160px;
   }
 
   .audio-bubble {
@@ -352,7 +360,7 @@
     }
   }
 
-  /* Recording Bar */
+  /* Recording Bar - WhatsApp style */
   .recording-bar {
     flex: 1;
     display: flex;
@@ -363,6 +371,7 @@
     border-radius: 18px;
     height: 48px;
     animation: slideUp 0.3s ease-out;
+    border: 1.5px solid rgba(186, 26, 26, 0.15);
 
     .pulse-box {
       display: flex;
@@ -375,13 +384,38 @@
         background: #ba1a1a;
         border-radius: 50%;
         animation: pulse 1.2s infinite;
+        box-shadow: 0 0 0 3px rgba(186,26,26,0.15);
       }
 
       .timer {
         font-weight: 800;
         font-family: monospace;
-        font-size: 1.1rem;
-        color: #171c1f;
+        font-size: 1rem;
+        color: #ba1a1a;
+      }
+    }
+
+    /* Animated waveform bars */
+    .waveform-bars {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 28px;
+
+      span {
+        display: block;
+        width: 3px;
+        border-radius: 3px;
+        background: rgba(0, 40, 142, 0.3);
+        animation: waveBar 1.2s ease-in-out infinite;
+
+        &:nth-child(1) { height: 8px; animation-delay: 0s; }
+        &:nth-child(2) { height: 14px; animation-delay: 0.1s; }
+        &:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+        &:nth-child(4) { height: 24px; animation-delay: 0.15s; }
+        &:nth-child(5) { height: 18px; animation-delay: 0.25s; }
+        &:nth-child(6) { height: 12px; animation-delay: 0.05s; }
+        &:nth-child(7) { height: 20px; animation-delay: 0.3s; }
       }
     }
 
@@ -389,11 +423,12 @@
       display: flex;
       align-items: center;
       gap: 0.25rem;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
       color: #757684;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      cursor: pointer;
     }
   }
 }
@@ -441,6 +476,11 @@
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.3); opacity: 0.5; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
 }
 
 @keyframes fadeIn {

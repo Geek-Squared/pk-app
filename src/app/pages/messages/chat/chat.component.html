@@ -48,6 +48,17 @@
             <img [src]="msg.content" />
           </div>
 
+          <!-- Video Bubble -->
+          <div class="bubble media-bubble" *ngIf="msg?.type === 'video'">
+            <video [src]="msg.content" controls playsinline style="width:100%;border-radius:16px;"></video>
+          </div>
+
+          <!-- File Bubble -->
+          <div class="bubble file-bubble" *ngIf="msg?.type === 'file'">
+            <span class="material-symbols-outlined" style="font-size:2rem;color:#00288e">description</span>
+            <a [href]="msg.content" target="_blank" style="font-size:13px;font-weight:700;color:#00288e;text-decoration:none;">Open File</a>
+          </div>
+
           <!-- Voice Note Bubble -->
           <div class="bubble audio-bubble" *ngIf="msg?.type === 'audio'">
             <app-voice-note [url]="msg.content" [isSender]="msg.uid === currentUser?.uid"></app-voice-note>
@@ -88,7 +99,7 @@
       <span class="material-symbols-outlined">add_circle</span>
     </button>
     
-    <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*" />
+    <input type="file" id="chat-file-input" style="display: none" (change)="onFileSelected($event)" accept="image/*,video/*,application/pdf,.doc,.docx" />
 
     <!-- Text Input Area -->
     <div class="input-container" *ngIf="!recording">
@@ -103,15 +114,18 @@
       </button>
     </div>
 
-    <!-- Voice Recording UI -->
+    <!-- Voice Recording UI - WhatsApp style -->
     <div class="recording-bar" *ngIf="recording">
       <div class="pulse-box">
         <div class="dot"></div>
         <span class="timer">{{ durationDisplay || '0:00' }}</span>
       </div>
+      <div class="waveform-bars">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
       <div class="cancel-prompt" (click)="cancelRecording()">
         <span class="material-symbols-outlined">chevron_left</span>
-        Swipe to cancel
+        Cancel
       </div>
     </div>
 
@@ -126,18 +140,15 @@
         <span class="material-symbols-outlined">send</span>
       </button>
 
-      <!-- Record Button -->
+      <!-- Record Button: tap once to start, tap again to stop & send -->
       <button 
         class="dispatch-btn mic" 
         #recordBtn
         *ngIf="(!newMsg || newMsg?.trim()?.length === 0) || recording"
         [class.recording]="recording"
-        (touchstart)="startRecording()" 
-        (touchend)="stopRecording()"
-        (mousedown)="startRecording()"
-        (mouseup)="stopRecording()"
+        (click)="toggleRecording()"
       >
-        <span class="material-symbols-outlined">{{ recording ? 'mic' : 'mic_none' }}</span>
+        <span class="material-symbols-outlined">{{ recording ? 'stop' : 'mic_none' }}</span>
       </button>
     </div>
 
