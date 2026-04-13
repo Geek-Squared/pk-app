@@ -136,7 +136,7 @@ export class AppComponent {
     try {
       await StatusBar.setOverlaysWebView({ overlay: false });
       if (this.platform.is('android')) {
-        await StatusBar.setBackgroundColor({ color: '#0f63ff' });
+        await StatusBar.setBackgroundColor({ color: '#ffffff' });
       }
       await StatusBar.setStyle({ style: Style.Light });
     } catch (error) {
