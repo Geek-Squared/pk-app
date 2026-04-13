@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { Observable, finalize } from 'rxjs';
+import { Observable, finalize, lastValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -46,21 +46,20 @@ export class FileStorageService {
     return storageRef.getDownloadURL();
   }
 
-  async uploadFile(file: File) {
-    const filePath = `uploads/${Date.now()}_${file.name}`;
+  async uploadFile(file: File): Promise<string> {
+    const ext = file.name.split('.').pop() || 'bin';
+    const filePath = `uploads/${Date.now()}.${ext}`;
     const storageRef = this.storage.ref(filePath);
-    const uploadTask = this.storage.upload(filePath, file);
+    await storageRef.put(file);
+    return lastValueFrom(storageRef.getDownloadURL());
+  }
 
-    return new Promise<string>((resolve, reject) => {
-      uploadTask.snapshotChanges().pipe(
-        finalize(() => {
-          storageRef.getDownloadURL().subscribe({
-            next: (url) => resolve(url),
-            error: (err) => reject(err)
-          });
-        })
-      ).subscribe();
-    });
+  async uploadBase64(base64Data: string, mimeType: string): Promise<string> {
+    const ext = mimeType.split('/')[1] || 'jpg';
+    const filePath = `uploads/${Date.now()}.${ext}`;
+    const storageRef = this.storage.ref(filePath);
+    await storageRef.putString(base64Data, 'base64', { contentType: mimeType });
+    return lastValueFrom(storageRef.getDownloadURL());
   }
 }
 

@@ -16,6 +16,7 @@ import { ChatService } from 'src/app/services/chat.service';
 import { UsersService } from 'src/app/services/users.service';
 import { VoiceRecorder, RecordingData } from 'capacitor-voice-recorder';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { FileStorageService } from 'src/app/services/file-storage.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
 import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
@@ -148,20 +149,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       header: 'Attach',
       buttons: [
         {
-          text: 'Image',
-          icon: 'image-outline',
+          text: 'Camera',
+          icon: 'camera-outline',
           handler: () => {
-            const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
-            fileInput.accept = 'image/*';
-            fileInput.click();
+            // Return false to keep sheet open while async runs
+            setTimeout(() => this.takePhoto(), 100);
+            return false;
           }
         },
         {
-          text: 'Video',
-          icon: 'videocam-outline',
+          text: 'Photo / Video from Gallery',
+          icon: 'image-outline',
           handler: () => {
             const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
-            fileInput.accept = 'video/*';
+            fileInput.accept = 'image/*,video/*';
             fileInput.click();
           }
         },
@@ -183,6 +184,43 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     await actionSheet.present();
+  }
+
+  async takePhoto() {
+    try {
+      const photo = await Camera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera,
+      });
+
+      if (!photo.base64String) return;
+
+      this.utilsService.presentLoading('Uploading photo...');
+      const mimeType = `image/${photo.format || 'jpeg'}`;
+      const url = await this.fileStorageService.uploadBase64(photo.base64String, mimeType);
+      await this.sendMediaMessage(url, 'image');
+      this.utilsService.dismissLoader();
+    } catch (err: any) {
+      this.utilsService.dismissLoader();
+      if (err?.message !== 'User cancelled photos app') {
+        console.error('Camera error:', err);
+        this.utilsService.presentToast('Camera error. Please try again.');
+      }
+    }
+  }
+
+  private async sendMediaMessage(url: string, type: 'image' | 'video' | 'file') {
+    const user = await this.auth.getUser();
+    if (this.chat.type === 'group') {
+      const groupMembers = this.filterGroupMembers([], this.chat);
+      await this.cs.sendMessage(this.chat.id, url, user.uid, groupMembers, type);
+    } else {
+      const recipient = this.chat.uids ? this.chat.uids.find((u) => u !== user.uid) : this.chat.uid;
+      await this.cs.sendMessage(this.chat.id, url, recipient, null, type);
+    }
+    this.scrollBottom();
   }
 
   async deleteOneMessage(msg: any) {
@@ -505,36 +543,25 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const file = event.target.files[0];
     if (!file || !this.chat) return;
 
-    // Determine message type by MIME type
+    // Determine message type from MIME
     let msgType: 'image' | 'video' | 'file' = 'file';
     if (file.type.startsWith('image/')) msgType = 'image';
     else if (file.type.startsWith('video/')) msgType = 'video';
 
-    const loadingMsg = msgType === 'image' ? 'Uploading image...' 
-                     : msgType === 'video' ? 'Uploading video...' 
+    const loadingMsg = msgType === 'video' ? 'Uploading video...'
+                     : msgType === 'image' ? 'Uploading image...'
                      : 'Uploading file...';
 
     this.utilsService.presentLoading(loadingMsg);
     try {
       const url = await this.fileStorageService.uploadFile(file);
-      const user = await this.auth.getUser();
-      
-      if (this.chat.type === 'group') {
-        const groupMembers = this.filterGroupMembers([], this.chat);
-        await this.cs.sendMessage(this.chat.id, url, user.uid, groupMembers, msgType);
-      } else {
-        const recipient = this.chat.uids ? this.chat.uids.find((u) => u !== user.uid) : this.chat.uid;
-        await this.cs.sendMessage(this.chat.id, url, recipient, null, msgType);
-      }
-      
-      this.scrollBottom();
+      await this.sendMediaMessage(url, msgType);
       this.utilsService.dismissLoader();
-      // Reset input so same file can be picked again
       (event.target as HTMLInputElement).value = '';
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
       this.utilsService.dismissLoader();
-      this.utilsService.presentToast('Failed to upload file. Check Firebase Storage rules.');
+      this.utilsService.presentToast(`Upload failed: ${error?.message || 'Check Firebase Storage rules'}`);
     }
   }
 }
