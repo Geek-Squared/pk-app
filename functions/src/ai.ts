@@ -45,12 +45,23 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
   const ai = getAi();
   const retriever = getRetriever();
 
-  const lastUserMessage = input.messages[input.messages.length - 1].content;
-  
+  // Normalize messages: GenKit expects content to be an array of parts e.g. [{ text: '...' }]
+  const normalizedMessages = input.messages.map((m: any) => ({
+    role: m.role,
+    content: Array.isArray(m.content)
+      ? m.content
+      : [{ text: typeof m.content === 'string' ? m.content : String(m.content) }],
+  }));
+
+  // Extract last user message text for retrieval query
+  const lastMessage = normalizedMessages[normalizedMessages.length - 1];
+  const lastUserMessageText: string =
+    lastMessage?.content?.[0]?.text ?? '';
+
   // --- Context Retrieval ---
   const contextDocs = await ai.retrieve({
     retriever: retriever,
-    query: lastUserMessage,
+    query: lastUserMessageText,
     options: { limit: 3 },
   });
 
@@ -70,7 +81,7 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
     ${contextText}
     
     INSTRUCTION: Use the context above to inform your empathetic guidance.`,
-    messages: input.messages as any,
+    messages: normalizedMessages as any,
     config: {
       temperature: 0.4,
       maxOutputTokens: 800,
