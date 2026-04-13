@@ -1,89 +1,90 @@
-import { genkit, z } from 'genkit';
+/* eslint-disable import/no-unresolved */
+import { genkit } from 'genkit';
 import { openAI } from '@genkit-ai/compat-oai/openai';
+export { openAI };
 import { defineFirestoreRetriever } from '@genkit-ai/firebase';
 import * as admin from 'firebase-admin';
 
 /**
- * GenKit Engine for Positive Konnections (Phase 2)
- * Centralizes AI configuration, RAG search, and empathetic guardrails.
+ * GenKit Engine for Positive Konnections (Phase 3 - Lazy Init)
+ * Ensures secrets are fully loaded before AI tools are instantiated.
  */
-export const ai = genkit({
-  plugins: [
-    openAI(), // API key taken from OPENAI_API_KEY env var
-  ],
-});
+let aiInstance: any = null;
+let retrieverInstance: any = null;
 
-/**
- * Knowledge Retriever (Native Firestore Vector Search)
- */
-export const storiesRetriever = defineFirestoreRetriever(ai, {
-  name: 'storiesRetriever',
-  firestore: admin.firestore(),
-  collection: 'knowledge_index',
-  vectorField: 'embedding',
-  contentField: 'text',
-  embedder: openAI.embedder('text-embedding-3-small'),
-  distanceMeasure: 'COSINE',
-});
+export function getAi() {
+  if (!aiInstance) {
+    aiInstance = genkit({
+      plugins: [openAI()],
+    });
+  }
+  return aiInstance;
+}
+
+export function getRetriever() {
+  const ai = getAi();
+  if (!retrieverInstance) {
+    retrieverInstance = defineFirestoreRetriever(ai, {
+      name: 'storiesRetriever',
+      firestore: admin.firestore(),
+      collection: 'knowledge_index',
+      vectorField: 'embedding',
+      contentField: 'text',
+      embedder: openAI.embedder('text-embedding-3-small'),
+      distanceMeasure: 'COSINE',
+    });
+  }
+  return retrieverInstance;
+}
 
 /**
  * Peekay Chat Flow (Secure RAG Implementation)
+ * Wrapped in a lazy-initialization function for cloud stability.
  */
-export const peekayChatFlow = ai.defineFlow(
-  {
-    name: 'peekayChatFlow',
-    inputSchema: z.object({
-      messages: z.array(
-        z.object({
-          role: z.enum(['user', 'assistant', 'system']),
-          content: z.string(),
-        })
-      ),
-      userId: z.string(),
-    }),
-  },
-  async (input) => {
-    const lastUserMessage = input.messages[input.messages.length - 1].content;
+export const runPeekayChat = async (input: { messages: any[]; userId: string }) => {
+  const ai = getAi();
+  const retriever = getRetriever();
+
+  const lastUserMessage = input.messages[input.messages.length - 1].content;
+  
+  // --- Context Retrieval ---
+  const contextDocs = await ai.retrieve({
+    retriever: retriever,
+    query: lastUserMessage,
+    options: { limit: 3 },
+  });
+
+  const contextText = contextDocs.map((d: any) => d.text).join('\n---\n');
+
+  const response = await ai.generate({
+    model: openAI.model('gpt-4o-mini'),
+    system: `You are Peekay, the Official Wellness Curator for Positive Konnections. 
+    Your mission is to guide users through their HERO'S journey using the therapeutic workbook content.
     
-    // --- Context Retrieval (Part C) ---
-    const contextDocs = await ai.retrieve({
-      retriever: storiesRetriever,
-      query: lastUserMessage,
-      options: { limit: 3 },
-    });
+    GUARDRAILS:
+    - Deep empathy only.
+    - No medical prescriptions.
+    - Use "we" and "us" to emphasize community.
+    
+    CONTEXT FROM CURRICULUM:
+    ${contextText}
+    
+    INSTRUCTION: Use the context above to inform your empathetic guidance.`,
+    messages: input.messages as any,
+    config: {
+      temperature: 0.4,
+      maxOutputTokens: 800,
+    },
+  });
 
-    const contextText = contextDocs.map(d => d.text).join('\n---\n');
-
-    const response = await ai.generate({
-      model: openAI.model('gpt-4o-mini'),
-      system: `You are Peekay, the Official Wellness Curator for Positive Konnections. 
-      Your mission is to guide users through their HERO'S journey using the therapeutic workbook content.
-      
-      GUARDRAILS:
-      - Deep empathy only.
-      - No medical prescriptions.
-      - Use "we" and "us" to emphasize community.
-      
-      CONTEXT FROM CURRICULUM:
-      ${contextText}
-      
-      INSTRUCTION: Use the context above to inform your empathetic guidance.`,
-      messages: input.messages as any,
-      config: {
-        temperature: 0.4,
-        maxOutputTokens: 800,
-      },
-    });
-
-    return {
-      choices: [
-        {
-          message: {
-            role: 'assistant',
-            content: response.text,
-          },
+  return {
+    choices: [
+      {
+        message: {
+          role: 'assistant',
+          content: response.text,
         },
-      ],
-    };
-  }
-);
+      },
+    ],
+  };
+};

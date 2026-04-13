@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as functions from 'firebase-functions/v1';
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
@@ -18,7 +19,7 @@ exports.processSignUp = functions.auth.user().onCreate((user) => {
 });
 
 exports.generateHeroAvatar = functions
-  .runWith({ memory: '1GB', timeoutSeconds: 60 })
+  .runWith({ memory: '1GB', timeoutSeconds: 300, secrets: ['OPENAI_API_KEY'] })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError(
@@ -27,7 +28,7 @@ exports.generateHeroAvatar = functions
       );
     }
 
-    const apiKey = (functions.config() as any).openai?.key;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       throw new functions.https.HttpsError(
         'failed-precondition',
@@ -628,25 +629,29 @@ exports.onChatMessageCreated = functions.firestore
     });
   });
 
-import { ai, peekayChatFlow } from './ai';
-import { openAI } from '@genkit-ai/compat-oai/openai';
+
 
 /**
  * Peekay Chat Entry Point (Phase 2 - GenKit RAG Flow)
  * Secure backend proxy for OpenAI with GenKit empathy guardrails and context memory.
  */
 exports.peekayChat = functions
-  .runWith({ memory: '512MB', timeoutSeconds: 60 })
+  .runWith({ memory: '1GB', timeoutSeconds: 300, secrets: ['OPENAI_API_KEY'] })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'User must be signed in.');
     }
 
-    // Pass message history and user context into the GenKit Flow
-    return await peekayChatFlow({
-      messages: data.messages,
-      userId: context.auth.uid,
-    });
+    try {
+      const { runPeekayChat } = require('./ai');
+      return await runPeekayChat({
+        messages: data.messages,
+        userId: context.auth.uid,
+      });
+    } catch (error: any) {
+      console.error('Peekay Chat Error:', error);
+      throw new functions.https.HttpsError('internal', error.message || 'Peekay is resting.');
+    }
   });
 
 /**
@@ -670,6 +675,8 @@ exports.onWorkbookStoryCreated = functions.firestore
 
     // 3. Save to Native Knowledge Index (For Peekay search)
     // Using GenKit's native embedding action via our HUB
+    const { getAi, openAI } = require('./ai');
+    const ai = getAi();
     const embedding = await ai.embed({
       embedder: openAI.embedder('text-embedding-3-small'),
       content: responsesText,
@@ -682,7 +689,7 @@ exports.onWorkbookStoryCreated = functions.firestore
         uid: data.uid || 'system',
         workbookId: change.after.id,
         updatedAt: admin.firestore.Timestamp.now(),
-      }
+      },
     });
 
     return null;
@@ -693,13 +700,13 @@ exports.onWorkbookStoryCreated = functions.firestore
  * Analyzes user reflection workbook responses for clinical relevance and effort.
  */
 exports.validateAiResponse = functions
-  .runWith({ memory: '512MB', timeoutSeconds: 60 })
+  .runWith({ memory: '1GB', timeoutSeconds: 300, secrets: ['OPENAI_API_KEY'] })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'Validation requires authentication.');
     }
 
-    const apiKey = (functions.config() as any).openai?.key;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       throw new functions.https.HttpsError('failed-precondition', 'OpenAI configuration missing.');
     }
@@ -742,7 +749,7 @@ exports.validateAiResponse = functions
             { role: 'system', content: systemPrompt },
             { role: 'user', content: prompt }
           ],
-          response_format: { type: "json_object" }
+          response_format: { type: 'json_object' },
         }),
       });
 
