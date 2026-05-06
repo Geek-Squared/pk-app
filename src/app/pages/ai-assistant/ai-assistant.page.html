@@ -5,7 +5,7 @@
     <header class="ai-identity-section no-avatar">
       <div class="identity-text text-center">
         <h2 class="assistant-name">Peekay Assistant</h2>
-        <p class="curator-greeting">Your personal wellness curator. {{ greeting }}, {{ userName }}!</p>
+        <p class="curator-greeting">Your mental health support guide. {{ greeting }}, {{ userName }}!</p>
       </div>
     </header>
 
@@ -16,7 +16,7 @@
         <!-- Welcome Message (Peekay) -->
         <div class="message-row peekay no-avatar" *ngIf="messages.length === 0">
           <div class="bubble editorial-bubble">
-            <p>Good morning! I noticed your sleep data indicates a slightly restless night. Would you like to try a 5-minute restorative grounding exercise before we start our day?</p>
+            <p>{{ greeting }}! I’m here for emotional support, grounding, and reflection. What feels heaviest for you right now?</p>
             <span class="time-stamp">8:30 AM</span>
           </div>
         </div>
@@ -70,8 +70,8 @@
             <span class="material-symbols-outlined">self_care</span>
           </div>
           <div class="resilience-text">
-            <h4 class="card-title">Daily Resilience Habit</h4>
-            <p class="card-p">Grounding exercises can lower cortisol by up to 20% when practiced daily.</p>
+            <h4 class="card-title">Mental Health Check-In</h4>
+            <p class="card-p">Pause for a moment and name one feeling you want support with today.</p>
           </div>
         </div>
       </div>

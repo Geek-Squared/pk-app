@@ -3,7 +3,7 @@ import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
-export type AiChatAuthor = 'system' | 'user' | 'assistant';
+export type AiChatAuthor = 'user' | 'assistant';
 
 export interface AiChatMessage {
   role: AiChatAuthor;
@@ -42,4 +42,3 @@ export class AiChatService {
     );
   }
 }
-

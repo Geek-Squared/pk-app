@@ -19,9 +19,9 @@ export class AiAssistantPage implements OnDestroy {
   messages: AiChatMessage[] = [];
 
   readonly suggestions: string[] = [
-    'Analyze my sleep pattern',
-    'Suggest a 10m workout',
-    'How can I stress less?',
+    'Help me manage stress',
+    'I feel anxious today',
+    'Guide me through grounding',
   ];
 
   readonly supportActions: Array<{
@@ -41,16 +41,16 @@ export class AiAssistantPage implements OnDestroy {
     {
       icon: 'sparkles-outline',
       title: 'Chapter 10 Boost',
-      description: 'Ask Peekay to brainstorm powers for your hero.',
+      description: 'Turn a difficult feeling into a hero strength.',
       type: 'prompt',
-      value: 'Help me design a new power for my Chapter 10 superhero.',
+      value: 'Help me turn a difficult feeling into a strength for my Chapter 10 superhero.',
     },
     {
       icon: 'leaf-outline',
       title: 'Calming Pause',
       description: 'Receive a breathing or grounding practice.',
       type: 'prompt',
-      value: 'Please guide me through a calming breathing exercise.',
+      value: 'Please guide me through a calming grounding practice.',
     },
     {
       icon: 'heart-outline',
@@ -67,13 +67,6 @@ export class AiAssistantPage implements OnDestroy {
   readonly form = this.fb.group({
     prompt: ['', [Validators.required]],
   });
-
-  private readonly systemPrompt: AiChatMessage = {
-    role: 'system',
-    content:
-      'You are Peekay, the Positive Konnections wellbeing guide. Offer compassionate, peer-style support to young people navigating HIV-related journeys. Redirect them to relevant workbook chapters when asked, suggest short calming exercises, and encourage self-empowerment through superhero metaphors. Keep replies under 8 sentences, avoid medical/diagnostic claims, and gently remind users to contact their care provider or emergency services for urgent needs.',
-    createdAt: Date.now(),
-  };
 
   private activeRequest?: Subscription;
 
@@ -145,11 +138,9 @@ export class AiAssistantPage implements OnDestroy {
 
     this.scrollToBottom();
 
-    const conversation: AiChatMessage[] = [this.systemPrompt, ...this.messages];
-
     this.activeRequest?.unsubscribe();
     this.activeRequest = this.aiChatService
-      .sendMessage(conversation)
+      .sendMessage(this.messages)
       .subscribe({
         next: (assistantMessage) => {
           this.messages = [...this.messages, assistantMessage];

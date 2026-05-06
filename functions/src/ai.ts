@@ -45,18 +45,39 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
   const ai = getAi();
   const retriever = getRetriever();
 
-  // Normalize messages: GenKit expects content to be an array of parts e.g. [{ text: '...' }]
-  const normalizedMessages = input.messages.map((m: any) => ({
-    role: m.role,
-    content: Array.isArray(m.content)
-      ? m.content
-      : [{ text: typeof m.content === 'string' ? m.content : String(m.content) }],
-  }));
+  const toGenkitRole = (role: any) => {
+    if (role === 'assistant') return 'model';
+    if (['system', 'user', 'model', 'tool'].includes(role)) return role;
+    return 'user';
+  };
+
+  const toTextParts = (content: any) => {
+    if (Array.isArray(content)) {
+      return content
+        .map((part: any) => {
+          if (typeof part?.text === 'string') return { text: part.text };
+          if (typeof part === 'string') return { text: part };
+          return null;
+        })
+        .filter(Boolean);
+    }
+
+    return [{ text: typeof content === 'string' ? content : String(content ?? '') }];
+  };
+
+  // Genkit expects model replies to use role "model", not OpenAI-style "assistant".
+  const normalizedMessages = (Array.isArray(input.messages) ? input.messages : [])
+    .map((m: any) => ({
+      role: toGenkitRole(m?.role),
+      content: toTextParts(m?.content),
+    }))
+    .filter((m: any) => m.content.length > 0);
 
   // Extract last user message text for retrieval query
-  const lastMessage = normalizedMessages[normalizedMessages.length - 1];
-  const lastUserMessageText: string =
-    lastMessage?.content?.[0]?.text ?? '';
+  const lastUserMessage = [...normalizedMessages]
+    .reverse()
+    .find((m: any) => m.role === 'user');
+  const lastUserMessageText: string = lastUserMessage?.content?.[0]?.text ?? '';
 
   // --- Context Retrieval ---
   const contextDocs = await ai.retrieve({
@@ -69,12 +90,13 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
 
   const response = await ai.generate({
     model: openAI.model('gpt-4o-mini'),
-    system: `You are Peekay, the Official Wellness Curator for Positive Konnections. 
-    Your mission is to guide users through their HERO'S journey using the therapeutic workbook content.
+    system: `You are Peekay, the mental health support guide for Positive Konnections. 
+    Your mission is to guide users through emotional reflection, stress, anxiety, low mood, stigma, relationships, self-worth, and HIV-related feelings using the therapeutic workbook content.
     
     GUARDRAILS:
     - Deep empathy only.
-    - No medical prescriptions.
+    - Keep guidance focused on mental health, emotional support, grounding, coping skills, and workbook reflection.
+    - Do not analyze sleep data, prescribe workouts, give medical advice, diagnose conditions, or make physical health claims.
     - Use "we" and "us" to emphasize community.
     
     CONTEXT FROM CURRICULUM:
