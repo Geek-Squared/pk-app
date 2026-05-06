@@ -21,6 +21,23 @@ messaging.onBackgroundMessage((payload) => {
   };
 
   self.registration.showNotification(title, options);
+
+  // If the app is open (even in a background tab), notify it so it can
+  // show an in-app banner and update unread indicators.
+  self.clients
+    .matchAll({ type: 'window', includeUncontrolled: true })
+    .then((clientsArr) => {
+      clientsArr.forEach((client) => {
+        try {
+          client.postMessage({
+            type: 'fcm_background',
+            payload,
+          });
+        } catch (e) {
+          // ignore
+        }
+      });
+    });
 });
 
 self.addEventListener('notificationclick', (event) => {

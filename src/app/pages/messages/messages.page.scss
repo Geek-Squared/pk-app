@@ -9,6 +9,44 @@
   }
 }
 
+.mode-switch {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .mode-btn {
+    flex: 1;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 40, 142, 0.12);
+    background: #ffffff;
+    color: #00288e;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+
+    &.active {
+      background: rgba(0, 40, 142, 0.1);
+      border-color: rgba(0, 40, 142, 0.2);
+    }
+  }
+}
+
+.counsellor-cta {
+  margin-bottom: 1.25rem;
+
+  .request-btn {
+    width: 100%;
+    height: 44px;
+    border-radius: 999px;
+    background: #00288e;
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+}
+
 /* Editorial Header Section */
 .editorial-title-section {
   margin-bottom: 2.5rem;
@@ -336,4 +374,46 @@
   --background-activated: #1e40af;
   --box-shadow: 0 12px 32px rgba(0, 40, 142, 0.25);
   margin-bottom: 92px; // Match bottom nav gap
+}
+
+.composer-fab {
+  margin-bottom: 92px; // keep the whole speed dial above bottom nav
+}
+
+.composer-fab-list {
+  // For side="start" (opens to the left), force vertical stacking.
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.editorial-fab-item {
+  --background: rgba(246, 250, 254, 0.98);
+  --background-activated: rgba(221, 225, 255, 0.95);
+  --box-shadow: 0 10px 24px rgba(0, 40, 142, 0.18);
+  --color: #00288e;
+  border: 1px solid rgba(0, 40, 142, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+// Speed-dial items should be text-only pills (no icons, no overlay labels).
+.editorial-fab-item.text-only {
+  --border-radius: 999px;
+  --background: #00288e;
+  --background-activated: #1e40af;
+  --color: #ffffff;
+  --box-shadow: 0 12px 32px rgba(0, 40, 142, 0.25);
+  width: auto;
+  height: 36px;
+  min-width: 132px;
+  padding: 0 0.9rem;
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0;
+  text-transform: none;
+  justify-content: flex-start;
+  text-align: left;
+  border: 0;
 }

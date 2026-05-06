@@ -190,6 +190,38 @@ ion-item a {
   }
 }
 
+/* Header Chat Launcher (mobile + desktop) */
+.header-chat-launcher,
+.root-shell-header .user-pill {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 40, 142, 0.08);
+  color: var(--pk-blue, #1a4f8b);
+  border: 1px solid rgba(0, 40, 142, 0.12);
+}
+
+.header-chat-launcher ion-icon,
+.root-shell-header .user-pill ion-icon {
+  font-size: 26px;
+  color: currentColor;
+}
+
+.header-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ba1a1a;
+  border: 2px solid #ffffff;
+}
+
 // Mobile and Tablet specific styles
 @media (max-width: 767px) {
   .mobile-only-header {

@@ -10,6 +10,81 @@
   }
 }
 
+.counsellor-request-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(0, 40, 142, 0.06);
+  border: 1px solid rgba(0, 40, 142, 0.12);
+  color: #001453;
+
+  .banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .banner-title {
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1.1;
+  }
+
+  .banner-subtitle {
+    font-size: 0.82rem;
+    opacity: 0.9;
+    line-height: 1.2;
+  }
+
+  .banner-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+  }
+
+  .banner-btn {
+    height: 34px;
+    padding: 0 0.8rem;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #00288e;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .banner-btn.secondary {
+    border-color: rgba(0, 40, 142, 0.25);
+    background: rgba(246, 250, 254, 0.8);
+  }
+
+  .banner-btn.primary {
+    background: #00288e;
+    color: #ffffff;
+  }
+}
+
+.session-context {
+  margin-top: 0.15rem;
+  margin-bottom: 0.35rem;
+  align-self: center;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(0, 40, 142, 0.06);
+  border: 1px solid rgba(0, 40, 142, 0.10);
+  color: rgba(0, 20, 83, 0.92);
+  font-weight: 800;
+  font-size: 0.78rem;
+  line-height: 1.1;
+  text-align: center;
+}
+
 /* Glassmorphism Header */
 .chat-editorial-header {
   position: fixed;

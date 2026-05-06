@@ -5,15 +5,20 @@ import {
 } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
-import { GestureController, IonicModule, ModalController } from '@ionic/angular';
+import {
+  IonicModule,
+  ModalController,
+  ToastController,
+} from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ChatService } from 'src/app/services/chat.service';
 import { UsersService } from 'src/app/services/users.service';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
 import { UserSelectionComponent } from './user-selection/user-selection.component';
 import { FormsModule } from '@angular/forms';
 import { TitleService } from 'src/app/services/title.service';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 @Component({
   selector: 'app-messages',
@@ -24,29 +29,47 @@ import { TitleService } from 'src/app/services/title.service';
 })
 export class MessagesPage implements OnInit {
   searchTerm$ = new BehaviorSubject<string>('');
+  public currentUserRole$ = new BehaviorSubject<string>('');
   
   userChats$: Observable<any>;
   groupChats$: Observable<any>;
   filteredChats$: Observable<any>;
+  filteredCounsellorChats$: Observable<any>;
+  filteredOtherChats$: Observable<any>;
   filteredGroups$: Observable<any>;
   availableUsers$: Observable<any>;
   
   currentUser: any;
+  public mode: 'default' | 'counsellors' = 'default';
 
   constructor(
     public auth: AuthenticationService,
     public cs: ChatService,
-    public gestureCtrl: GestureController,
     private usersService: UsersService,
     private modalController: ModalController,
-    private titleService: TitleService
+    private titleService: TitleService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private fns: AngularFireFunctions,
+    private toastController: ToastController
   ) {}
 
   ngOnInit() {
-    this.titleService.setTitle('Network');
+    this.mode = (this.route.snapshot.data?.mode as any) === 'counsellors'
+      ? 'counsellors'
+      : 'default';
+
+    this.titleService.setTitle(this.mode === 'counsellors' ? 'Counsellors' : 'Network');
     
     this.auth.user$.pipe(take(1)).subscribe(user => {
       this.currentUser = user;
+      const role =
+        typeof user?.role === 'string'
+          ? user.role
+          : typeof user?.role?.name === 'string'
+            ? user.role.name
+            : '';
+      this.currentUserRole$.next(`${role || ''}`.toLowerCase());
     });
     
     this.userChats$ = this.cs.getUserChats();
@@ -56,9 +79,47 @@ export class MessagesPage implements OnInit {
     this.filteredChats$ = combineLatest([this.userChats$, this.searchTerm$]).pipe(
       map(([chats, term]) => {
         if (!chats) return [];
-        return chats.filter(c => 
+        return chats.filter(c =>
+          c.type !== 'group' &&
           c.recipientName?.toLowerCase().includes(term.toLowerCase())
         );
+      })
+    );
+
+    // Counsellor sessions:
+    // - For non-counsellors: only chats where the other participant is a counsellor (or chats created via request flow)
+    // - For counsellors: show all private chats (their recipients are clients, not counsellors)
+    this.filteredCounsellorChats$ = combineLatest([
+      this.filteredChats$,
+      this.currentUserRole$,
+    ]).pipe(
+      map(([chats, roleLower]: [any[], string]) => {
+        const list = Array.isArray(chats) ? chats : [];
+        if (roleLower === 'counsellor') {
+          return list;
+        }
+        return list.filter((c) => {
+          const recipientRoleLower = `${c?.recipientRole ?? ''}`.toLowerCase();
+          return recipientRoleLower === 'counsellor' || !!c?.request;
+        });
+      })
+    );
+
+    // "My Team" (Network mode) excludes counsellor sessions for non-counsellors.
+    this.filteredOtherChats$ = combineLatest([
+      this.filteredChats$,
+      this.currentUserRole$,
+    ]).pipe(
+      map(([chats, roleLower]: [any[], string]) => {
+        const list = Array.isArray(chats) ? chats : [];
+        if (roleLower === 'counsellor') {
+          // Counsellors don't have a "My Team" list in the network view; keep it empty.
+          return [];
+        }
+        return list.filter((c) => {
+          const recipientRoleLower = `${c?.recipientRole ?? ''}`.toLowerCase();
+          return recipientRoleLower !== 'counsellor' && !c?.request;
+        });
       })
     );
 
@@ -85,7 +146,11 @@ export class MessagesPage implements OnInit {
       map(([users, chats, term]) => {
         if (!users) return [];
         
-        let available = users.filter(u => u.uid !== this.currentUser?.uid && u.role === 'counsellor');
+        let available = users.filter(
+          (u) =>
+            u.uid !== this.currentUser?.uid &&
+            `${u.role ?? ''}`.toLowerCase() === 'counsellor'
+        );
         
         const chattedUids = chats?.map(c => c.recipientId) || [];
         available = available.filter(u => !chattedUids.includes(u.uid));
@@ -126,6 +191,36 @@ export class MessagesPage implements OnInit {
         this.cs.create(data.user);
       }
     }
+  }
+
+  public goToCounsellors(): void {
+    this.router.navigateByUrl('/messages/counsellors');
+  }
+
+  public goToNetwork(): void {
+    this.router.navigateByUrl('/messages');
+  }
+
+  public async requestCounsellor(): Promise<void> {
+    const callable = this.fns.httpsCallable('requestCounsellorChat');
+    const res = await callable({}).toPromise();
+
+    const chatId = (res as any)?.chatId || null;
+    const available = (res as any)?.available !== false;
+    const counsellorUid = (res as any)?.counsellorUid || null;
+
+    if (!available || !chatId) {
+      const toast = await this.toastController.create({
+        message: 'No counsellor is available right now.',
+        duration: 3000,
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    console.log('[CounsellorRequest] Assigned', { chatId, counsellorUid });
+    this.router.navigateByUrl(`/messages/chat/${chatId}`);
   }
 
   getTotalUnread(chat: any) {

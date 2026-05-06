@@ -7,23 +7,42 @@
       <div class="avatar-box">
         <img *ngIf="chat?.recipientPhoto" [src]="chat.recipientPhoto" alt="Avatar" />
         <div *ngIf="!chat?.recipientPhoto" class="initial-avatar">{{ (chat?.recipientName || 'C') | slice:0:1 }}</div>
-        <span class="status-indicator online"></span>
+        <span class="status-indicator online" *ngIf="chat?.recipientOnline === true"></span>
       </div>
 
       <div class="text-meta">
         <span class="name">{{ chat?.recipientName || chat?.displayName || 'Chat' }}</span>
-        <span class="status-label">Online</span>
+        <span class="status-label" *ngIf="chat?.recipientOnline === true">Online</span>
       </div>
     </div>
 
     <div class="header-actions">
-      <button class="action-btn"><span class="material-symbols-outlined">more_vert</span></button>
+      <button type="button" class="action-btn" (click)="presentChatOptions()">
+        <span class="material-symbols-outlined">more_vert</span>
+      </button>
     </div>
   </div>
 </header>
 
 <ion-content [fullscreen]="true" class="page-content chat-canvas" #content>
   <div class="chat-thread-wrapper">
+
+    <!-- Counsellor request banner -->
+    <div class="counsellor-request-banner" *ngIf="pendingForMe">
+      <div class="banner-text">
+        <div class="banner-title">New counselling request</div>
+        <div class="banner-subtitle">Accept to start the session.</div>
+      </div>
+      <div class="banner-actions">
+        <button type="button" class="banner-btn secondary" (click)="declineRequest()">Decline</button>
+        <button type="button" class="banner-btn primary" (click)="acceptRequest()">Accept</button>
+      </div>
+    </div>
+
+    <!-- Session context line -->
+    <div class="session-context" *ngIf="sessionBannerText">
+      {{ sessionBannerText }}
+    </div>
     
     <ng-container *ngFor="let msg of chat?.messages; index as index; trackBy: trackByCreated">
       <!-- Editorial Date Divider -->

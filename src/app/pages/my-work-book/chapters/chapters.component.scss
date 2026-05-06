@@ -2,6 +2,23 @@
   padding-bottom: 4rem;
 }
 
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #444653;
+
+  .material-symbols-outlined {
+    display: block;
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.45;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
 /* Editorial Header */
 .chapter-editorial-header {
   margin-bottom: 2.5rem;
@@ -23,82 +40,6 @@
     line-height: 1.2;
     letter-spacing: -0.03em;
     margin: 0;
-  }
-}
-
-/* Progress Hub Card */
-.chapter-progress-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 32px;
-  background: #1e40af;
-  padding: 2rem;
-  color: #ffffff;
-  margin-top: 1.5rem;
-  margin-bottom: 3rem;
-  box-shadow: 0 15px 35px rgba(30, 64, 175, 0.15);
-
-  .glow-orb {
-    position: absolute;
-    top: -50px;
-    right: -50px;
-    width: 200px;
-    height: 200px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    filter: blur(50px);
-  }
-
-  .card-content {
-    position: relative;
-    z-index: 1;
-
-    h3 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 0 0 1.5rem 0;
-    }
-
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 0.75rem;
-
-      .label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #a8b8ff;
-      }
-
-      .value {
-        font-size: 2rem;
-        font-weight: 800;
-      }
-    }
-
-    .track {
-      height: 10px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-bottom: 1rem;
-
-      .fill {
-        height: 100%;
-        background: #64a8fe;
-        border-radius: 999px;
-        transition: width 1s ease-in-out;
-      }
-    }
-
-    .hint {
-      font-size: 0.875rem;
-      line-height: 1.6;
-      color: rgba(168, 184, 255, 0.9);
-      margin: 0;
-      strong { color: #ffffff; }
-    }
   }
 }
 

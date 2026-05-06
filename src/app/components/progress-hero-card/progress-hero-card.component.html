@@ -1,0 +1,34 @@
+<section class="progress-hero-card">
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-header">
+      <div>
+        <span class="status-badge">{{ statusLabel }}</span>
+        <h3>{{ title }}</h3>
+      </div>
+      <span class="material-symbols-outlined hero-icon">{{ icon }}</span>
+    </div>
+
+    <div class="progress-stats">
+      <div class="main-stat">
+        <span class="percentage">{{ normalizedPercentage }}<small>%</small></span>
+        <span class="modules-count">
+          {{ completedCount }} of {{ totalCount }} {{ itemLabel }}
+        </span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="normalizedPercentage"></div>
+      </div>
+    </div>
+
+    <button
+      *ngIf="actionLabel"
+      type="button"
+      class="continue-btn"
+      (click)="action.emit()"
+    >
+      {{ actionLabel }}
+      <ion-icon name="arrow-forward-outline"></ion-icon>
+    </button>
+  </div>
+</section>

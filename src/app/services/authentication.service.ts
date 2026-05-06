@@ -18,6 +18,7 @@ import firebase from 'firebase/compat/app';
 export class AuthenticationService {
   userData: any; // Save logged in user data
   user$: Observable<any>;
+  private onlineUserId: string | null = null;
 
   constructor(
     public afs: AngularFirestore, // Inject Firestore service
@@ -39,6 +40,10 @@ export class AuthenticationService {
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
         this.userData = user;
+        if (user.emailVerified !== false) {
+          this.onlineUserId = user.uid;
+          this.usersService.updateOnlineStatus(user.uid, true).catch(() => undefined);
+        }
         
         // Only redirect to home if we are currently on the login page or at the root
         const currentUrl = this.router.url;
@@ -163,11 +168,14 @@ export class AuthenticationService {
 
   // Sign out
   SignOut() {
+    const uid = JSON.parse(localStorage.getItem('user'))?.uid || this.onlineUserId;
     this.usersService
-      .updateDeviceId(JSON.parse(localStorage.getItem('user'))?.uid, '')
+      .updateOnlineStatus(uid, false)
+      .then(() => this.usersService.updateDeviceId(uid, ''))
       .then(() =>
         this.afAuth.signOut().then(() => {
           localStorage.clear();
+          this.onlineUserId = null;
           this.fcmService.unsubscribeFromTopic();
 
           this.router.navigate(['login']);

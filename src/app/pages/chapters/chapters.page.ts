@@ -6,7 +6,6 @@ import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { WorkbookResponse } from 'src/app/models/workbook.interface';
 import { InterventionsService } from 'src/app/services/interventions.service';
-import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-chapters',
@@ -23,6 +22,14 @@ export class ChaptersPage implements OnInit {
   public progressPercentage = 0;
   private workbookResponses: WorkbookResponse[] = [];
   private readonly MIN_MEANINGFUL_SCORE = 5;
+
+  public get completedChaptersCount(): number {
+    return Math.min(this.countMeaningfulResponses(), this.chapters.length);
+  }
+
+  public get totalChaptersCount(): number {
+    return this.chapters.length;
+  }
 
   constructor(
     private chaptersService: ChaptersService,
@@ -104,6 +111,7 @@ export class ChaptersPage implements OnInit {
     this.workbookService.getUserQuestionResponses().subscribe(
       (res: any) => {
         this.workbookResponses = res?.[0]?.responses ?? [];
+        this.updateProgressCalculations();
       },
       () => undefined
     );

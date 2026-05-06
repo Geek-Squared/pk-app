@@ -7,34 +7,17 @@
       <p>Guided interventions for personal growth.</p>
     </header>
 
-    <!-- Progress Hero Card (Dashboard-style summary) -->
-    <section class="progress-hero-card">
-      <div class="hero-glow"></div>
-      <div class="hero-content">
-        <div class="hero-header">
-          <div>
-            <span class="status-badge">Status: Active</span>
-            <h3>Your Progress Journey</h3>
-          </div>
-          <span class="material-symbols-outlined hero-icon">auto_graph</span>
-        </div>
-        
-        <div class="progress-stats">
-          <div class="main-stat">
-            <span class="percentage">{{ progressPercentage }}<small>%</small></span>
-            <span class="modules-count">{{ completedModules }} of {{ totalModules }} Modules Completed</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" [style.width.%]="progressPercentage"></div>
-          </div>
-        </div>
-
-        <button class="continue-btn" (click)="continueIntervention()">
-          Continue Intervention 
-          <ion-icon name="arrow-forward-outline"></ion-icon>
-        </button>
-      </div>
-    </section>
+    <app-progress-hero-card
+      statusLabel="Status: Active"
+      title="Your Progress Journey"
+      icon="auto_graph"
+      [percentage]="progressPercentage"
+      [completedCount]="completedModules"
+      [totalCount]="totalModules"
+      itemLabel="Modules Completed"
+      actionLabel="Continue Intervention"
+      (action)="continueIntervention()"
+    ></app-progress-hero-card>
 
     <!-- Category Grid (Dynamic Interventions List) -->
     <section class="categories-section">

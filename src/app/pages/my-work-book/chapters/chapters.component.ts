@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Chapter } from 'src/app/models/chapter.interface';
 import { Intervention } from 'src/app/models/intervention.interface';
@@ -34,7 +34,8 @@ export class ChaptersComponent implements OnInit, OnDestroy {
     private chaptersService: ChaptersService,
     private workbookService: WorkbookService,
     private utilsService: UtilitiesService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -134,6 +135,7 @@ export class ChaptersComponent implements OnInit, OnDestroy {
       .subscribe(
         (chapters) => {
           this.chapters = chapters;
+          this.calculateProgress();
           this.isLoading = false;
           this.utilsService.dismissLoader();
         },
@@ -201,5 +203,42 @@ export class ChaptersComponent implements OnInit, OnDestroy {
       if (typeof response?.qualityScore === 'number') return response.qualityScore >= this.MIN_MEANINGFUL_SCORE;
       return !!response?.content;
     }).length;
+  }
+
+  public async continuePath(): Promise<void> {
+    const interventions = this.interventions.length
+      ? this.interventions
+      : await this.getInterventionsOnce();
+
+    for (const intervention of interventions) {
+      if (!intervention?.id) {
+        continue;
+      }
+
+      const chapterDocs = await firstValueFrom(
+        this.chaptersService.getChaptersByInterventionId(intervention.id)
+      );
+      const chapterIds = chapterDocs.map((e: any) => e.payload.doc.id);
+      const completedCount = chapterIds.filter((id) =>
+        this.workbookResponses.some((response) => response.chapterId === id)
+      ).length;
+
+      if (completedCount < chapterIds.length) {
+        this.router.navigate(['/my-work-book/chapters', intervention.id]);
+        return;
+      }
+    }
+
+    if (interventions[0]?.id) {
+      this.router.navigate(['/my-work-book/chapters', interventions[0].id]);
+    }
+  }
+
+  private async getInterventionsOnce(): Promise<Intervention[]> {
+    const docs = await firstValueFrom(this.interventionsService.getInterventions());
+    return docs.map((e: any) => ({
+      id: e.payload.doc.id,
+      ...e.payload.doc.data(),
+    }));
   }
 }

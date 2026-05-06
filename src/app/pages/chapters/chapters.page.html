@@ -6,26 +6,15 @@
       <span class="overline">Chapter Overview</span>
       <h2>{{ interventionName }}</h2>
       
-      <!-- Progress Journey Card -->
-      <div class="chapter-progress-card">
-        <div class="glow-orb"></div>
-        <div class="card-content">
-          <h3>Your Progress Journey</h3>
-          <div class="stat-row">
-            <span class="label">Curriculum Completion</span>
-            <span class="value">{{ progressPercentage }}%</span>
-          </div>
-          <div class="track">
-            <div class="fill" [style.width.%]="progressPercentage"></div>
-          </div>
-          <p class="hint" *ngIf="progressPercentage < 100; else completedHint">
-            You're doing great! Complete your current module to unlock the next set of <strong>wellbeing</strong> tools.
-          </p>
-          <ng-template #completedHint>
-            <p class="hint">Outstanding! You've mastered this curriculum. Rewatch any chapter to reinforce your growth.</p>
-          </ng-template>
-        </div>
-      </div>
+      <app-progress-hero-card
+        statusLabel="Curriculum Completion"
+        title="Your Progress Journey"
+        icon="auto_graph"
+        [percentage]="progressPercentage"
+        [completedCount]="completedChaptersCount"
+        [totalCount]="totalChaptersCount"
+        itemLabel="Chapters Explored"
+      ></app-progress-hero-card>
     </section>
 
     <!-- Workbook Chapters List -->

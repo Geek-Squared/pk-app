@@ -9,7 +9,7 @@
         <div class="hero-bg-image"></div>
         <div class="hero-overlay"></div>
         <div class="hero-text">
-          <p class="hero-label">Your Lumina Pulse</p>
+          <!-- <p class="hero-label">Your Lumina Pulse</p> -->
           <h2 *ngIf="user$ | async as user">Hello, {{ user.displayName || 'Friend' }}. <br/><span>Let's find your focus today.</span></h2>
           <h2 *ngIf="!(user$ | async)">Hello. <br/><span>Let's find your focus today.</span></h2>
           <p>Choose a focus area below to begin your journey.</p>

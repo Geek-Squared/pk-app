@@ -10,6 +10,11 @@ const routes: Routes = [
     path: '',
     component: MessagesPage,
   },
+  {
+    path: 'counsellors',
+    component: MessagesPage,
+    data: { mode: 'counsellors' },
+  },
   { path: 'chat/:chatId', component: ChatComponent },
   { path: 'voice-notes', component: VoiceNotesComponent },
 ];

@@ -8,6 +8,7 @@ import { IonicModule } from '@ionic/angular';
 import { ChaptersPageRoutingModule } from './chapters-routing.module';
 
 import { ChaptersPage } from './chapters.page';
+import { ProgressHeroCardComponent } from 'src/app/components/progress-hero-card/progress-hero-card.component';
 
 @NgModule({
   imports: [
@@ -15,6 +16,7 @@ import { ChaptersPage } from './chapters.page';
     FormsModule,
     IonicModule,
     BackButtonComponent,
+    ProgressHeroCardComponent,
     ChaptersPageRoutingModule
   ],
   declarations: [ChaptersPage]

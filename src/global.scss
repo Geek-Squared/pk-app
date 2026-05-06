@@ -116,6 +116,17 @@ ion-button {
   border-radius: 999px;
 }
 
+/* Mobile in-app notification banner (toast) */
+.pk-native-banner {
+  --background: rgba(255, 255, 255, 0.96);
+  --color: #171c1f;
+  --border-radius: 14px;
+  --box-shadow: 0 10px 30px rgba(23, 28, 31, 0.12);
+  --button-color: #00288e;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
 // Desktop-only global enhancements
 @media (min-width: 768px) {
   // Custom scrollbar for desktop
@@ -375,4 +386,3 @@ ion-router-outlet:not(.has-header) {
     --padding-bottom: 92px !important;
   }
 }
-

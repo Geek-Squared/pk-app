@@ -1,14 +1,10 @@
 import { Injectable, NgZone } from '@angular/core';
 
 import { Capacitor } from '@capacitor/core';
-import {
-  ActionPerformed,
-  PushNotifications,
-  PushNotificationSchema,
-} from '@capacitor/push-notifications';
 import { Router } from '@angular/router';
 import { UsersService } from './users.service';
-import { FCM } from '@capacitor-community/fcm';
+import { ToastController } from '@ionic/angular';
+import { InAppNotificationsService } from './in-app-notifications.service';
 import { environment } from 'src/environments/environment';
 import { getApps, initializeApp } from 'firebase/app';
 import {
@@ -18,6 +14,7 @@ import {
   onMessage,
   Messaging,
 } from 'firebase/messaging';
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 
 @Injectable({
   providedIn: 'root',
@@ -25,65 +22,115 @@ import {
 export class FcmService {
   private webInitPromise: Promise<void> | null = null;
   private webMessaging: Messaging | null = null;
+  private swMessageListenerAttached = false;
+  private nativeInitPromise: Promise<void> | null = null;
 
   constructor(
     private router: Router,
     private usersService: UsersService,
-    private zone: NgZone
+    private zone: NgZone,
+    private toastController: ToastController,
+    private inAppNotifications: InAppNotificationsService
   ) {}
 
   initPush() {
     if (Capacitor.getPlatform() !== 'web') {
-      this.registerPush();
-      this.subscribeToTopic();
+      this.initNativePush();
       return;
     }
     this.initWebPush();
   }
 
-  private async registerPush() {
+  private initNativePush(): void {
+    if (this.nativeInitPromise) {
+      return;
+    }
+    this.nativeInitPromise = this.registerNativePush();
+  }
+
+  private async registerNativePush(): Promise<void> {
     const uid = JSON.parse(localStorage.getItem('user'))?.uid;
-    PushNotifications.requestPermissions().then((permission) => {
-      if (permission.receive === 'granted') {
-        // Register with Apple / Google to receive push via APNS/FCM
-        PushNotifications.register();
-      } else {
-        // No permission for push granted
+    if (!uid) {
+      return;
+    }
+
+    const permStatus = await FirebaseMessaging.checkPermissions().catch(() => ({
+      receive: 'prompt',
+    }));
+    console.log('[FirebaseMessaging] checkPermissions', permStatus);
+    if (permStatus.receive !== 'granted') {
+      const requested = await FirebaseMessaging.requestPermissions().catch(
+        () => ({ receive: 'denied' })
+      );
+      console.log('[FirebaseMessaging] requestPermissions', requested);
+      if (requested.receive !== 'granted') {
+        return;
+      }
+    }
+
+    // Ensure Android has a proper high-importance channel.
+    await FirebaseMessaging.createChannel({
+      id: 'pk_chat',
+      name: 'Chat messages',
+      description: 'Incoming chat messages',
+      importance: 5,
+      visibility: 1,
+      sound: 'default',
+      lights: true,
+      vibration: true,
+    }).catch(() => undefined);
+    const channels = await FirebaseMessaging.listChannels().catch(() => null);
+    if (channels) {
+      console.log('[FirebaseMessaging] channels', channels);
+    }
+
+    const tokenResult = await FirebaseMessaging.getToken().catch(() => null);
+    if (tokenResult?.token) {
+      await this.usersService.updateDeviceId(uid, tokenResult.token);
+      console.log('Native FCM token registered for user', uid);
+    }
+
+    await FirebaseMessaging.addListener('tokenReceived', async (event) => {
+      const token = event?.token;
+      if (token) {
+        await this.usersService.updateDeviceId(uid, token);
       }
     });
 
-    PushNotifications.addListener('registration', (token: any) => {
-      this.usersService
-        .updateDeviceId(uid, token)
-        .then(() => {
-          console.log('updated device id');
-        })
-        .catch((err) => {
-          console.error('err =>', err);
+    await FirebaseMessaging.addListener('notificationReceived', (event: any) => {
+      this.zone.run(() => {
+        const title = event?.notification?.title || 'Positive Konnections';
+        const body = event?.notification?.body || '';
+        const targetUrl = this.resolveLandingUrl(event?.data || {});
+
+        this.inAppNotifications.markUnread({
+          title,
+          body,
+          createdAt: Date.now(),
+          targetUrl,
+          data: event?.data || {},
         });
+
+        // No custom in-app banner on mobile; rely on OS notification UI.
+      });
     });
 
-    PushNotifications.addListener('registrationError', (error: any) => {
-      console.log('Error: ' + JSON.stringify(error));
-    });
-
-    PushNotifications.addListener(
-      'pushNotificationReceived',
-      (notification: PushNotificationSchema) => {
-        console.log('Push received: ' + JSON.stringify(notification));
+    await FirebaseMessaging.addListener(
+      'notificationActionPerformed',
+      (event: any) => {
+        this.zone.run(() => {
+          const data = event?.notification?.data || event?.data || {};
+          const targetUrl = this.resolveLandingUrl(data);
+          if (targetUrl) {
+            this.inAppNotifications.clearUnread();
+            this.router.navigateByUrl(targetUrl);
+          }
+        });
       }
     );
 
-    PushNotifications.addListener(
-      'pushNotificationActionPerformed',
-      (notification: ActionPerformed) => {
-        const data = notification.notification.data;
-
-        console.log(
-          'Action performed: ' + JSON.stringify(notification.notification)
-        );
-        this.router.navigateByUrl(`/messages/chat/${data?.chatId}`);
-      }
+    await FirebaseMessaging.subscribeToTopic({ topic: 'groupChat' }).catch(
+      () => undefined
     );
   }
 
@@ -142,26 +189,18 @@ export class FcmService {
     const uid = JSON.parse(localStorage.getItem('user'))?.uid;
     if (token && uid) {
       await this.usersService.updateWebFcmToken(uid, token);
+      console.log('Web FCM token registered for user', uid);
     }
+
+    this.attachServiceWorkerMessageListener();
 
     onMessage(this.webMessaging, (payload) => {
       this.zone.run(() => {
         const title =
           payload?.notification?.title || 'Positive Konnections';
         const body = payload?.notification?.body || '';
-        if ('Notification' in window && Notification.permission === 'granted') {
-          const notification = new Notification(title, {
-            body,
-            data: payload?.data || {},
-          });
-          notification.onclick = () => {
-            const targetUrl = this.resolveLandingUrl(payload?.data || {});
-            if (targetUrl) {
-              this.router.navigateByUrl(targetUrl);
-            }
-            notification.close();
-          };
-        }
+
+        this.handleIncomingWebMessage(payload);
       });
     });
   }
@@ -183,17 +222,81 @@ export class FcmService {
     return null;
   }
 
-  public async subscribeToTopic() {
-    await PushNotifications.requestPermissions();
-    await PushNotifications.register();
-    FCM.subscribeTo({ topic: 'groupChat' })
-      .then((r) => {})
-      .catch((err) => console.log(err));
+  private async presentInAppBanner(
+    title: string,
+    body: string,
+    targetUrl: string | null
+  ): Promise<void> {
+    try {
+      const toast = await this.toastController.create({
+        header: title,
+        message: body,
+        duration: 5000,
+        position: 'top',
+        cssClass: 'pk-native-banner',
+        buttons: [
+          {
+            text: 'Open',
+            role: 'cancel',
+            handler: () => {
+              if (targetUrl) {
+                this.router.navigateByUrl(targetUrl);
+                this.inAppNotifications.clearUnread();
+              }
+            },
+          },
+        ],
+      });
+
+      await toast.present();
+    } catch (err) {
+      console.warn('Unable to present in-app banner', err);
+    }
   }
 
-  public unsubscribeFromTopic() {
-    FCM.unsubscribeFrom({ topic: 'test' })
-      .then(() => {})
-      .catch((err) => console.log(err));
+  private attachServiceWorkerMessageListener(): void {
+    if (this.swMessageListenerAttached) {
+      return;
+    }
+    this.swMessageListenerAttached = true;
+
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    navigator.serviceWorker.addEventListener('message', (event: any) => {
+      const data = event?.data;
+      if (!data || data.type !== 'fcm_background') {
+        return;
+      }
+
+      // Forward background-push payloads into the same handler used for foreground pushes.
+      this.zone.run(() => {
+        this.handleIncomingWebMessage(data.payload);
+      });
+    });
+  }
+
+  private handleIncomingWebMessage(payload: any): void {
+    const title = payload?.notification?.title || 'Positive Konnections';
+    const body = payload?.notification?.body || '';
+    const targetUrl = this.resolveLandingUrl(payload?.data || {});
+
+    this.inAppNotifications.markUnread({
+      title,
+      body,
+      createdAt: Date.now(),
+      targetUrl,
+      data: payload?.data || {},
+    });
+
+    // Show a toast banner when the app is running.
+    this.presentInAppBanner(title, body, targetUrl);
+  }
+
+  public async unsubscribeFromTopic() {
+    await FirebaseMessaging.unsubscribeFromTopic({ topic: 'groupChat' }).catch(
+      () => undefined
+    );
   }
 }

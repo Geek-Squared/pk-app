@@ -12,6 +12,7 @@ import { PostsComponent } from './posts/posts.component';
 import { QuestionAnswersComponent } from './question-answers/question-answers.component';
 import { SuperheroComponent } from './superhero/superhero.component';
 import { BackButtonComponent } from 'src/app/components/back-button/back-button.component';
+import { ProgressHeroCardComponent } from 'src/app/components/progress-hero-card/progress-hero-card.component';
 
 @NgModule({
   imports: [
@@ -20,6 +21,7 @@ import { BackButtonComponent } from 'src/app/components/back-button/back-button.
     ReactiveFormsModule,
     IonicModule,
     BackButtonComponent,
+    ProgressHeroCardComponent,
     MyWorkBookPageRoutingModule,
   ],
   declarations: [

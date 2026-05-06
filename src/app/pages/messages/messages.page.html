@@ -3,9 +3,29 @@
     
     <!-- Editorial Header Section -->
     <header class="editorial-title-section">
-      <h2 class="title">Network</h2>
-      <p class="description">Connect with your dedicated care team or discover collaborative community spaces.</p>
+      <h2 class="title">{{ mode === 'counsellors' ? 'Counsellors' : 'Network' }}</h2>
+      <p class="description" *ngIf="mode !== 'counsellors'">
+        Connect with your dedicated care team or discover collaborative community spaces.
+      </p>
+      <p class="description" *ngIf="mode === 'counsellors'">
+        Request a counsellor or continue existing sessions.
+      </p>
     </header>
+
+    <div class="mode-switch">
+      <button type="button" class="mode-btn" [class.active]="mode !== 'counsellors'" (click)="goToNetwork()">
+        Network
+      </button>
+      <button type="button" class="mode-btn" [class.active]="mode === 'counsellors'" (click)="goToCounsellors()">
+        Counsellors
+      </button>
+    </div>
+
+    <div class="counsellor-cta" *ngIf="mode === 'counsellors' && (currentUserRole$ | async) !== 'counsellor'">
+      <button type="button" class="request-btn" (click)="requestCounsellor()">
+        Request Counsellor
+      </button>
+    </div>
 
     <!-- Professional Search Bar -->
     <div class="search-container">
@@ -21,23 +41,26 @@
     </div>
 
     <!-- Categorized Sections: My Team (Individual) -->
-    <section class="network-section my-team" *ngIf="(filteredChats$ | async)?.length">
+    <section
+      class="network-section my-team"
+      *ngIf="mode !== 'counsellors' && (filteredOtherChats$ | async)?.length"
+    >
       <div class="section-header">
         <h3 class="section-label">My Team</h3>
-        <span class="count-pill">{{ (filteredChats$ | async)?.length }} Active</span>
+        <span class="count-pill">{{ (filteredOtherChats$ | async)?.length }} Active</span>
       </div>
 
       <div class="contact-list">
         <div 
           class="contact-card" 
-          *ngFor="let chat of filteredChats$ | async"
+          *ngFor="let chat of filteredOtherChats$ | async"
           [routerLink]="'chat/' + chat.id"
         >
           <div class="profile-block">
             <div class="avatar-box">
               <img *ngIf="chat?.recipientPhoto" [src]="chat.recipientPhoto" alt="Avatar" />
               <div *ngIf="!chat?.recipientPhoto" class="initial-avatar">{{ (chat?.recipientName || 'C') | slice:0:1 }}</div>
-              <div class="status-indicator online" *ngIf="chat?.recipientOnline"></div>
+              <div class="status-indicator online" *ngIf="chat?.recipientOnline === true"></div>
             </div>
             <div class="text-meta">
               <h4 class="name">{{ chat?.recipientName || chat?.displayName || 'Care Provider' }}</h4>
@@ -54,8 +77,44 @@
       </div>
     </section>
 
+    <section
+      class="network-section my-team"
+      *ngIf="mode === 'counsellors' && (filteredCounsellorChats$ | async)?.length"
+    >
+      <div class="section-header">
+        <h3 class="section-label">Counsellors</h3>
+        <span class="count-pill">{{ (filteredCounsellorChats$ | async)?.length }} Active</span>
+      </div>
+
+      <div class="contact-list">
+        <div
+          class="contact-card"
+          *ngFor="let chat of filteredCounsellorChats$ | async"
+          [routerLink]="'chat/' + chat.id"
+        >
+          <div class="profile-block">
+            <div class="avatar-box">
+              <img *ngIf="chat?.recipientPhoto" [src]="chat.recipientPhoto" alt="Avatar" />
+              <div *ngIf="!chat?.recipientPhoto" class="initial-avatar">{{ (chat?.recipientName || 'C') | slice:0:1 }}</div>
+              <div class="status-indicator online" *ngIf="chat?.recipientOnline === true"></div>
+            </div>
+            <div class="text-meta">
+              <h4 class="name">{{ chat?.recipientName || 'Counsellor' }}</h4>
+              <p class="role">{{ chat.messages[chat.messages.length - 1]?.content || 'Connected' }}</p>
+            </div>
+          </div>
+          <div class="action-spread">
+            <button class="icon-action chat">
+              <span class="material-symbols-outlined">chat</span>
+              <div class="unread-dot" *ngIf="getTotalUnread(chat) > 0"></div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Categorized Sections: Community Spaces (Groups) -->
-    <section class="network-section group-spaces" *ngIf="(filteredGroups$ | async)?.length">
+    <section class="network-section group-spaces" *ngIf="mode !== 'counsellors' && (filteredGroups$ | async)?.length">
       <div class="section-header">
         <h3 class="section-label">Community Spaces</h3>
         <span class="count-pill">Discussion Groups</span>
@@ -90,7 +149,7 @@
     </section>
 
     <!-- Available Counselors Section (Discovery) -->
-    <section class="network-section discovery" *ngIf="(availableUsers$ | async)?.length">
+    <section class="network-section discovery" *ngIf="mode !== 'counsellors' && (availableUsers$ | async)?.length">
       <div class="section-header">
         <h3 class="section-label">Available Counselors</h3>
         <span class="count-pill">Expert Discovery</span>
@@ -120,9 +179,19 @@
 
   </div>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="showUserSelection(true)" class="editorial-fab">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="composer-fab">
+    <ion-fab-button class="editorial-fab">
       <ion-icon name="people"></ion-icon>
     </ion-fab-button>
+
+    <!-- Speed dial -->
+    <ion-fab-list side="start" class="composer-fab-list">
+      <ion-fab-button (click)="showUserSelection(true)" class="editorial-fab-item text-only" aria-label="Add group">
+        Add group
+      </ion-fab-button>
+      <ion-fab-button (click)="showUserSelection(false)" class="editorial-fab-item text-only" aria-label="Add new chat">
+        New chat
+      </ion-fab-button>
+    </ion-fab-list>
   </ion-fab>
 </ion-content>

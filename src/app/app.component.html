@@ -84,10 +84,10 @@
         <img alt="Positive Konnections Logo" class="logo-img" src="assets/images/logo.png" />
       </div>
       <div class="header-side" style="justify-content: flex-end;">
-        <div class="mobile-profile-avatar" routerLink="/profile">
-          <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" alt="Profile" />
-          <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person-circle-outline"></ion-icon>
-        </div>
+        <button type="button" class="header-chat-launcher" (click)="openChatLauncher()">
+          <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+          <span class="header-dot" *ngIf="hasUnreadNotifications$ | async"></span>
+        </button>
       </div>
     </header>
   </ion-header>
@@ -111,13 +111,10 @@
           <ion-button fill="clear" color="dark">
             <ion-icon name="notifications-outline"></ion-icon>
           </ion-button>
-          <div class="user-pill" routerLink="/profile">
-            <div class="pill-avatar">
-              <img *ngIf="(user$ | async)?.photoURL" [src]="(user$ | async)?.photoURL" />
-              <ion-icon *ngIf="!(user$ | async)?.photoURL" name="person-circle-outline"></ion-icon>
-            </div>
-            <ion-icon name="settings-outline"></ion-icon>
-          </div>
+          <button type="button" class="user-pill" (click)="openChatLauncher()">
+            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+            <span class="header-dot" *ngIf="hasUnreadNotifications$ | async"></span>
+          </button>
         </div>
       </header>
     </div>

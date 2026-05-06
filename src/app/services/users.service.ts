@@ -9,11 +9,21 @@ export class UsersService {
   constructor(private firestore: AngularFirestore, private injector: Injector) {}
 
   updateDeviceId(userId: string, deviceId: string) {
+    if (!userId) {
+      return Promise.resolve();
+    }
+
     return runInInjectionContext(this.injector, () => {
       return this.firestore
         .collection('users')
         .doc(userId)
-        .update({ deviceId: deviceId });
+        .set(
+          {
+            deviceId: typeof deviceId === 'string' ? { value: deviceId } : deviceId,
+            deviceIdUpdatedAt: Date.now(),
+          },
+          { merge: true }
+        );
     });
   }
 
@@ -38,6 +48,63 @@ export class UsersService {
           {
             webFcmTokens: firebase.firestore.FieldValue.arrayUnion(token),
             webFcmTokensUpdatedAt: Date.now(),
+          },
+          { merge: true }
+        );
+    });
+  }
+
+  updateOnlineStatus(userId: string, isOnline: boolean) {
+    if (!userId) {
+      return Promise.resolve();
+    }
+
+    return runInInjectionContext(this.injector, () => {
+      return this.firestore
+        .collection('users')
+        .doc(userId)
+        .set(
+          {
+            isOnline,
+            lastSeenAt: Date.now(),
+          },
+          { merge: true }
+        );
+    });
+  }
+
+  blockUser(userId: string, blockedUid: string) {
+    if (!userId || !blockedUid) {
+      return Promise.resolve();
+    }
+
+    return runInInjectionContext(this.injector, () => {
+      return this.firestore
+        .collection('users')
+        .doc(userId)
+        .set(
+          {
+            blockedUids: firebase.firestore.FieldValue.arrayUnion(blockedUid),
+            blockedUpdatedAt: Date.now(),
+          },
+          { merge: true }
+        );
+    });
+  }
+
+  unblockUser(userId: string, blockedUid: string) {
+    if (!userId || !blockedUid) {
+      return Promise.resolve();
+    }
+
+    return runInInjectionContext(this.injector, () => {
+      return this.firestore
+        .collection('users')
+        .doc(userId)
+        .set(
+          {
+            blockedUids: firebase.firestore.FieldValue.arrayRemove(blockedUid),
+            blockedUpdatedAt: Date.now(),
           },
           { merge: true }
         );

@@ -66,17 +66,37 @@ export class ChatService {
                 if (chats.length === 0) return of([]);
 
                 const joins = chats.map((chat) => {
+                  if (chat?.type === 'group') {
+                    return of(chat);
+                  }
+
                   const recipientUid = chat.uids?.find(uid => uid !== user.uid);
                   if (!recipientUid) return of(chat);
                   
                   return runInInjectionContext(this.injector, () => {
                     return this.afs.doc(`users/${recipientUid}`).valueChanges().pipe(
-                      map((u: any) => ({ ...chat, recipientOnline: u?.isOnline || false }))
+                      map((u: any) => {
+                        const role = typeof u?.role === 'string' ? u.role : null;
+                        const profileName = u?.displayName || u?.email || null;
+                        return {
+                          ...chat,
+                          recipientId: recipientUid,
+                          recipientOnline: u?.isOnline === true,
+                          recipientRole: role,
+                          recipientPhoto: u?.photoURL || u?.photoUrl || null,
+                          recipientName:
+                            profileName ||
+                            chat?.recipientName ||
+                            'Chat',
+                        };
+                      })
                     );
                   });
                 });
 
-                return combineLatest(joins);
+                return combineLatest(joins).pipe(
+                  map((joinedChats) => this.sortByLatestActivity(joinedChats))
+                );
               })
             );
         });
@@ -97,11 +117,13 @@ export class ChatService {
             .snapshotChanges()
             .pipe(
               map((actions) =>
-                actions.map((a) => {
-                  const data: any = a.payload.doc.data();
-                  const id = a.payload.doc.id;
-                  return { id, ...data };
-                })
+                this.sortByLatestActivity(
+                  actions.map((a) => {
+                    const data: any = a.payload.doc.data();
+                    const id = a.payload.doc.id;
+                    return { id, ...data };
+                  })
+                )
               )
             );
         });
@@ -169,10 +191,60 @@ export class ChatService {
     });
   }
 
+  async deleteChat(chatId: string) {
+    if (!chatId) return;
+
+    return runInInjectionContext(this.injector, () => {
+      return this.afs.collection('chats').doc(chatId).delete();
+    });
+  }
+
   async updateGroupMembers(chatId: string, uid: string, memberObj: any) {
     return this.afs.collection('chats').doc(chatId).update({
       uids: firebase.firestore.FieldValue.arrayUnion(uid),
       members: firebase.firestore.FieldValue.arrayUnion(memberObj)
+    });
+  }
+
+  async acceptCounsellorRequest(chatId: string, counsellorUid: string) {
+    if (!chatId) return;
+    const now = Date.now();
+    const systemMsg = {
+      uid: counsellorUid,
+      content: 'Session accepted.',
+      createdAt: now,
+      type: 'system',
+    };
+
+    return runInInjectionContext(this.injector, () => {
+      const ref = this.afs.collection('chats').doc(chatId);
+      return ref.update({
+        status: 'active',
+        'request.status': 'active',
+        'request.acceptedAt': now,
+        messages: firebase.firestore.FieldValue.arrayUnion(systemMsg),
+      });
+    });
+  }
+
+  async declineCounsellorRequest(chatId: string, counsellorUid: string) {
+    if (!chatId) return;
+    const now = Date.now();
+    const systemMsg = {
+      uid: counsellorUid,
+      content: 'Session declined.',
+      createdAt: now,
+      type: 'system',
+    };
+
+    return runInInjectionContext(this.injector, () => {
+      const ref = this.afs.collection('chats').doc(chatId);
+      return ref.update({
+        status: 'declined',
+        'request.status': 'declined',
+        'request.declinedAt': now,
+        messages: firebase.firestore.FieldValue.arrayUnion(systemMsg),
+      });
     });
   }
 
@@ -390,5 +462,33 @@ export class ChatService {
         }
       });
     });
+  }
+
+  private sortByLatestActivity(chats: any[]): any[] {
+    return [...(chats || [])].sort(
+      (a, b) => this.getLatestActivityAt(b) - this.getLatestActivityAt(a)
+    );
+  }
+
+  private getLatestActivityAt(chat: any): number {
+    const messages = Array.isArray(chat?.messages) ? chat.messages : [];
+    const latestMessageAt = messages.reduce((latest: number, message: any) => {
+      const createdAt = this.toMillis(message?.createdAt);
+      return Math.max(latest, createdAt);
+    }, 0);
+
+    return Math.max(
+      latestMessageAt,
+      this.toMillis(chat?.updatedAt),
+      this.toMillis(chat?.createdAt)
+    );
+  }
+
+  private toMillis(value: any): number {
+    if (!value) return 0;
+    if (typeof value === 'number') return value;
+    if (typeof value?.toMillis === 'function') return value.toMillis();
+    if (typeof value?.seconds === 'number') return value.seconds * 1000;
+    return 0;
   }
 }

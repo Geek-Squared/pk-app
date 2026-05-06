@@ -4,6 +4,17 @@ const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 admin.initializeApp();
 
+async function sendMulticastCompat(message: any) {
+  const messaging = admin.messaging();
+  if (typeof messaging.sendEachForMulticast === 'function') {
+    return messaging.sendEachForMulticast(message);
+  }
+  if (typeof messaging.sendMulticast === 'function') {
+    return messaging.sendMulticast(message);
+  }
+  throw new Error('Firebase Admin messaging multicast API is unavailable.');
+}
+
 exports.processSignUp = functions.auth.user().onCreate((user) => {
   if (user.email && user.emailVerified) {
     const customClaims = {
@@ -156,6 +167,13 @@ function extractWebTokens(data: any): string[] {
   } else if (webTokens && typeof webTokens === 'object') {
     Object.keys(webTokens).forEach((token) => tokens.push(token));
   }
+
+  // Native tokens stored by the mobile app (Capacitor PushNotifications).
+  const nativeToken = data?.deviceId?.value ?? data?.deviceId ?? null;
+  if (typeof nativeToken === 'string' && nativeToken.trim()) {
+    tokens.push(nativeToken.trim());
+  }
+
   return tokens;
 }
 
@@ -387,7 +405,7 @@ exports.onWorkbookCompletion = functions.firestore
       if (uniqueTokens.length) {
         await Promise.all(
           chapterNotifications.map((item) =>
-            admin.messaging().sendMulticast({
+            sendMulticastCompat({
               tokens: uniqueTokens,
               notification: {
                 title: 'Chapter completed',
@@ -431,7 +449,7 @@ exports.onWorkbookCompletion = functions.firestore
       return null;
     }
 
-    return admin.messaging().sendMulticast({
+    return sendMulticastCompat({
       tokens: uniqueTokens,
       notification: {
         title: 'Workbook completed',
@@ -474,7 +492,7 @@ exports.sendAdminTestNotification = functions.https.onCall(
       return { sent: 0, notificationId: notificationRef.id };
     }
 
-    const result = await admin.messaging().sendMulticast({
+    const result = await sendMulticastCompat({
       tokens,
       notification: {
         title: 'Test notification',
@@ -528,7 +546,7 @@ exports.sendUserBroadcastNotification = functions.https.onCall(
       return { sent: 0 };
     }
 
-    const result = await admin.messaging().sendMulticast({
+    const result = await sendMulticastCompat({
       tokens,
       notification: {
         title,
@@ -546,6 +564,169 @@ exports.sendUserBroadcastNotification = functions.https.onCall(
     };
   }
 );
+
+exports.requestCounsellorChat = functions.https.onCall(async (data, context) => {
+  if (!context.auth?.uid) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'User must be signed in.'
+    );
+  }
+
+  const requesterUid = context.auth.uid;
+
+  // Find an available counsellor.
+  //
+  // Notes:
+  // - Firestore equality matching is case-sensitive.
+  // - Some user docs may have role casing drift or even role objects (older migrations).
+  // - "isOnline" can be stale if a client doesn't update cleanly; "lastSeenAt" is a safer fallback.
+  const roleCandidates = ['Counsellor', 'counsellor', 'COUNSELLOR'];
+  const nowMs = Date.now();
+  const activeWindowMs = 5 * 60 * 1000; // 5 minutes
+
+  // Prefer an index-friendly query first (role IN), then filter by availability in code.
+  const counsellorsSnap = await admin
+    .firestore()
+    .collection('users')
+    .where('role', 'in', roleCandidates)
+    .limit(50)
+    .get();
+
+  const counsellors = counsellorsSnap.docs.map((d: FirebaseFirestore.QueryDocumentSnapshot) => ({
+    uid: d.id,
+    ...(d.data() || {}),
+  })) as any[];
+
+  const availableCounsellors = counsellors
+    .filter((u) => {
+    const roleLower =
+      typeof u?.role === 'string'
+        ? `${u.role}`.toLowerCase()
+        : typeof u?.role?.name === 'string'
+          ? `${u.role.name}`.toLowerCase()
+          : '';
+    if (roleLower !== 'counsellor') return false;
+
+    const lastSeenAt =
+      typeof u?.lastSeenAt === 'number'
+        ? u.lastSeenAt
+        : typeof u?.lastSeenAt?.toMillis === 'function'
+          ? u.lastSeenAt.toMillis()
+          : 0;
+
+    const recentlyActive = lastSeenAt > 0 && nowMs - lastSeenAt <= activeWindowMs;
+    return u?.isOnline === true || recentlyActive;
+    })
+    .sort((a, b) => {
+      const aSeen =
+        typeof a?.lastSeenAt === 'number'
+          ? a.lastSeenAt
+          : typeof a?.lastSeenAt?.toMillis === 'function'
+            ? a.lastSeenAt.toMillis()
+            : 0;
+      const bSeen =
+        typeof b?.lastSeenAt === 'number'
+          ? b.lastSeenAt
+          : typeof b?.lastSeenAt?.toMillis === 'function'
+            ? b.lastSeenAt.toMillis()
+            : 0;
+      // Prefer explicit online first, then most recent activity.
+      const aOnline = a?.isOnline === true ? 1 : 0;
+      const bOnline = b?.isOnline === true ? 1 : 0;
+      if (aOnline !== bOnline) return bOnline - aOnline;
+      return bSeen - aSeen;
+    });
+
+  if (!availableCounsellors.length) {
+    console.log('[requestCounsellorChat] No available counsellor found', {
+      requesterUid,
+      totalCandidates: counsellors.length,
+    });
+    return { available: false };
+  }
+
+  const counsellor = availableCounsellors[0];
+  const counsellorUid = counsellor.uid;
+
+  // Continuity: if there's already a private chat between this requester and this counsellor,
+  // reuse it instead of creating a fresh thread each time.
+  //
+  // We avoid composite-index-heavy queries by fetching a bounded set of the requester's private chats
+  // and filtering in code.
+  const existingChatsSnap = await admin
+    .firestore()
+    .collection('chats')
+    .where('type', '==', 'private')
+    .where('uids', 'array-contains', requesterUid)
+    .limit(50)
+    .get();
+
+  const existingChats = existingChatsSnap.docs.map((d: FirebaseFirestore.QueryDocumentSnapshot) => ({
+    id: d.id,
+    ...(d.data() || {}),
+  })) as any[];
+
+  const matchingExisting = existingChats
+    .filter((c) => Array.isArray(c?.uids) && c.uids.includes(counsellorUid))
+    .sort((a, b) => {
+      const aMsg = Array.isArray(a?.messages) && a.messages.length
+        ? a.messages[a.messages.length - 1]?.createdAt
+        : null;
+      const bMsg = Array.isArray(b?.messages) && b.messages.length
+        ? b.messages[b.messages.length - 1]?.createdAt
+        : null;
+      const aTs = typeof aMsg === 'number' ? aMsg : typeof a?.createdAt === 'number' ? a.createdAt : 0;
+      const bTs = typeof bMsg === 'number' ? bMsg : typeof b?.createdAt === 'number' ? b.createdAt : 0;
+      return bTs - aTs;
+    });
+
+  if (matchingExisting.length) {
+    const chatId = matchingExisting[0].id;
+    console.log('[requestCounsellorChat] Reusing existing counsellor chat', {
+      requesterUid,
+      counsellorUid,
+      chatId,
+    });
+    return { available: true, chatId, counsellorUid, reused: true };
+  }
+
+  const requesterDoc = await admin
+    .firestore()
+    .collection('users')
+    .doc(requesterUid)
+    .get();
+  const requester = requesterDoc.exists ? requesterDoc.data() || {} : {};
+
+  const chatRef = await admin.firestore().collection('chats').add({
+    type: 'private',
+    createdAt: admin.firestore.Timestamp.now(),
+    status: 'pending',
+    uids: [requesterUid, counsellorUid],
+    uid: requesterUid,
+    recipientName:
+      counsellor?.displayName || counsellor?.email || 'Counsellor',
+    recipientId: counsellorUid,
+    messages: [],
+    // Minimal metadata to help admin/support.
+    request: {
+      requestedAt: admin.firestore.Timestamp.now(),
+      requesterUid,
+      counsellorUid,
+      requesterName: requester?.displayName || requester?.email || null,
+      counsellorName: counsellor?.displayName || counsellor?.email || 'Counsellor',
+      status: 'pending',
+    },
+  });
+
+  console.log('[requestCounsellorChat] Assigned counsellor', {
+    requesterUid,
+    counsellorUid,
+    chatId: chatRef.id,
+  });
+
+  return { available: true, chatId: chatRef.id, counsellorUid };
+});
 
 exports.onChatMessageCreated = functions.firestore
   .document('chats/{chatId}')
@@ -568,15 +749,33 @@ exports.onChatMessageCreated = functions.firestore
     const senderUid = latest?.uid;
     const recipientUids = new Set<string>();
 
+    // Primary source of truth: chat participants.
+    if (Array.isArray(after.uids)) {
+      after.uids.forEach((entry: any) => {
+        if (typeof entry === 'string' && entry) {
+          recipientUids.add(entry);
+        } else if (entry && typeof entry === 'object' && typeof entry.uid === 'string') {
+          recipientUids.add(entry.uid);
+        }
+      });
+    }
+
+    // Group chats may also keep a members array of objects.
     if (Array.isArray(after.members)) {
-      after.members.forEach((uid: string) => uid && recipientUids.add(uid));
+      after.members.forEach((m: any) => {
+        if (typeof m === 'string' && m) {
+          recipientUids.add(m);
+        } else if (m && typeof m === 'object' && typeof m.uid === 'string') {
+          recipientUids.add(m.uid);
+        }
+      });
     }
 
     if (after.hasRead && typeof after.hasRead === 'object') {
       Object.keys(after.hasRead).forEach((uid) => recipientUids.add(uid));
     }
 
-    if (after.uid) {
+    if (typeof after.uid === 'string' && after.uid) {
       recipientUids.add(after.uid);
     }
 
@@ -585,11 +784,21 @@ exports.onChatMessageCreated = functions.firestore
     }
 
     if (!recipientUids.size) {
+      console.log('[onChatMessageCreated] No recipients after excluding sender', {
+        chatId: context.params.chatId,
+        senderUid,
+      });
       return null;
     }
 
     const tokens = await getUserTokensByUids(Array.from(recipientUids));
     if (!tokens.length) {
+      console.log('[onChatMessageCreated] No tokens found for recipients', {
+        chatId: context.params.chatId,
+        senderUid,
+        recipientCount: recipientUids.size,
+        recipients: Array.from(recipientUids),
+      });
       return null;
     }
 
@@ -601,6 +810,15 @@ exports.onChatMessageCreated = functions.firestore
       latest?.type === 'audio'
         ? 'Sent a voice note.'
         : latest?.content || 'New message received.';
+
+    console.log('[onChatMessageCreated] Sending push', {
+      chatId: context.params.chatId,
+      senderUid,
+      recipientCount: recipientUids.size,
+      tokenCount: tokens.length,
+      title,
+      bodyPreview: typeof body === 'string' ? body.slice(0, 80) : '',
+    });
 
     const createdAt = admin.firestore.Timestamp.now();
     await writeUserNotifications(Array.from(recipientUids), {
@@ -615,7 +833,7 @@ exports.onChatMessageCreated = functions.firestore
       },
     });
 
-    return admin.messaging().sendMulticast({
+    const result = await sendMulticastCompat({
       tokens,
       notification: {
         title,
@@ -626,7 +844,27 @@ exports.onChatMessageCreated = functions.firestore
         landing_page: 'messages/chat',
         chatId: context.params.chatId,
       },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'pk_chat',
+          sound: 'default',
+        },
+      },
     });
+
+    console.log('[onChatMessageCreated] Push result', {
+      chatId: context.params.chatId,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+      // Log only error codes, never tokens.
+      errors: (result.responses || [])
+        .map((r: any) => r?.error?.code)
+        .filter(Boolean)
+        .slice(0, 10),
+    });
+
+    return result;
   });
 
 

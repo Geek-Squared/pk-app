@@ -47,6 +47,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   selectedChat: any;
   destroyed$ = new Subject();
   currentUser: any;
+  private recipientPresenceUid: string | null = null;
+  private recipientUid: string | null = null;
+  private recipientProfileSub: Subscription | null = null;
+  public isCounsellor = false;
+  public pendingForMe = false;
+  public sessionBannerText: string | null = null;
 
   constructor(
     public cs: ChatService,
@@ -142,6 +148,100 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     await actionSheet.present();
+  }
+
+  async presentChatOptions() {
+    if (!this.chat?.id) {
+      return;
+    }
+
+    const isGroup = this.chat?.type === 'group';
+    const buttons: any[] = [];
+
+    const currentUid =
+      this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid;
+
+    if (!isGroup && currentUid && this.recipientUid) {
+      const me: any = await new Promise((resolve) => {
+        this.usersService
+          .getUserById(currentUid)
+          .pipe(take(1))
+          .subscribe((u) => resolve(u || null));
+      });
+
+      const blockedUids: string[] = Array.isArray(me?.blockedUids)
+        ? me.blockedUids
+        : [];
+      const isBlocked = blockedUids.includes(this.recipientUid);
+
+      if (isBlocked) {
+        buttons.push({
+          text: 'Unblock user',
+          icon: 'checkmark-circle-outline',
+          handler: async () => {
+            this.utilsService.presentLoading('Unblocking user...');
+            try {
+              await this.usersService.unblockUser(currentUid, this.recipientUid!);
+              this.utilsService.dismissLoader();
+              this.utilsService.presentToast('User unblocked');
+            } catch (err) {
+              console.error('Unblock user failed:', err);
+              this.utilsService.dismissLoader();
+              this.utilsService.presentToast('Failed to unblock user');
+            }
+          },
+        });
+      } else {
+        buttons.push({
+          text: 'Block user',
+          role: 'destructive',
+          icon: 'ban-outline',
+          handler: async () => {
+            this.utilsService.presentLoading('Blocking user...');
+            try {
+              await this.usersService.blockUser(currentUid, this.recipientUid!);
+              this.utilsService.dismissLoader();
+              this.utilsService.presentToast('User blocked');
+            } catch (err) {
+              console.error('Block user failed:', err);
+              this.utilsService.dismissLoader();
+              this.utilsService.presentToast('Failed to block user');
+            }
+          },
+        });
+      }
+    }
+
+    buttons.push({
+      text: isGroup ? 'Delete group' : 'Delete chat',
+      role: 'destructive',
+      icon: 'trash-outline',
+      handler: async () => {
+        this.utilsService.presentLoading('Deleting...');
+        try {
+          await this.cs.deleteChat(this.chat.id);
+          this.utilsService.dismissLoader();
+          window.history.back();
+        } catch (err) {
+          console.error('Delete chat failed:', err);
+          this.utilsService.dismissLoader();
+          this.utilsService.presentToast('Failed to delete');
+        }
+      },
+    });
+
+    buttons.push({
+      text: 'Cancel',
+      role: 'cancel',
+      icon: 'close-outline',
+    });
+
+    const sheet = await this.actionSheetCtrl.create({
+      header: 'Options',
+      buttons,
+    });
+
+    await sheet.present();
   }
 
   async presentAttachmentOptions() {
@@ -264,6 +364,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit() {
     this.auth.user$.pipe(takeUntil(this.destroyed$)).subscribe(user => {
       this.currentUser = user;
+      const role =
+        typeof user?.role === 'string'
+          ? user.role
+          : typeof user?.role?.name === 'string'
+            ? user.role.name
+            : '';
+      this.isCounsellor = `${role || ''}`.toLowerCase() === 'counsellor';
       console.log('Current User Chat:', user);
     });
     const chatId = this.route.snapshot.paramMap.get('chatId');
@@ -279,7 +386,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
             console.log('DEBUG: Last message object:', res.messages[res.messages.length - 1]);
           }
           this.chat = res;
+          this.recipientUid = this.resolveRecipientUid(res);
+          this.bindRecipientProfile(this.recipientUid, res);
+          this.watchRecipientPresence(res);
           this.titleService.setTitle(this.chat?.recipientName || this.chat?.displayName || 'Chat');
+          this.pendingForMe =
+            this.isCounsellor === true &&
+            `${res?.status || res?.request?.status || ''}`.toLowerCase() === 'pending' &&
+            (res?.request?.counsellorUid ? res.request.counsellorUid === this.currentUser?.uid : true);
+
+          this.sessionBannerText = this.buildSessionBannerText(res);
           this.utilsService.dismissLoader();
         },
         (err) => {
@@ -292,6 +408,107 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     // Request mic permission proactively so Android doesn't ask on first record tap
     this.requestMicPermission();
+  }
+
+  private buildSessionBannerText(chat: any): string | null {
+    const req = chat?.request || null;
+    if (!req || !this.currentUser?.uid) return null;
+
+    const status = `${chat?.status || req?.status || ''}`.toLowerCase();
+    const me = this.currentUser.uid;
+
+    const isMeCounsellor = req?.counsellorUid === me;
+    const isMeRequester = req?.requesterUid === me;
+
+    const counsellorName = req?.counsellorName || 'Counsellor';
+    const requesterName = req?.requesterName || 'User';
+
+    if (status === 'pending') {
+      if (isMeCounsellor) return `New request from ${requesterName}.`;
+      if (isMeRequester) return `Request sent to ${counsellorName}.`;
+      return 'Counselling request pending.';
+    }
+
+    if (status === 'active') {
+      if (isMeCounsellor) return `You are now chatting with ${requesterName}.`;
+      if (isMeRequester) return `You are now chatting with ${counsellorName}.`;
+      return 'Counselling session started.';
+    }
+
+    return null;
+  }
+
+  public async acceptRequest(): Promise<void> {
+    if (!this.chat?.id || !this.currentUser?.uid) return;
+    this.utilsService.presentLoading('Accepting...');
+    try {
+      await this.cs.acceptCounsellorRequest(this.chat.id, this.currentUser.uid);
+      this.utilsService.dismissLoader();
+      this.pendingForMe = false;
+      this.utilsService.presentToast('Session accepted');
+    } catch (err) {
+      console.error('Accept request failed:', err);
+      this.utilsService.dismissLoader();
+      this.utilsService.presentToast('Failed to accept');
+    }
+  }
+
+  public async declineRequest(): Promise<void> {
+    if (!this.chat?.id || !this.currentUser?.uid) return;
+    this.utilsService.presentLoading('Declining...');
+    try {
+      await this.cs.declineCounsellorRequest(this.chat.id, this.currentUser.uid);
+      this.utilsService.dismissLoader();
+      this.pendingForMe = false;
+      window.history.back();
+    } catch (err) {
+      console.error('Decline request failed:', err);
+      this.utilsService.dismissLoader();
+      this.utilsService.presentToast('Failed to decline');
+    }
+  }
+
+  private bindRecipientProfile(recipientUid: string | null, chat: any): void {
+    try {
+      if (!recipientUid || chat?.type === 'group') return;
+
+      // Ensure we don't accumulate subscriptions if the view is reused.
+      this.recipientProfileSub?.unsubscribe();
+      this.recipientProfileSub = this.usersService
+        .getUserById(recipientUid)
+        .pipe(takeUntil(this.destroyed$))
+        .subscribe((u: any) => {
+          if (!u) return;
+          const name = u?.displayName || u?.email || null;
+          const photo = u?.photoURL || u?.photoUrl || null;
+          const online = u?.isOnline === true;
+
+          // Update the header fields to reflect the *other* participant.
+          if (name) {
+            this.chat.recipientName = name;
+          }
+          this.chat.recipientPhoto = photo;
+          this.chat.recipientOnline = online;
+
+          this.titleService.setTitle(name || this.chat?.displayName || 'Chat');
+
+          // Session banner depends on names; recompute once we have profile info.
+          this.sessionBannerText = this.buildSessionBannerText(this.chat);
+        });
+    } catch (err) {
+      // Non-fatal: header will fall back to whatever is in the chat doc.
+      console.warn('bindRecipientProfile failed:', err);
+    }
+  }
+
+  private resolveRecipientUid(chat: any): string | null {
+    if (!chat || chat?.type === 'group') {
+      return null;
+    }
+    const currentUid =
+      this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid;
+    const recipientUid = chat?.uids?.find((uid: string) => uid !== currentUid);
+    return recipientUid || null;
   }
 
   private async requestMicPermission() {
@@ -421,7 +638,32 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     return wholeDate.slice(0, wholeDate.length - 5);
   }
 
+  private watchRecipientPresence(chat: any): void {
+    const currentUid =
+      this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid;
+    if (!chat || chat?.type === 'group' || !currentUid) {
+      return;
+    }
+
+    const recipientUid = chat.uids?.find((uid) => uid !== currentUid);
+    if (!recipientUid || recipientUid === this.recipientPresenceUid) {
+      return;
+    }
+
+    this.recipientPresenceUid = recipientUid;
+    this.usersSubscription.unsubscribe();
+    this.usersSubscription = this.usersService
+      .getUserById(recipientUid)
+      .subscribe((user: any) => {
+        this.chat = {
+          ...this.chat,
+          recipientOnline: user?.isOnline === true,
+        };
+      });
+  }
+
   ngOnDestroy() {
+    this.recipientProfileSub?.unsubscribe();
     this.usersSubscription.unsubscribe();
     this.updateChatUnread();
     this.destroyed$.next(true);

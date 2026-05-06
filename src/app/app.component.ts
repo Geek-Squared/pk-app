@@ -1,13 +1,20 @@
 import { Component } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { MenuController, NavController, Platform } from '@ionic/angular';
+import {
+  ActionSheetController,
+  MenuController,
+  NavController,
+  Platform,
+} from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { AuthenticationService } from './services/authentication.service';
 import { TitleService } from './services/title.service';
 import { App as CapacitorApp } from '@capacitor/app';
 import { UsersService } from './services/users.service';
-import { Observable, filter, of, switchMap } from 'rxjs';
+import { firstValueFrom, Observable, filter, of, switchMap } from 'rxjs';
+import { InAppNotificationsService } from './services/in-app-notifications.service';
+import { FcmService } from './services/fcm.service';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +26,9 @@ export class AppComponent {
   public showBottomNav = true;
   public currentPageTitle = 'Dashboard';
   public user$: Observable<any>;
+  public hasUnreadNotifications$ = this.inAppNotifications.hasUnread$;
   private readonly bottomNavHiddenRoutes = ['/home'];
+  private pushInitDone = false;
   
   private routeTitleMap: { [key: string]: string } = {
     '/': 'Dashboard',
@@ -45,7 +54,10 @@ export class AppComponent {
     private router: Router,
     private titleService: TitleService,
     private navCtrl: NavController,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private actionSheetController: ActionSheetController,
+    private inAppNotifications: InAppNotificationsService,
+    private fcmService: FcmService
   ) {
     this.initializeApp();
     this.watchRouteChanges();
@@ -59,6 +71,17 @@ export class AppComponent {
         }
       })
     );
+
+    // Ensure push + in-app toasts are wired on web/native as soon as user is signed in.
+    this.authenticationService.afAuth.authState.subscribe((user) => {
+      if (user && !this.pushInitDone) {
+        this.pushInitDone = true;
+        this.fcmService.initPush();
+      }
+      if (!user) {
+        this.pushInitDone = false;
+      }
+    });
 
     this.titleService.title$.subscribe(title => {
       this.currentPageTitle = title;
@@ -142,5 +165,44 @@ export class AppComponent {
     } catch (error) {
       console.warn('Unable to configure native status bar overlay', error);
     }
+  }
+
+  public async openChatLauncher(): Promise<void> {
+    // If we have an unread chat notification, jump to it first.
+    const last = await firstValueFrom(this.inAppNotifications.last$);
+
+    if (last?.targetUrl) {
+      this.inAppNotifications.clearUnread();
+      this.router.navigateByUrl(last.targetUrl);
+      return;
+    }
+
+    const sheet = await this.actionSheetController.create({
+      header: 'Chat',
+      buttons: [
+        {
+          text: 'Chat with Counsellor',
+          icon: 'chatbubbles-outline',
+          handler: () => this.router.navigateByUrl('/messages/counsellors'),
+        },
+        {
+          text: 'Chat with Community',
+          icon: 'people-outline',
+          handler: () => this.router.navigateByUrl('/messages'),
+        },
+        {
+          text: 'Chat with Peekay',
+          icon: 'sparkles-outline',
+          handler: () => this.router.navigateByUrl('/ai-assistant'),
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          icon: 'close-outline',
+        },
+      ],
+    });
+
+    await sheet.present();
   }
 }

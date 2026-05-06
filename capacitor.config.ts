@@ -8,6 +8,9 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: 'DARK',
     },
+    FirebaseMessaging: {
+      presentationOptions: ["alert", "badge", "sound"],
+    },
   },
 };
 
