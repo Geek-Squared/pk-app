@@ -164,6 +164,8 @@ export class ChatService {
       displayName: name,
       uids: memberUids,
       type: 'group',
+      createdBy: user.uid,
+      uid: user.uid,
       createdAt: Date.now(),
       count: 0,
       messages: [],
@@ -200,9 +202,11 @@ export class ChatService {
   }
 
   async updateGroupMembers(chatId: string, uid: string, memberObj: any) {
-    return this.afs.collection('chats').doc(chatId).update({
-      uids: firebase.firestore.FieldValue.arrayUnion(uid),
-      members: firebase.firestore.FieldValue.arrayUnion(memberObj)
+    return runInInjectionContext(this.injector, () => {
+      return this.afs.collection('chats').doc(chatId).update({
+        uids: firebase.firestore.FieldValue.arrayUnion(uid),
+        members: firebase.firestore.FieldValue.arrayUnion(memberObj),
+      });
     });
   }
 

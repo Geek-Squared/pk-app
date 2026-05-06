@@ -1,0 +1,65 @@
+.details-header {
+  --background: rgba(246, 250, 254, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.details-content {
+  --background: #f6fafe;
+  font-family: 'Manrope', sans-serif;
+}
+
+.details-wrap {
+  padding: 1rem;
+}
+
+.group-title {
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: #001453;
+}
+
+.group-meta {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(0, 20, 83, 0.7);
+}
+
+.members-list {
+  margin-top: 0.75rem;
+  background: transparent;
+}
+
+.member-item {
+  --background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 40, 142, 0.08);
+  border-radius: 12px;
+  margin-bottom: 0.6rem;
+}
+
+.member-initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #dde1ff;
+  color: #001453;
+  font-weight: 900;
+}
+
+.member-name {
+  font-weight: 900;
+  font-size: 0.95rem;
+  color: #001453;
+}
+
+.member-sub {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(0, 20, 83, 0.65);
+}
+

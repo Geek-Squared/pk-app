@@ -26,6 +26,7 @@ import { ReactionPickerComponent } from 'src/app/components/reaction-picker/reac
 import { VoiceNoteComponent } from 'src/app/components/voice-note/voice-note.component';
 import { EmojiPickerComponent } from 'src/app/components/emoji-picker/emoji-picker.component';
 import { TitleService } from 'src/app/services/title.service';
+import { GroupDetailsComponent } from './group-details/group-details.component';
 
 @Component({
   selector: 'app-chat',
@@ -67,6 +68,22 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     private actionSheetCtrl: ActionSheetController,
     private popoverCtrl: PopoverController
   ) {}
+
+  public async openGroupDetails(): Promise<void> {
+    if (this.chat?.type !== 'group') return;
+    const currentUid =
+      this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid || null;
+
+    const modal = await this.modalController.create({
+      component: GroupDetailsComponent,
+      componentProps: { chat: this.chat, chatId: this.chat?.id || null, currentUid },
+      breakpoints: [0, 0.6, 0.9],
+      initialBreakpoint: 0.9,
+      cssClass: 'group-details-modal',
+    });
+
+    await modal.present();
+  }
 
   async openReactionPicker(event: any, msg: any) {
     if (!this.selectedChat?.id || !msg) return;
@@ -161,6 +178,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const currentUid =
       this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid;
 
+    if (isGroup) {
+      buttons.push({
+        text: 'Add members',
+        icon: 'person-add-outline',
+        handler: async () => {
+          try {
+            await this.addMember();
+          } catch (err) {
+            console.error('Add members failed:', err);
+          }
+        },
+      });
+    }
+
     if (!isGroup && currentUid && this.recipientUid) {
       const me: any = await new Promise((resolve) => {
         this.usersService
@@ -212,23 +243,52 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    buttons.push({
-      text: isGroup ? 'Delete group' : 'Delete chat',
-      role: 'destructive',
-      icon: 'trash-outline',
-      handler: async () => {
-        this.utilsService.presentLoading('Deleting...');
-        try {
-          await this.cs.deleteChat(this.chat.id);
-          this.utilsService.dismissLoader();
-          window.history.back();
-        } catch (err) {
-          console.error('Delete chat failed:', err);
-          this.utilsService.dismissLoader();
-          this.utilsService.presentToast('Failed to delete');
-        }
-      },
-    });
+    const isGroupCreator =
+      !!currentUid &&
+      (this.chat?.createdBy === currentUid ||
+        this.chat?.uid === currentUid ||
+        this.chat?.ownerUid === currentUid ||
+        (Array.isArray(this.chat?.members) &&
+          this.chat.members.length &&
+          this.chat.members[0]?.uid === currentUid));
+
+    if (!isGroup) {
+      buttons.push({
+        text: 'Delete chat',
+        role: 'destructive',
+        icon: 'trash-outline',
+        handler: async () => {
+          this.utilsService.presentLoading('Deleting...');
+          try {
+            await this.cs.deleteChat(this.chat.id);
+            this.utilsService.dismissLoader();
+            window.history.back();
+          } catch (err) {
+            console.error('Delete chat failed:', err);
+            this.utilsService.dismissLoader();
+            this.utilsService.presentToast('Failed to delete');
+          }
+        },
+      });
+    } else if (isGroupCreator) {
+      buttons.push({
+        text: 'Delete group',
+        role: 'destructive',
+        icon: 'trash-outline',
+        handler: async () => {
+          this.utilsService.presentLoading('Deleting...');
+          try {
+            await this.cs.deleteChat(this.chat.id);
+            this.utilsService.dismissLoader();
+            window.history.back();
+          } catch (err) {
+            console.error('Delete group failed:', err);
+            this.utilsService.dismissLoader();
+            this.utilsService.presentToast('Failed to delete');
+          }
+        },
+      });
+    }
 
     buttons.push({
       text: 'Cancel',
@@ -347,17 +407,36 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const { data } = await modal.onWillDismiss();
     if (data && data.user) {
       const newUser = data.user;
+      const newUid: string | null =
+        typeof newUser?.uid === 'string'
+          ? newUser.uid
+          : typeof newUser?.id === 'string'
+            ? newUser.id
+            : null;
+
+      if (!newUid) {
+        this.utilsService.presentToast('Could not add member (missing user id)');
+        return;
+      }
       
       // Update the group in Firestore
       const chatId = this.chat.id;
       const memberObj = {
-        uid: newUser.uid,
-        displayName: newUser.displayName || newUser.email,
+        uid: newUid,
+        displayName: newUser.displayName || newUser.email || 'Member',
         photoURL: newUser.photoURL || ''
       };
 
-      await this.cs.updateGroupMembers(chatId, newUser.uid, memberObj);
-      this.utilsService.presentToast(`${newUser.displayName} added to group`);
+      this.utilsService.presentLoading('Adding member...');
+      try {
+        await this.cs.updateGroupMembers(chatId, newUid, memberObj);
+        this.utilsService.dismissLoader();
+        this.utilsService.presentToast(`${memberObj.displayName} added to group`);
+      } catch (err) {
+        console.error('Add member failed:', err);
+        this.utilsService.dismissLoader();
+        this.utilsService.presentToast('Failed to add member');
+      }
     }
   }
 

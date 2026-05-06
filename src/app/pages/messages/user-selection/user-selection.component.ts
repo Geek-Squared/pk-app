@@ -192,10 +192,11 @@ export class UserSelectionComponent implements OnInit {
       map(actions => actions.map(a => {
         const data: any = a.payload.doc.data();
         const id = a.payload.doc.id;
-        return { id, ...data };
+        const uid = typeof data?.uid === 'string' && data.uid ? data.uid : id;
+        return { id, uid, ...data };
       })),
       // Filter out current user from selection
-      map(users => users.filter(u => u.uid !== currentUser?.uid))
+      map(users => users.filter(u => u.uid !== currentUser?.uid && u.id !== currentUser?.uid))
     );
 
     this.filteredUsers$ = combineLatest([this.users$, this.searchSubject]).pipe(

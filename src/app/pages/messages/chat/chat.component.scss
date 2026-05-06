@@ -181,6 +181,18 @@
     display: flex;
     gap: 0.5rem;
 
+    .details-btn {
+      height: 40px;
+      padding: 0 0.9rem;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 96, 172, 0.22);
+      background: rgba(246, 250, 254, 0.85);
+      color: #0060ac;
+      font-weight: 900;
+      font-size: 0.82rem;
+      letter-spacing: 0;
+    }
+
     .action-btn {
       width: 40px;
       height: 40px;

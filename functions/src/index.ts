@@ -139,14 +139,22 @@ function isMeaningfulResponse(response: any): boolean {
 }
 
 async function getAdminTokens(): Promise<string[]> {
-  const adminUsersSnap = await admin
+  const roleAdminUsersSnap = await admin
     .firestore()
     .collection('users')
     .where('role', '==', 'Administrator')
     .get();
+  const rolesAdminUsersSnap = await admin
+    .firestore()
+    .collection('users')
+    .where('roles', 'array-contains', 'Administrator')
+    .get();
 
+  const docsById = new Map<string, any>();
+  roleAdminUsersSnap.forEach((doc: any) => docsById.set(doc.id, doc));
+  rolesAdminUsersSnap.forEach((doc: any) => docsById.set(doc.id, doc));
   const tokens: string[] = [];
-  adminUsersSnap.forEach((doc: any) => {
+  docsById.forEach((doc: any) => {
     const data = doc.data() || {};
     const userTokens = data.webFcmTokens || data.fcmTokens || [];
     if (Array.isArray(userTokens)) {
@@ -156,6 +164,7 @@ async function getAdminTokens(): Promise<string[]> {
     }
   });
 
+  console.log(`Found ${tokens.length} admin web token(s).`);
   return Array.from(new Set(tokens));
 }
 

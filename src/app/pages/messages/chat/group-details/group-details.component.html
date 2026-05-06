@@ -1,0 +1,28 @@
+<ion-header class="details-header">
+  <ion-toolbar>
+    <ion-title>Details</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="close()">Close</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="details-content">
+  <div class="details-wrap">
+    <div class="group-title">{{ (chat$ | async)?.displayName || chat?.displayName || 'Group' }}</div>
+    <div class="group-meta">{{ (members$ | async)?.length || 0 }} members</div>
+
+    <ion-list lines="none" class="members-list">
+      <ion-item class="member-item" *ngFor="let m of members$ | async">
+        <ion-avatar slot="start">
+          <img *ngIf="m.photoURL" [src]="m.photoURL" alt="avatar" />
+          <div *ngIf="!m.photoURL" class="member-initial">{{ (m.displayName || m.email || 'U') | slice:0:1 }}</div>
+        </ion-avatar>
+        <ion-label>
+          <div class="member-name">{{ m.displayName || 'Member' }}</div>
+          <div class="member-sub">{{ m.email || m.uid }}</div>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>

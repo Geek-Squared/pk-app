@@ -20,7 +20,7 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    background-image: url('https://lh3.googleusercontent.com/aida/ADBb0ugYGI0or9Fq7JqWXAKHoBgXD-o8ZaeFOpuuMbsWKq-XegRjJ8R1AWmfnk0VNgimGUWqp3RNIT4JzV1FiOKRGbGI0HFlsWl7RkW2Y69YveNA6ndXaN5qaSNwGKitzat_P5YYMPYOGkaD7ovTBgXYQVBrYhKzdOqhvcixkutmGuAF2dfm_0vNhS_OetRq1Yq96XLq8oJQD3X-8YXv3GXv5l2OmDtTvDJuY3tcKtRVJ8LdHiLJ1eLLXHEXMAuEOdJDcnfRwAhdu9l0jg');
+    background-image: url('../../../assets/images/joshua-coleman-WTrfvtoe3yM-unsplash.jpg');
     background-size: cover;
     background-position: center;
     transition: transform 1s ease;
@@ -30,7 +30,13 @@
   .hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+    // Darker overlay for reliable text contrast across image regions.
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.88) 0%,
+      rgba(0, 0, 0, 0.60) 55%,
+      rgba(0, 0, 0, 0.15) 100%
+    );
   }
 
   .hero-text {
@@ -72,7 +78,7 @@
     }
   }
 
-  &:hover .hero-bg {
+  &:hover .hero-bg-image {
     transform: scale(1.05);
   }
 }
@@ -149,6 +155,8 @@
       font-weight: 700;
       font-size: 14px;
       border: none;
+      background: var(--pk-primary);
+      color: #ffffff;
       
       .material-symbols-outlined {
         font-size: 18px;
@@ -174,7 +182,7 @@
       .icon-box { background: var(--card-inner-bg); color: var(--card-inner-text); }
       .card-text h3 { color: var(--pk-on-surface) !important; }
       .card-text p { color: var(--pk-on-surface-variant) !important; }
-      .card-action-btn { background: var(--pk-surface-container-highest); color: var(--pk-on-surface); }
+      .card-action-btn { background: var(--pk-primary); color: #ffffff; }
     }
   }
 }

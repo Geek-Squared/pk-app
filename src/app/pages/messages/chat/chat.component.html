@@ -17,6 +17,14 @@
     </div>
 
     <div class="header-actions">
+      <button
+        type="button"
+        class="details-btn"
+        *ngIf="chat?.type === 'group'"
+        (click)="openGroupDetails()"
+      >
+        Details
+      </button>
       <button type="button" class="action-btn" (click)="presentChatOptions()">
         <span class="material-symbols-outlined">more_vert</span>
       </button>
