@@ -82,8 +82,13 @@
   <!-- Message Input Dock (Floating) -->
   <div class="ai-input-dock fixed-bottom-clear" slot="fixed">
     <form [formGroup]="form" (ngSubmit)="sendMessage()" class="input-form-inner glass-panel shadow-lg">
-      <button type="button" class="dock-action-btn" (click)="focusComposer()">
-        <span class="material-symbols-outlined">add_circle</span>
+      <button
+        type="button"
+        class="dock-action-btn"
+        aria-label="Focus message input"
+        (click)="focusComposer()"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
       </button>
       <input 
         type="text" 
@@ -95,9 +100,10 @@
       <button 
         type="submit" 
         class="dock-send-btn shadow-md"
+        aria-label="Send message"
         [disabled]="!canSend"
       >
-        <span class="material-symbols-outlined">{{ pending ? 'hourglass_empty' : 'send' }}</span>
+        <span class="material-symbols-outlined" aria-hidden="true">{{ pending ? 'hourglass_empty' : 'send' }}</span>
       </button>
     </form>
   </div>
