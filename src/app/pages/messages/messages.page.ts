@@ -155,21 +155,18 @@ export class MessagesPage implements OnInit {
       }))
     );
 
-    this.availableUsers$ = combineLatest([allUsers$, this.userChats$, this.searchTerm$]).pipe(
-      map(([users, chats, term]) => {
+    this.availableUsers$ = combineLatest([allUsers$, this.searchTerm$]).pipe(
+      map(([users, term]) => {
         if (!users) return [];
-        
+
         let available = users.filter(
           (u) =>
             u.uid !== this.currentUser?.uid &&
             `${u.role ?? ''}`.toLowerCase() === 'counsellor'
         );
-        
-        const chattedUids = chats?.map(c => c.recipientId) || [];
-        available = available.filter(u => !chattedUids.includes(u.uid));
-        
+
         if (term) {
-          available = available.filter(u => 
+          available = available.filter(u =>
             u.displayName?.toLowerCase().includes(term.toLowerCase()) ||
             u.email?.toLowerCase().includes(term.toLowerCase())
           );

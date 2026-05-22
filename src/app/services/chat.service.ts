@@ -134,6 +134,27 @@ export class ChatService {
   async create(recipientUser?: any) {
     const user = await this.auth.getUser();
 
+    if (recipientUser) {
+      const snapshot = await runInInjectionContext(this.injector, () =>
+        this.afs
+          .collection('chats', ref =>
+            ref.where('uids', 'array-contains', user.uid).where('type', '==', 'private')
+          )
+          .get()
+          .toPromise()
+      );
+
+      const existing = snapshot?.docs.find(doc => {
+        const d: any = doc.data();
+        return Array.isArray(d.uids) && d.uids.includes(recipientUser.uid);
+      });
+
+      if (existing) {
+        this.router.navigate(['messages/chat', existing.id]);
+        return;
+      }
+    }
+
     const data = {
       uid: user.uid,
       uids: recipientUser ? [user.uid, recipientUser.uid] : [user.uid],
@@ -143,7 +164,7 @@ export class ChatService {
       createdAt: Date.now(),
       count: 0,
       messages: [],
-      type: recipientUser ? 'private' : 'private',
+      type: 'private',
     };
 
     return runInInjectionContext(this.injector, () => {
