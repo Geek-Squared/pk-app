@@ -16,12 +16,12 @@
       <button type="button" class="mode-btn" [class.active]="mode !== 'counsellors'" (click)="goToNetwork()">
         Network
       </button>
-      <button type="button" class="mode-btn" [class.active]="mode === 'counsellors'" (click)="goToCounsellors()">
+      <button *ngIf="isClientRole$ | async" type="button" class="mode-btn" [class.active]="mode === 'counsellors'" (click)="goToCounsellors()">
         Counsellors
       </button>
     </div>
 
-    <div class="counsellor-cta" *ngIf="mode === 'counsellors' && (currentUserRole$ | async) !== 'counsellor'">
+    <div class="counsellor-cta" *ngIf="mode === 'counsellors' && (isClientRole$ | async)">
       <button type="button" class="request-btn" (click)="requestCounsellor()">
         Request Counsellor
       </button>
@@ -148,8 +148,8 @@
       </div>
     </section>
 
-    <!-- Available Counselors Section (Discovery) -->
-    <section class="network-section discovery" *ngIf="mode !== 'counsellors' && (availableUsers$ | async)?.length">
+    <!-- Available Counselors Section (Discovery) — hidden for counsellors -->
+    <section class="network-section discovery" *ngIf="(isClientRole$ | async) && mode !== 'counsellors' && (availableUsers$ | async)?.length">
       <div class="section-header">
         <h3 class="section-label">Available Counselors</h3>
         <span class="count-pill">Expert Discovery</span>
@@ -186,7 +186,7 @@
 
     <!-- Speed dial -->
     <ion-fab-list side="start" class="composer-fab-list">
-      <ion-fab-button (click)="showUserSelection(true)" class="editorial-fab-item text-only" aria-label="Add group">
+      <ion-fab-button *ngIf="canCreateGroup$ | async" (click)="showUserSelection(true)" class="editorial-fab-item text-only" aria-label="Add group">
         Add group
       </ion-fab-button>
       <ion-fab-button (click)="showUserSelection(false)" class="editorial-fab-item text-only" aria-label="Add new chat">

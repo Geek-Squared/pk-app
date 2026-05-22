@@ -30,7 +30,8 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
 export class MessagesPage implements OnInit {
   searchTerm$ = new BehaviorSubject<string>('');
   public currentUserRole$ = new BehaviorSubject<string>('');
-  
+  private roleLoaded$ = new BehaviorSubject<boolean>(false);
+
   userChats$: Observable<any>;
   groupChats$: Observable<any>;
   filteredChats$: Observable<any>;
@@ -38,7 +39,9 @@ export class MessagesPage implements OnInit {
   filteredOtherChats$: Observable<any>;
   filteredGroups$: Observable<any>;
   availableUsers$: Observable<any>;
-  
+  canCreateGroup$: Observable<boolean>;
+  isClientRole$: Observable<boolean>;
+
   currentUser: any;
   public mode: 'default' | 'counsellors' = 'default';
 
@@ -61,16 +64,26 @@ export class MessagesPage implements OnInit {
 
     this.titleService.setTitle(this.mode === 'counsellors' ? 'Counsellors' : 'Network');
     
-    this.auth.user$.pipe(take(1)).subscribe(user => {
-      this.currentUser = user;
-      const role =
-        typeof user?.role === 'string'
-          ? user.role
-          : typeof user?.role?.name === 'string'
-            ? user.role.name
-            : '';
-      this.currentUserRole$.next(`${role || ''}`.toLowerCase());
-    });
+    const uid = JSON.parse(localStorage.getItem('user') || '{}')?.uid;
+    this.currentUser = { uid };
+    if (uid) {
+      this.usersService.getUserById(uid).pipe(take(1)).subscribe((firestoreUser: any) => {
+        this.currentUser = firestoreUser;
+        const role = typeof firestoreUser?.role === 'string' ? firestoreUser.role : '';
+        this.currentUserRole$.next(role.toLowerCase());
+        this.roleLoaded$.next(true);
+      });
+    } else {
+      this.roleLoaded$.next(true);
+    }
+
+    this.isClientRole$ = combineLatest([this.currentUserRole$, this.roleLoaded$]).pipe(
+      map(([role, loaded]) => loaded && role !== 'counsellor')
+    );
+
+    this.canCreateGroup$ = this.currentUserRole$.pipe(
+      map(role => role === 'counsellor' || role === 'administrator')
+    );
     
     this.userChats$ = this.cs.getUserChats();
     this.groupChats$ = this.cs.getGroupChats();
@@ -105,7 +118,8 @@ export class MessagesPage implements OnInit {
       })
     );
 
-    // "My Team" (Network mode) excludes counsellor sessions for non-counsellors.
+    // "My Team" (Network mode): for counsellors shows all their private sessions;
+    // for regular users excludes counsellor chats (those live in the Counsellors tab).
     this.filteredOtherChats$ = combineLatest([
       this.filteredChats$,
       this.currentUserRole$,
@@ -113,8 +127,7 @@ export class MessagesPage implements OnInit {
       map(([chats, roleLower]: [any[], string]) => {
         const list = Array.isArray(chats) ? chats : [];
         if (roleLower === 'counsellor') {
-          // Counsellors don't have a "My Team" list in the network view; keep it empty.
-          return [];
+          return list;
         }
         return list.filter((c) => {
           const recipientRoleLower = `${c?.recipientRole ?? ''}`.toLowerCase();
@@ -176,6 +189,13 @@ export class MessagesPage implements OnInit {
   }
 
   async showUserSelection(isGroup: boolean = false) {
+    if (isGroup) {
+      const role = this.currentUserRole$.getValue();
+      if (role !== 'counsellor' && role !== 'administrator') {
+        return;
+      }
+    }
+
     const modal = await this.modalController.create({
       component: UserSelectionComponent,
       componentProps: { isGroup }

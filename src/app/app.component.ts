@@ -177,30 +177,40 @@ export class AppComponent {
       return;
     }
 
+    const currentUser = await firstValueFrom(this.user$);
+    const isCounsellor = `${currentUser?.role ?? ''}`.toLowerCase() === 'counsellor';
+
+    const buttons: any[] = [];
+
+    if (!isCounsellor) {
+      buttons.push({
+        text: 'Chat with Counsellor',
+        icon: 'chatbubbles-outline',
+        handler: () => this.router.navigateByUrl('/messages/counsellors'),
+      });
+    }
+
+    buttons.push(
+      {
+        text: 'Chat with Community',
+        icon: 'people-outline',
+        handler: () => this.router.navigateByUrl('/messages'),
+      },
+      {
+        text: 'Chat with Peekay',
+        icon: 'sparkles-outline',
+        handler: () => this.router.navigateByUrl('/ai-assistant'),
+      },
+      {
+        text: 'Cancel',
+        role: 'cancel',
+        icon: 'close-outline',
+      }
+    );
+
     const sheet = await this.actionSheetController.create({
       header: 'Chat',
-      buttons: [
-        {
-          text: 'Chat with Counsellor',
-          icon: 'chatbubbles-outline',
-          handler: () => this.router.navigateByUrl('/messages/counsellors'),
-        },
-        {
-          text: 'Chat with Community',
-          icon: 'people-outline',
-          handler: () => this.router.navigateByUrl('/messages'),
-        },
-        {
-          text: 'Chat with Peekay',
-          icon: 'sparkles-outline',
-          handler: () => this.router.navigateByUrl('/ai-assistant'),
-        },
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          icon: 'close-outline',
-        },
-      ],
+      buttons,
     });
 
     await sheet.present();
