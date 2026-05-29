@@ -6,8 +6,8 @@
       *ngFor="let survey of surveys"
       [routerLink]="'./take-survey/' + survey.id"
     >
-      <ion-label>{{survey.title}}</ion-label>
-      <p>{{survey.description}}</p>
+      <ion-label>{{ survey.name || survey.title || survey.schema?.title }}</ion-label>
+      <p>{{ survey.description }}</p>
     </ion-item>
   </ion-list>
 
@@ -25,7 +25,7 @@
             <ion-icon name="analytics-outline"></ion-icon>
           </div>
           <div class="survey-content">
-            <h3>{{ survey.title }}</h3>
+            <h3>{{ survey.name || survey.title || survey.schema?.title }}</h3>
             <p>{{ survey.description }}</p>
             <div class="survey-footer">
               <span class="take-btn">

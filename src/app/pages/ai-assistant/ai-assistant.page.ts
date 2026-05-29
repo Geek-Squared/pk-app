@@ -1,10 +1,12 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { IonContent, IonTextarea } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AiChatMessage, AiChatService } from 'src/app/services/ai-chat.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { UtilitiesService } from 'src/app/services/utilities.service';
 
 @Component({
   selector: 'app-ai-assistant',
@@ -12,7 +14,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
   styleUrls: ['./ai-assistant.page.scss'],
   standalone: false,
 })
-export class AiAssistantPage implements OnDestroy {
+export class AiAssistantPage implements OnInit, OnDestroy {
   @ViewChild(IonContent) content?: IonContent;
   @ViewChild('composer') composer?: IonTextarea;
 
@@ -55,7 +57,7 @@ export class AiAssistantPage implements OnDestroy {
     {
       icon: 'heart-outline',
       title: 'Vent Space',
-      description: 'Share what’s heavy — Peekay listens without judgment.',
+      description: "Share what's heavy — Peekay listens without judgment.",
       type: 'prompt',
       value: 'I need a safe space to vent about how I am feeling right now.',
     },
@@ -70,12 +72,21 @@ export class AiAssistantPage implements OnDestroy {
 
   private activeRequest?: Subscription;
 
+  connectingToCounsellor = false;
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly aiChatService: AiChatService,
     private readonly router: Router,
-    public readonly authService: AuthenticationService
+    public readonly authService: AuthenticationService,
+    private readonly fns: AngularFireFunctions,
+    private readonly utilitiesService: UtilitiesService
   ) {}
+
+  get userId(): string {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.uid || '';
+  }
 
   get userName(): string {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -89,34 +100,36 @@ export class AiAssistantPage implements OnDestroy {
     return 'Good evening';
   }
 
+  async ngOnInit(): Promise<void> {
+    if (!this.userId) return;
+    try {
+      this.messages = await this.aiChatService.loadHistory(this.userId);
+      this.scrollToBottom();
+    } catch (err) {
+      console.error('Failed to load Peekay history:', err);
+    }
+  }
+
   ngOnDestroy(): void {
     this.activeRequest?.unsubscribe();
   }
 
-  handleSupportAction(action: {
-    type: 'prompt' | 'route';
-    value: string;
-  }): void {
+  handleSupportAction(action: { type: 'prompt' | 'route'; value: string }): void {
     if (action.type === 'route') {
       this.router.navigateByUrl(action.value);
       return;
     }
-
     this.useSuggestion(action.value);
   }
 
   useSuggestion(prompt: string): void {
-    if (this.pending) {
-      return;
-    }
+    if (this.pending) return;
     this.form.patchValue({ prompt });
     this.focusComposer();
   }
 
   sendMessage(): void {
-    if (this.pending) {
-      return;
-    }
+    if (this.pending) return;
 
     const rawValue = this.form.value.prompt ?? '';
     const trimmedValue = rawValue.trim();
@@ -132,6 +145,7 @@ export class AiAssistantPage implements OnDestroy {
     };
 
     this.messages = [...this.messages, userMessage];
+    this.aiChatService.saveMessage(this.userId, userMessage);
     this.form.reset();
     this.errorMessage = undefined;
     this.pending = true;
@@ -144,6 +158,7 @@ export class AiAssistantPage implements OnDestroy {
       .subscribe({
         next: (assistantMessage) => {
           this.messages = [...this.messages, assistantMessage];
+          this.aiChatService.saveMessage(this.userId, assistantMessage);
           this.pending = false;
           this.scrollToBottom();
         },
@@ -154,6 +169,23 @@ export class AiAssistantPage implements OnDestroy {
           this.pending = false;
         },
       });
+  }
+
+  async connectToCounsellor(): Promise<void> {
+    if (this.connectingToCounsellor) return;
+    this.connectingToCounsellor = true;
+    try {
+      const result: any = await this.fns.httpsCallable('requestCounsellorChat')({}).toPromise();
+      if (result?.available && result?.chatId) {
+        this.router.navigate(['/messages/chat', result.chatId]);
+      } else {
+        this.utilitiesService.presentToast('No counsellor is available right now. Please try again later.');
+      }
+    } catch {
+      this.utilitiesService.presentToast('Unable to connect to a counsellor right now.');
+    } finally {
+      this.connectingToCounsellor = false;
+    }
   }
 
   handleKeydown(event: KeyboardEvent): void {
@@ -182,7 +214,7 @@ export class AiAssistantPage implements OnDestroy {
     );
   }
 
-  private focusComposer(): void {
+  focusComposer(): void {
     this.composer?.setFocus();
   }
 }

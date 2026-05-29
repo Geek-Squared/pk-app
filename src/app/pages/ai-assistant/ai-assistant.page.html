@@ -28,6 +28,15 @@
               <div [innerHTML]="msg.content"></div>
               <span class="time-stamp">{{ msg.createdAt | date:'shortTime' }}</span>
             </div>
+            <button
+              *ngIf="msg.crisis"
+              class="counsellor-crisis-btn"
+              (click)="connectToCounsellor()"
+              [disabled]="connectingToCounsellor"
+            >
+              <span class="material-symbols-outlined">support_agent</span>
+              {{ connectingToCounsellor ? 'Connecting...' : 'Talk to a Counsellor' }}
+            </button>
           </div>
 
           <!-- User Message -->

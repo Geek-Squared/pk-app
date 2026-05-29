@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 export type AiChatAuthor = 'user' | 'assistant';
 
@@ -9,18 +10,19 @@ export interface AiChatMessage {
   role: AiChatAuthor;
   content: string;
   createdAt: number;
+  crisis?: boolean;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class AiChatService {
-  constructor(private fns: AngularFireFunctions) {}
+  constructor(
+    private fns: AngularFireFunctions,
+    private firestore: AngularFirestore,
+    private injector: Injector
+  ) {}
 
-  /**
-   * Securely sends messages to the 'peekayChat' backend proxy.
-   * This removes the API key from the frontend and enforces PII scrubbing + Guardrails.
-   */
   sendMessage(history: AiChatMessage[]): Observable<AiChatMessage> {
     const callable = this.fns.httpsCallable('peekayChat');
     const body = {
@@ -37,8 +39,32 @@ export class AiChatService {
           role: 'assistant' as const,
           content: assistantMessage,
           createdAt: Date.now(),
+          crisis: response?.crisis === true,
         };
       })
     );
   }
+
+  loadHistory(uid: string): Promise<AiChatMessage[]> {
+    return runInInjectionContext(this.injector, () =>
+      this.firestore
+        .collection<AiChatMessage>(`users/${uid}/peekayChats`, ref =>
+          ref.orderBy('createdAt', 'asc')
+        )
+        .get()
+        .toPromise()
+        .then(snap => snap?.docs.map(d => d.data()) ?? [])
+    );
+  }
+
+  saveMessage(uid: string, message: AiChatMessage): void {
+    runInInjectionContext(this.injector, () => {
+      this.firestore
+        .collection<AiChatMessage>(`users/${uid}/peekayChats`)
+        .add(message)
+        .catch(err => console.error('Failed to save Peekay message:', err));
+    });
+  }
+
+
 }

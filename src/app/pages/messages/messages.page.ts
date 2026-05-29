@@ -40,6 +40,7 @@ export class MessagesPage implements OnInit {
   filteredGroups$: Observable<any>;
   availableUsers$: Observable<any>;
   canCreateGroup$: Observable<boolean>;
+  canCreateChat$: Observable<boolean>;
   isClientRole$: Observable<boolean>;
 
   currentUser: any;
@@ -84,6 +85,11 @@ export class MessagesPage implements OnInit {
     this.canCreateGroup$ = this.currentUserRole$.pipe(
       map(role => role === 'counsellor' || role === 'administrator')
     );
+
+    // Regular clients cannot start chats (anonymity). Only counsellors/admins can.
+    this.canCreateChat$ = this.currentUserRole$.pipe(
+      map(role => role === 'counsellor' || role === 'administrator')
+    );
     
     this.userChats$ = this.cs.getUserChats();
     this.groupChats$ = this.cs.getGroupChats();
@@ -92,10 +98,23 @@ export class MessagesPage implements OnInit {
     this.filteredChats$ = combineLatest([this.userChats$, this.searchTerm$]).pipe(
       map(([chats, term]) => {
         if (!chats) return [];
-        return chats.filter(c =>
+        const filtered = chats.filter(c =>
           c.type !== 'group' &&
           c.recipientName?.toLowerCase().includes(term.toLowerCase())
         );
+        // One chat per person: collapse duplicate threads with the same
+        // participant, keeping the most recent (the list is sorted latest-first).
+        const seen = new Set<string>();
+        const deduped: any[] = [];
+        for (const c of filtered) {
+          const key = c.recipientId || c.id;
+          if (seen.has(key)) {
+            continue;
+          }
+          seen.add(key);
+          deduped.push(c);
+        }
+        return deduped;
       })
     );
 

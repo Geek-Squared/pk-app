@@ -22,13 +22,24 @@ export class TakeSurveyComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.survey = res;
-          this.surveyModel = new Model({ elements: res.questions });
+          // Admin stores the SurveyJS definition under `schema` ({ title, elements }).
+          // Fall back to a legacy `questions` array if present.
+          const definition = res?.schema || { elements: res?.questions || [] };
+          this.surveyModel = new Model(definition);
           this.surveyModel.onComplete.add((context) => this.submit(context));
         },
       });
   }
 
   submit(context) {
-    this.surveysService.saveSurveyResponse(this.survey.id, context.data).then();
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const response = {
+      ...context.data,
+      uid: user?.uid || null,
+      userId: user?.uid || null,
+      userName: user?.displayName || user?.email || null,
+      submittedAt: Date.now(),
+    };
+    this.surveysService.saveSurveyResponse(this.survey.id, response).then();
   }
 }

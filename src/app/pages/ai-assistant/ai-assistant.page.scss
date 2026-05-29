@@ -73,6 +73,28 @@
   }
 }
 
+/* Crisis counsellor button */
+.counsellor-crisis-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 18px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+
+  .material-symbols-outlined { font-size: 20px; }
+
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
 /* Chat History / Messages Thread */
 .chat-thread-container {
   display: flex;

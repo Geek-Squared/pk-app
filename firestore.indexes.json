@@ -12,6 +12,23 @@
           }
         }
       ]
+    },
+    {
+      "collectionGroup": "knowledge_index",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "metadata.source",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "embedding",
+          "vectorConfig": {
+            "dimension": 1536,
+            "flat": {}
+          }
+        }
+      ]
     }
   ],
   "fieldOverrides": []

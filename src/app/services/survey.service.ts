@@ -30,6 +30,17 @@ export class SurveyService {
     });
   }
 
+  hasResponded(surveyId: string, uid: string) {
+    return runInInjectionContext(this.injector, () => {
+      return this.firestore
+        .collection('surveys')
+        .doc(surveyId)
+        .collection('responses', (ref) => ref.where('uid', '==', uid).limit(1))
+        .snapshotChanges()
+        .pipe(map((actions: any[]) => actions.length > 0));
+    });
+  }
+
   saveSurveyResponse(surveyId: string, response: any) {
     return runInInjectionContext(this.injector, () => {
       return this.firestore

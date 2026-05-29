@@ -901,45 +901,122 @@ exports.peekayChat = functions
     }
   });
 
+async function buildPostText(postId: string, postData: any): Promise<string> {
+  const parts: string[] = [];
+  if (postData.title) parts.push(postData.title);
+  if (postData.description) parts.push(postData.description);
+
+  const questionsSnap = await admin.firestore()
+    .collection('questions')
+    .where('postId', '==', postId)
+    .get();
+  const narratives = questionsSnap.docs
+    .map((d: any) => (d.data()?.narrative || '').trim())
+    .filter(Boolean);
+  if (narratives.length) {
+    parts.push(`Reflection questions:\n${narratives.join('\n')}`);
+  }
+
+  return parts.join('\n');
+}
+
 /**
- * Automatic Workbook Indexer (Phase 2 - RAG Part A)
- * Triggers on workbook change to update the AI's "Context Knowledge".
+ * Intervention Post Indexer — keeps knowledge_index in sync with posts collection.
+ * Handles create, update, and delete.
  */
-exports.onWorkbookStoryCreated = functions.firestore
-  .document('workbooks/{workbookId}')
-  .onUpdate(async (change) => {
+exports.onPostWrite = functions
+  .runWith({ memory: '512MB', timeoutSeconds: 300, secrets: ['OPENAI_API_KEY'] })
+  .firestore
+  .document('posts/{postId}')
+  .onWrite(async (change, context) => {
+    const postId = context.params.postId;
+    const docRef = admin.firestore().collection('knowledge_index').doc(`post_${postId}`);
+
+    if (!change.after.exists) {
+      await docRef.delete();
+      return null;
+    }
+
     const data = change.after.data();
-    if (!data?.responses) return null;
+    if (!data) return null;
 
-    console.log(`Indexing workbook ${change.after.id}...`);
+    const text = await buildPostText(postId, data);
+    if (!text.trim()) return null;
 
-    // 1. Semantic Chunking: Concatenate responses for indexing
-    const responsesText = Array.isArray(data.responses) 
-      ? data.responses.map((r: any) => r.answer || r.content).join(' ')
-      : Object.values(data.responses).map((r: any) => r.answer || r.content).join(' ');
+    console.log(`Indexing post ${postId}...`);
 
-    if (!responsesText.trim()) return null;
-
-    // 3. Save to Native Knowledge Index (For Peekay search)
-    // Using GenKit's native embedding action via our HUB
     const { getAi, openAI } = require('./ai');
     const ai = getAi();
-    const embedding = await ai.embed({
+    const embeddingResult = await ai.embed({
       embedder: openAI.embedder('text-embedding-3-small'),
-      content: responsesText,
+      content: text,
     });
 
-    await admin.firestore().collection('knowledge_index').add({
-      text: responsesText,
-      embedding: embedding,
+    await docRef.set({
+      text,
+      embedding: admin.firestore.FieldValue.vector(embeddingResult[0].embedding),
       metadata: {
-        uid: data.uid || 'system',
-        workbookId: change.after.id,
+        postId,
+        chapterId: data.chapterId || null,
+        source: 'post',
         updatedAt: admin.firestore.Timestamp.now(),
       },
     });
 
     return null;
+  });
+
+/**
+ * Backfill all existing posts into knowledge_index. Run once after deploy.
+ * Admin-only callable.
+ */
+exports.indexAllPosts = functions
+  .runWith({ memory: '1GB', timeoutSeconds: 540, secrets: ['OPENAI_API_KEY'] })
+  .https.onCall(async (data, context) => {
+    await assertAdmin(context);
+
+    const postsSnap = await admin.firestore().collection('posts').get();
+    const { getAi, openAI } = require('./ai');
+    const ai = getAi();
+
+    let indexed = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const doc of postsSnap.docs) {
+      const postId = doc.id;
+      const postData = doc.data();
+      if (!postData) { skipped++; continue; }
+
+      try {
+        const text = await buildPostText(postId, postData);
+        if (!text.trim()) { skipped++; continue; }
+
+        const embeddingResult = await ai.embed({
+          embedder: openAI.embedder('text-embedding-3-small'),
+          content: text,
+        });
+
+        await admin.firestore().collection('knowledge_index').doc(`post_${postId}`).set({
+          text,
+          embedding: admin.firestore.FieldValue.vector(embeddingResult[0].embedding),
+          metadata: {
+            postId,
+            chapterId: postData.chapterId || null,
+            source: 'post',
+            updatedAt: admin.firestore.Timestamp.now(),
+          },
+        });
+
+        indexed++;
+      } catch (err) {
+        console.error(`Failed to index post ${postId}:`, err);
+        failed++;
+      }
+    }
+
+    console.log(`indexAllPosts complete: indexed=${indexed}, skipped=${skipped}, failed=${failed}`);
+    return { indexed, skipped, failed, total: postsSnap.size };
   });
 
 /**
@@ -960,50 +1037,61 @@ exports.validateAiResponse = functions
 
     const { question, response, storyContext } = data;
 
-    const systemPrompt = "You are a therapeutic content validator for Positive Konnections, an HIV support platform. Users provide reflections on their HERO'S journey.";
-    
-    const prompt = `
-      EVALUATE THE FOLLOWING USER REFLECTION:
-      
-      QUESTION: "${question}"
-      ${storyContext ? `CONTEXT: "${storyContext}"` : ''}
-      USER RESPONSE: "${response}"
+    const systemPrompt = 'You are a therapeutic content validator for Positive Konnections, an HIV support platform. Users provide reflections on their HERO\'s journey. Evaluate responses honestly and consistently.';
 
-      SCORING CRITERIA (1-10):
-      - RELEVANCE: Does it touch on health, emotions, or the HIV journey? (HIV-related keywords = 8-10)
-      - EFFORT: Is it more than 5 words and non-vague?
-      - IRRELEVANCE: If it mentions "ice cream", "video games", or random off-topic items, reject (Score < 4).
+    const prompt = `EVALUATE THE FOLLOWING USER REFLECTION:
 
-      Respond ONLY in JSON:
-      {
-        "score": number,
-        "is_valid": boolean,
-        "feedback": "string explaining the score",
-        "suggestions": "how to improve if score < 6"
-      }
-    `;
+QUESTION: "${question}"
+${storyContext ? `CONTEXT: "${storyContext}"` : ''}
+USER RESPONSE: "${response}"
+
+SCORING CRITERIA (1-10):
+- RELEVANCE: Does the response address the question? For HIV/health questions, responses about medical experiences, emotions, stigma, treatment, disclosure, relationships, or social impact are all highly relevant (7-10).
+- EFFORT: Does it show genuine thought (more than a few words, not vague filler)?
+- REFLECTION: Does it demonstrate personal insight or self-awareness?
+
+SCORE GUIDE:
+1-2: Completely off-topic or trolling (e.g., unrelated topics with no connection to health, emotions, or life)
+3-4: Vague or minimal effort (e.g., "It was okay", "I don't know", "fine")
+5-6: Addresses the question with basic relevant content but lacks depth
+7-8: Good response with personal insight and relevant detail
+9-10: Excellent — multiple specific points, deep reflection, clear connection to personal experience
+
+Respond ONLY in JSON:
+{
+  "score": number,
+  "is_valid": boolean,
+  "feedback": "string explaining the score",
+  "suggestions": "how to improve if score < 6, otherwise empty string"
+}`;
+
+    const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt }
+        ],
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!apiResponse.ok) {
+      const errText = await apiResponse.text();
+      console.error('OpenAI validation API error:', apiResponse.status, errText);
+      throw new functions.https.HttpsError('unavailable', 'Validation service temporarily unavailable.');
+    }
 
     try {
-      const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: prompt }
-          ],
-          response_format: { type: 'json_object' },
-        }),
-      });
-
       const result = await apiResponse.json();
       return JSON.parse(result.choices[0].message.content);
-    } catch (error) {
-      console.error('Validation Error:', error);
-      return { score: 6, is_valid: true, feedback: 'Accepted (Fallback: Validation Overloaded)' };
+    } catch (parseError) {
+      console.error('Validation response parse error:', parseError);
+      throw new functions.https.HttpsError('internal', 'Validation returned an unexpected response.');
     }
   });

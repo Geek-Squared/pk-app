@@ -37,6 +37,19 @@ export function getRetriever() {
   return retrieverInstance;
 }
 
+const CRISIS_KEYWORDS = [
+  'kill myself', 'killing myself', 'end my life', 'end it all',
+  'want to die', 'wanna die', 'going to die', 'suicide', 'suicidal',
+  'hurt myself', 'self harm', 'self-harm', 'no reason to live',
+  "can't go on", 'cant go on', 'give up on life', 'not worth living',
+  'take my life', 'overdose', 'cut myself',
+];
+
+function isCrisisMessage(text: string): boolean {
+  const lower = text.toLowerCase();
+  return CRISIS_KEYWORDS.some(kw => lower.includes(kw));
+}
+
 /**
  * Peekay Chat Flow (Secure RAG Implementation)
  * Wrapped in a lazy-initialization function for cloud stability.
@@ -73,36 +86,53 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
     }))
     .filter((m: any) => m.content.length > 0);
 
-  // Extract last user message text for retrieval query
-  const lastUserMessage = [...normalizedMessages]
-    .reverse()
-    .find((m: any) => m.role === 'user');
-  const lastUserMessageText: string = lastUserMessage?.content?.[0]?.text ?? '';
+  // Check last user message for crisis language
+  const lastUserText = normalizedMessages
+    .filter((m: any) => m.role === 'user')
+    .slice(-1)[0]?.content?.[0]?.text ?? '';
+  const crisis = isCrisisMessage(lastUserText);
 
-  // --- Context Retrieval ---
-  const contextDocs = await ai.retrieve({
-    retriever: retriever,
-    query: lastUserMessageText,
-    options: { limit: 3 },
-  });
+  // Build a richer retrieval query from up to the last 3 user messages
+  const queryText = normalizedMessages
+    .filter((m: any) => m.role === 'user')
+    .slice(-3)
+    .map((m: any) => m.content?.[0]?.text ?? '')
+    .filter(Boolean)
+    .join(' ');
 
-  const contextText = contextDocs.map((d: any) => d.text).join('\n---\n');
+  // Retrieve relevant intervention curriculum posts (shared across all users)
+  const contextDocs = queryText
+    ? await ai.retrieve({
+        retriever: retriever,
+        query: queryText,
+        options: { limit: 3, where: { 'metadata.source': 'post' } },
+      })
+    : [];
+
+  console.log(`[peekayChat] query="${queryText.slice(0, 80)}" docs=${contextDocs.length}`);
+
+  const contextText = contextDocs
+    .map((d: any) => d.text ?? d.content?.[0]?.text ?? '')
+    .filter(Boolean)
+    .join('\n---\n');
+
+  console.log(`[peekayChat] contextText length=${contextText.length} preview="${contextText.slice(0, 120)}"`);
 
   const response = await ai.generate({
     model: openAI.model('gpt-4o-mini'),
-    system: `You are Peekay, the mental health support guide for Positive Konnections. 
+    system: `You are Peekay, the mental health support guide for Positive Konnections.
     Your mission is to guide users through emotional reflection, stress, anxiety, low mood, stigma, relationships, self-worth, and HIV-related feelings using the therapeutic workbook content.
-    
+
     GUARDRAILS:
     - Deep empathy only.
     - Keep guidance focused on mental health, emotional support, grounding, coping skills, and workbook reflection.
     - Do not analyze sleep data, prescribe workouts, give medical advice, diagnose conditions, or make physical health claims.
     - Use "we" and "us" to emphasize community.
-    
-    CONTEXT FROM CURRICULUM:
+
+    CONTEXT FROM INTERVENTION CURRICULUM:
     ${contextText}
-    
-    INSTRUCTION: Use the context above to inform your empathetic guidance.`,
+
+    INSTRUCTION: Use the above curriculum content to inform your empathetic guidance. Where relevant, connect your response to themes or reflection exercises the user may recognise from their sessions.`,
     messages: normalizedMessages as any,
     config: {
       temperature: 0.4,
@@ -119,5 +149,6 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
         },
       },
     ],
+    crisis,
   };
 };

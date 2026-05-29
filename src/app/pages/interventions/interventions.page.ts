@@ -35,14 +35,18 @@ export class InterventionsPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // 1. Fetch interventions list
+    const currentUid = JSON.parse(localStorage.getItem('user') || 'null')?.uid;
+
+    // 1. Fetch interventions list (respecting per-user visibility)
     this.interventions$ = this.interventionsService.getInterventions().pipe(
       map((docs) =>
-        docs.map((doc: any) => {
-          const data = doc.payload.doc.data();
-          const id = doc.payload.doc.id;
-          return { id, ...data };
-        })
+        docs
+          .map((doc: any) => {
+            const data = doc.payload.doc.data();
+            const id = doc.payload.doc.id;
+            return { id, ...data };
+          })
+          .filter((intervention: any) => this.canView(intervention, currentUid))
       )
     );
 
@@ -60,6 +64,18 @@ export class InterventionsPage implements OnInit {
         this.calculateProgress();
       }
     });
+  }
+
+  private canView(intervention: any, uid: string | undefined): boolean {
+    // Restricted interventions are only visible to the selected testers.
+    // Anything without a visibility field stays visible to everyone (legacy).
+    if (intervention?.visibility !== 'restricted') {
+      return true;
+    }
+    const allowed = Array.isArray(intervention?.allowedUserIds)
+      ? intervention.allowedUserIds
+      : [];
+    return !!uid && allowed.includes(uid);
   }
 
   calculateProgress(allChapters?: any[]) {

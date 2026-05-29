@@ -54,7 +54,7 @@
         <div 
           class="contact-card" 
           *ngFor="let chat of filteredOtherChats$ | async"
-          [routerLink]="'chat/' + chat.id"
+          [routerLink]="'/messages/chat/' + chat.id"
         >
           <div class="profile-block">
             <div class="avatar-box">
@@ -90,7 +90,7 @@
         <div
           class="contact-card"
           *ngFor="let chat of filteredCounsellorChats$ | async"
-          [routerLink]="'chat/' + chat.id"
+          [routerLink]="'/messages/chat/' + chat.id"
         >
           <div class="profile-block">
             <div class="avatar-box">
@@ -124,7 +124,7 @@
         <div 
           class="contact-card group-card" 
           *ngFor="let group of filteredGroups$ | async"
-          [routerLink]="['chat/' + group.id, { chatType: 'group' }]"
+          [routerLink]="['/messages/chat/' + group.id, { chatType: 'group' }]"
         >
           <div class="profile-block">
             <div class="avatar-box group-box">
@@ -149,7 +149,7 @@
     </section>
 
     <!-- Available Counselors Section (Discovery) — hidden for counsellors -->
-    <section class="network-section discovery" *ngIf="(isClientRole$ | async) && mode !== 'counsellors' && (availableUsers$ | async)?.length">
+    <section class="network-section discovery" *ngIf="(isClientRole$ | async) && mode === 'counsellors' && (availableUsers$ | async)?.length">
       <div class="section-header">
         <h3 class="section-label">Available Counselors</h3>
         <span class="count-pill">Expert Discovery</span>
@@ -179,7 +179,7 @@
 
   </div>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="composer-fab">
+  <ion-fab *ngIf="canCreateChat$ | async" vertical="bottom" horizontal="end" slot="fixed" class="composer-fab">
     <ion-fab-button class="editorial-fab">
       <ion-icon name="people"></ion-icon>
     </ion-fab-button>
