@@ -3,7 +3,8 @@
   font-family: 'Manrope', sans-serif;
   
   .chat-thread-wrapper {
-    padding: 1.5rem 1rem 180px;
+    // Top clears the fixed chat header; bottom clears the fixed input footer
+    padding: calc(env(safe-area-inset-top, 0px) + 80px) 1rem 120px;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
@@ -91,14 +92,14 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  min-height: 64px;
   background: rgba(246, 250, 254, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 2000;
   display: flex;
   align-items: center;
-  padding: 0 1rem;
+  padding: env(safe-area-inset-top, 0px) 1rem 0;
   border-bottom: 1px solid rgba(0, 40, 142, 0.05);
 
   .header-inner {
@@ -116,7 +117,25 @@
     gap: 0.75rem;
 
     .custom-back {
-      margin-right: -0.25rem;
+      margin-right: 0.1rem;
+
+      ::ng-deep .back-button {
+        --padding-start: 0;
+        --padding-end: 0;
+        --background: #eef3fd;
+        --background-hover: #dde9fb;
+        --background-activated: #dde9fb;
+        --border-radius: 50%;
+        --color: #285ba7;
+        width: 40px;
+        height: 40px;
+        margin: 0;
+      }
+
+      ::ng-deep ion-icon {
+        font-size: 1.35rem;
+        color: #285ba7;
+      }
     }
 
     .avatar-box {
@@ -354,11 +373,11 @@
 /* Premium Footer */
 .chat-editorial-footer {
   position: fixed;
-  bottom: 92px; // Sits exactly on top of the bottom nav
+  bottom: 0; // Bottom nav is hidden on this immersive page
   left: 0;
   right: 0;
   background: #f6fafe;
-  padding: 0.75rem 1rem 0.5rem;
+  padding: 0.75rem 1rem calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
   z-index: 2000;
   box-shadow: 0 -8px 25px rgba(0, 40, 142, 0.04);
 

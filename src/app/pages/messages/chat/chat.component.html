@@ -2,7 +2,7 @@
 <header class="chat-editorial-header">
   <div class="header-inner">
     <div class="user-profile">
-      <app-back-button class="custom-back" defaultHref="/messages"></app-back-button>
+      <app-back-button class="custom-back" fallbackUrl="/messages"></app-back-button>
       
       <div class="avatar-box">
         <img *ngIf="chat?.recipientPhoto" [src]="chat.recipientPhoto" alt="Avatar" />

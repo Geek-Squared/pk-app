@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { IonContent, IonTextarea } from '@ionic/angular';
@@ -80,8 +81,13 @@ export class AiAssistantPage implements OnInit, OnDestroy {
     private readonly router: Router,
     public readonly authService: AuthenticationService,
     private readonly fns: AngularFireFunctions,
-    private readonly utilitiesService: UtilitiesService
+    private readonly utilitiesService: UtilitiesService,
+    private readonly location: Location
   ) {}
+
+  goBack(): void {
+    this.location.back();
+  }
 
   get userId(): string {
     const user = JSON.parse(localStorage.getItem('user') || '{}');

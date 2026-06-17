@@ -73,7 +73,7 @@
   </ion-menu>
   
   <!-- Global Premium Mobile Header -->
-  <ion-header class="ion-no-border mobile-only-header" *ngIf="authenticationService.isLoggedIn">
+  <ion-header class="ion-no-border mobile-only-header" *ngIf="authenticationService.isLoggedIn && !isImmersiveRoute()">
     <header class="sanctuary-header no-border">
       <div class="header-side">
         <ion-buttons>
@@ -92,7 +92,7 @@
     </header>
   </ion-header>
 
-  <ion-header class="ion-no-border root-shell-header" *ngIf="authenticationService.isLoggedIn && !isDashboardRoute()">
+  <ion-header class="ion-no-border root-shell-header" *ngIf="authenticationService.isLoggedIn && !isDashboardRoute() && !isImmersiveRoute()">
     <div class="dashboard-header-wrapper">
       <header class="top-navbar">
         <div class="breadcrumb" style="display: flex; align-items: center;">
@@ -121,7 +121,7 @@
   </ion-header>
 
   <div *ngIf="authenticationService.isLoggedIn" class="main-content-layout authenticated">
-    <ion-router-outlet id="main" [class.has-header]="!isDashboardRoute()"></ion-router-outlet>
+    <ion-router-outlet id="main" [class.has-header]="!isDashboardRoute() && !isImmersiveRoute()"></ion-router-outlet>
   </div>
 
   <ion-router-outlet *ngIf="!authenticationService.isLoggedIn" id="main"></ion-router-outlet>

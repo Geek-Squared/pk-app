@@ -1,11 +1,15 @@
 <ion-content [fullscreen]="true" class="page-content ai-canvas">
   <div class="ai-wrapper">
-    
+
     <!-- AI Identity Header Section (Streamlined) -->
-    <header class="ai-identity-section no-avatar">
-      <div class="identity-text text-center">
+    <header class="ai-identity-section">
+      <button type="button" class="ai-back-btn" (click)="goBack()" aria-label="Go back">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <div class="peekay-avatar">P</div>
+      <div class="identity-text">
         <h2 class="assistant-name">Peekay Assistant</h2>
-        <p class="curator-greeting">Your mental health support guide. {{ greeting }}, {{ userName }}!</p>
+        <p class="curator-greeting"><span class="online-dot"></span> Online</p>
       </div>
     </header>
 

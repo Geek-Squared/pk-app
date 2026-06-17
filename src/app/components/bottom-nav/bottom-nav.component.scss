@@ -4,48 +4,61 @@
   left: 0;
   width: 100%;
   z-index: 100;
-  background: rgba(246, 246, 250, 0.85);
-  backdrop-filter: blur(30px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 12px 16px 32px;
-  border-radius: 32px 32px 0 0;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.04);
+  gap: 6px;
+  padding: 12px 14px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  border-radius: 0;
+  border-top: 1px solid rgba(40, 91, 167, 0.08);
+  box-shadow: 0 -12px 36px rgba(16, 42, 82, 0.10);
 
   .nav-item {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     color: #94a3b8;
     text-decoration: none;
-    transition: all 0.3s ease;
-    padding: 8px 16px;
+    transition: color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    padding: 8px 6px;
     border-radius: 16px;
-
-    &.active {
-      background: var(--pk-primary-container);
-      color: white;
-      transform: scale(1.1);
-      box-shadow: 0 8px 16px rgba(15, 75, 224, 0.15);
-    }
 
     .material-symbols-outlined {
       font-size: 24px;
+      line-height: 1;
     }
 
     .nav-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      margin-top: 2px;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    &.active {
+      // Solid brand-blue pill with white content — high contrast, on theme
+      background: linear-gradient(145deg, #2f66b6 0%, var(--pk-primary, #285ba7) 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(40, 91, 167, 0.30);
+
+      .nav-label {
+        font-weight: 700;
+      }
     }
   }
 }
 
-// Media Query to hide on large screens
+// Hide on large screens
 @media (min-width: 768px) {
   .sanctuary-nav {
     display: none !important;
