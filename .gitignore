@@ -12,7 +12,7 @@
 .DS_Store
 Thumbs.db
 play.json
-android/fastlane/keys/play.json
+# android/fastlane/keys/play.json
 UserInterfaceState.xcuserstate
 $RECYCLE.BIN/
 

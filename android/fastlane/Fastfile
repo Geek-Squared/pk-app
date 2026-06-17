@@ -20,9 +20,10 @@ platform :android do
     track = options[:track] || "internal"
     package_name = options[:package_name] || "com.positivekonnections.app"
     json_key = ENV["SUPPLY_JSON_KEY"]
+    json_key = File.expand_path(json_key, File.dirname(__dir__)) if json_key && !json_key.empty?
 
     if json_key.to_s.empty? || !File.exist?(json_key)
-      UI.user_error!("SUPPLY_JSON_KEY is missing or file does not exist")
+      UI.user_error!("SUPPLY_JSON_KEY is missing or file does not exist (resolved: #{json_key})")
     end
 
     codes = google_play_track_version_codes(

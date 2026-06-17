@@ -39,8 +39,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <!-- Legacy storage for Android 12 and below -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!--
+      No READ_MEDIA_IMAGES / READ_MEDIA_VIDEO / READ_EXTERNAL_STORAGE:
+      - Camera capture uses CameraSource.Camera (needs only CAMERA above).
+      - Profile pic and chat attachments use the system document/photo picker
+        via an HTML <input type="file">, which grants scoped access to the
+        chosen file and requires no media-read permission.
+      Declaring them triggers Google Play's Photo and Video Permissions policy.
+    -->
 </manifest>
