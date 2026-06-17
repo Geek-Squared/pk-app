@@ -3,7 +3,7 @@
 import { Component, OnInit } from '@angular/core';
 import { InterventionsService } from 'src/app/services/interventions.service';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Intervention } from 'src/app/models/intervention.interface';
 
 import { WorkbookService } from 'src/app/services/workbook.service';
@@ -20,12 +20,14 @@ import { Router } from '@angular/router';
 export class InterventionsPage implements OnInit {
   interventions$: Observable<Intervention[]> | undefined;
   
-  // Progress stats
-  totalModules = 18; // Default fallback
-  completedModules = 0;
+  // Progress stats — INTERVENTION level (how many interventions fully completed)
+  totalInterventions = 0;
+  completedInterventions = 0;
   progressPercentage = 0;
   nextChapterId: string | null = null;
   userWorkbook: any = null;
+  private interventionsArr: any[] = [];
+  private allChapters: any[] = [];
 
   constructor(
     private interventionsService: InterventionsService,
@@ -47,14 +49,17 @@ export class InterventionsPage implements OnInit {
             return { id, ...data };
           })
           .filter((intervention: any) => this.canView(intervention, currentUid))
-      )
+      ),
+      tap((list) => {
+        this.interventionsArr = list;
+        this.calculateProgress();
+      })
     );
 
-    // 2. Fetch all chapters to count total modules
+    // 2. Fetch all chapters (used to group by intervention)
     this.chaptersService.getChapters().subscribe(chapters => {
-      const allChapters = chapters.map(c => ({ id: c.payload.doc.id, ...c.payload.doc.data() as any }));
-      this.totalModules = allChapters.length || 18;
-      this.calculateProgress(allChapters);
+      this.allChapters = chapters.map(c => ({ id: c.payload.doc.id, ...c.payload.doc.data() as any }));
+      this.calculateProgress();
     });
 
     // 3. Fetch user workbook to count completions
@@ -78,18 +83,27 @@ export class InterventionsPage implements OnInit {
     return !!uid && allowed.includes(uid);
   }
 
-  calculateProgress(allChapters?: any[]) {
-    if (!this.userWorkbook) return;
-    
-    // Count unique completed chapters in workbook
-    const completedIds = new Set(this.userWorkbook.responses?.map((r: any) => r.chapterId) || []);
-    this.completedModules = completedIds.size;
-    this.progressPercentage = Math.round((this.completedModules / (this.totalModules || 1)) * 100);
+  calculateProgress() {
+    const completedIds = new Set(
+      this.userWorkbook?.responses?.map((r: any) => r.chapterId) || []
+    );
 
-    // Find the next incomplete chapter
-    if (allChapters) {
-      const next = allChapters.find(c => !completedIds.has(c.id));
-      if (next) this.nextChapterId = next.id;
+    // An intervention counts as completed when all of its chapters are done.
+    if (this.interventionsArr.length && this.allChapters.length) {
+      this.totalInterventions = this.interventionsArr.length;
+      this.completedInterventions = this.interventionsArr.filter((intv) => {
+        const chs = this.allChapters.filter((c) => c.interventionId === intv.id);
+        return chs.length > 0 && chs.every((c) => completedIds.has(c.id));
+      }).length;
+      this.progressPercentage = Math.round(
+        (this.completedInterventions / (this.totalInterventions || 1)) * 100
+      );
+    }
+
+    // Find the next incomplete chapter for the Continue action
+    if (this.allChapters.length) {
+      const next = this.allChapters.find((c) => !completedIds.has(c.id));
+      this.nextChapterId = next ? next.id : null;
     }
   }
 
