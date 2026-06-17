@@ -24,14 +24,13 @@
             <div class="icon-box shadow-sm">
               <span class="material-symbols-outlined">bolt</span>
             </div>
-            <span class="urgent-badge">Urgent</span>
           </div>
           <div class="card-text">
             <h3>Start Interventions</h3>
             <p>Immediate techniques for moments of high intensity.</p>
           </div>
           <button class="card-action-btn">
-            <span>Begin Session</span>
+            <span>{{ hasInterventionProgress ? 'Continue Session' : 'Begin Session' }}</span>
             <span class="material-symbols-outlined">arrow_forward</span>
           </button>
         </div>

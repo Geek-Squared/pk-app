@@ -15,6 +15,7 @@ import { Observable, of, switchMap } from 'rxjs';
 export class HomePage implements OnInit {
   subscription: any;
   user$: Observable<any>;
+  hasInterventionProgress = false;
 
   constructor(
     public workBooksService: WorkbookService,
@@ -42,6 +43,8 @@ export class HomePage implements OnInit {
       this.authService.saveUser();
     }
 
+    this.checkInterventionProgress();
+
     this.authService.afAuth.authState.subscribe((authUser) => {
       console.log('[Home] authState', authUser?.uid, authUser?.email);
     });
@@ -67,6 +70,39 @@ export class HomePage implements OnInit {
     if (!localStorage.getItem('userWorkbookId')) {
       this.saveWorkBookId();
     }
+    // Refresh progress when returning to home (e.g. after an intervention session)
+    this.checkInterventionProgress();
+  }
+
+  private checkInterventionProgress() {
+    this.workBooksService.getUserQuestionResponses().subscribe(
+      (res: any) => {
+        const responses = res?.[0]?.responses ?? [];
+        this.hasInterventionProgress = responses.some((r: any) =>
+          this.isMeaningfulResponse(r)
+        );
+      },
+      () => undefined
+    );
+  }
+
+  private isMeaningfulResponse(response: any): boolean {
+    if (!response) {
+      return false;
+    }
+    if (typeof response.qualityScore === 'number') {
+      return response.qualityScore >= 5;
+    }
+    const content = response?.content;
+    const text = (typeof content === 'string' ? content : JSON.stringify(content ?? ''))
+      .replace(/[\n\r]/g, ' ')
+      .trim()
+      .toLowerCase();
+    if (!text || text === '""') {
+      return false;
+    }
+    const banned = ['x', 'n/a', 'na', 'none', 'nil'];
+    return !banned.includes(text);
   }
 
   private saveWorkBookId() {
