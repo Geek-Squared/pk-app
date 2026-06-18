@@ -109,14 +109,12 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
       })
     : [];
 
-  console.log(`[peekayChat] query="${queryText.slice(0, 80)}" docs=${contextDocs.length}`);
 
   const contextText = contextDocs
     .map((d: any) => d.text ?? d.content?.[0]?.text ?? '')
     .filter(Boolean)
     .join('\n---\n');
 
-  console.log(`[peekayChat] contextText length=${contextText.length} preview="${contextText.slice(0, 120)}"`);
 
   // Surface which intervention(s) the retrieved context came from, so the UI
   // can link the user straight to that intervention. (defineFirestoreRetriever
@@ -133,7 +131,6 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
       sources.push({ interventionId: id, interventionName: name || 'Intervention' });
     }
   }
-  console.log(`[peekayChat] sources=${sources.map((s) => s.interventionName).join(', ') || 'none'}`);
 
   const response = await ai.generate({
     model: openAI.model('gpt-4o-mini'),

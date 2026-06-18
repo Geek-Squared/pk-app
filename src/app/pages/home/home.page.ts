@@ -46,11 +46,9 @@ export class HomePage implements OnInit {
     this.checkInterventionProgress();
 
     this.authService.afAuth.authState.subscribe((authUser) => {
-      console.log('[Home] authState', authUser?.uid, authUser?.email);
     });
 
     this.user$.subscribe((userDoc) => {
-      console.log('[Home] userDoc', userDoc);
     });
   }
 

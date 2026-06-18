@@ -55,6 +55,9 @@ export class PostsPage implements OnInit {
     const modal = await this.modalController.create({
       component: PostDetailsComponent,
       componentProps: { story: post },
+      breakpoints: [0, 0.94, 1],
+      initialBreakpoint: 0.94,
+      handle: true,
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();

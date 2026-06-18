@@ -1,66 +1,84 @@
-<ion-header translucent="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <app-back-button></app-back-button>
-    </ion-buttons>
-    <ion-title>Post Details</ion-title>
-    <ion-buttons slot="end">
-      <ion-button color="danger" fill="solid" (click)="dismiss()" style="border-radius: 20px; text-transform: none; --border-radius: 20px;">
-        <ion-icon name="close" style="margin-right: 5px;"></ion-icon>
-        Close
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="post-detail-content">
+  <div class="pd-wrap">
 
-<ion-content [fullscreen]="true" class="page-content ion-padding">
-  <!-- Elegant dismiss button that doesn't overlap content -->
-  <div style="display: flex; justify-content: flex-end; margin-bottom: 10px; margin-top: -5px; margin-right: -5px;">
-    <ion-button (click)="dismiss()" fill="clear" color="medium" size="small" style="--padding-start: 8px; --padding-end: 8px; margin: 0;">
-      <ion-icon name="close" slot="icon-only" style="font-size: 28px;"></ion-icon>
-    </ion-button>
-  </div>
-
-  <h3 class="ion-text-center" style="margin-top: 0;">{{ story?.title }}</h3>
-  <br />
-  <div class="card-img clr-col">
-    <img src="{{ story?.imageUrl }}" />
-  </div>
-  <br />
-
-  <h4 class="ion-text-center">Play Online Video</h4>
-  <ion-button
-    expand="full"
-    fill="outline"
-    type="button"
-    (click)="openVideo()"
-    >Online Video</ion-button
-  >
-  <br />
-
-  <ng-container *ngIf="story?.audio">
-    <div class="audio-container">
-      <audio controls="false" preload="none">
-        <source type="audio/mpeg" [src]="story?.audio" />
-        [unable to load audio]
-      </audio>
+    <!-- Header -->
+    <div class="pd-head">
+      <span class="overline">Story</span>
+      <button class="close-btn" (click)="dismiss()" aria-label="Close">
+        <ion-icon name="close"></ion-icon>
+      </button>
     </div>
 
-    <br />
-  </ng-container>
+    <!-- Hero media -->
+    <div class="media" [class.is-playing]="playingVideo">
+      <ng-container *ngIf="!playingVideo">
+        <img *ngIf="story?.imageUrl" [src]="story?.imageUrl" class="media-thumb" alt="" />
+        <div class="media-empty" *ngIf="!story?.imageUrl">
+          <ion-icon name="image-outline"></ion-icon>
+        </div>
+        <div class="media-overlay"></div>
 
-  <span>{{ story?.description }}</span>
+        <span class="media-badge" *ngIf="hasVideo">
+          <ion-icon name="play"></ion-icon> Video
+        </span>
+        <button class="media-play" *ngIf="hasVideo" (click)="playVideo()" aria-label="Play video">
+          <ion-icon name="play"></ion-icon>
+        </button>
+      </ng-container>
 
-  <br /><br />
-  <ion-button
-    expand="full"
-    routerLink="/questions/{{ story?.postId }}"
-    (click)="dismiss()"
-    [disabled]="!hasQuestions"
-  >
-    <ng-container *ngIf="hasQuestions && !checkProgress()">Answer story questions</ng-container>
-    <ng-container *ngIf="hasQuestions && checkProgress()">Edit story questions</ng-container>
-    <ng-container *ngIf="!hasQuestions">No questions</ng-container>
-    <ng-container *ngIf="hasQuestions">&nbsp;<ion-icon name="arrow-forward-outline"></ion-icon></ng-container>
-  </ion-button>
+      <!-- Inline players -->
+      <iframe
+        *ngIf="playingVideo && videoKind === 'youtube'"
+        [src]="videoEmbedUrl"
+        class="media-frame"
+        frameborder="0"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+      <video
+        *ngIf="playingVideo && videoKind === 'file'"
+        [src]="directVideoUrl"
+        class="media-frame"
+        controls
+        autoplay
+        playsinline
+      ></video>
+    </div>
+
+    <!-- Title -->
+    <h1 class="pd-title">{{ story?.title }}</h1>
+
+    <!-- Description -->
+    <p class="pd-desc" *ngIf="story?.description">{{ story?.description }}</p>
+
+    <!-- Audio player -->
+    <div class="audio-card" *ngIf="story?.audio">
+      <button class="audio-play" (click)="toggleAudio()" aria-label="Play audio">
+        <ion-icon [name]="audioPlaying ? 'pause' : 'play'"></ion-icon>
+      </button>
+      <div class="wave">
+        <i *ngFor="let b of waveBars" [style.height.%]="b"></i>
+      </div>
+      <span class="audio-time">{{ audioPlaying ? audioCurrent : audioDuration }}</span>
+      <audio
+        #audioEl
+        [src]="story?.audio"
+        preload="metadata"
+        (timeupdate)="onAudioTime()"
+        (loadedmetadata)="onAudioMeta()"
+        (ended)="onAudioEnded()"
+      ></audio>
+    </div>
+
+    <!-- Bottom CTA (pinned to the bottom of the sheet) -->
+    <div class="pd-cta-wrap">
+      <button class="pd-cta" [disabled]="!hasQuestions" (click)="goToQuestions()">
+        <span *ngIf="hasQuestions && !checkProgress()">Answer story questions</span>
+        <span *ngIf="hasQuestions && checkProgress()">Edit story questions</span>
+        <span *ngIf="!hasQuestions">No questions for this story</span>
+        <ion-icon *ngIf="hasQuestions" name="arrow-forward-outline"></ion-icon>
+      </button>
+    </div>
+
+  </div>
 </ion-content>

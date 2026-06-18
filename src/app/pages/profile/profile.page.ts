@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { UsersService } from 'src/app/services/users.service';
 import { NavController, ToastController, AlertController } from '@ionic/angular';
@@ -17,6 +18,7 @@ export class ProfilePage implements OnInit {
   uploading = false;
   editing = false;
   reindexing = false;
+  private userSub?: Subscription;
   editData: any = {
     displayName: ''
   };
@@ -35,29 +37,47 @@ export class ProfilePage implements OnInit {
     this.loadUserProfile();
   }
 
+  // Re-load every time the page is shown — Ionic caches the page, so relying on
+  // ngOnInit alone left it showing a stale cached user after in-app navigation.
+  ionViewWillEnter() {
+    this.loadUserProfile();
+  }
+
+  ionViewWillLeave() {
+    this.userSub?.unsubscribe();
+  }
+
   loadUserProfile() {
     const localUserString = localStorage.getItem('user');
-    if (localUserString) {
-      const localUser = JSON.parse(localUserString);
-      if (localUser && localUser.uid) {
-        this.usersService.getUserById(localUser.uid).subscribe(res => {
-          this.user = res;
-          this.loading = false;
-        }, error => {
-          console.error('Error loading profile', error);
-          this.loading = false;
-          // Fallback to local data if firestore fails
-          this.user = {
-            displayName: localUser.displayName,
-            email: localUser.email,
-            photoURL: localUser.photoURL
-          };
-        });
-      } else {
-        this.loading = false;
-      }
-    } else {
+    if (!localUserString) {
       this.loading = false;
+      return;
+    }
+
+    const localUser = JSON.parse(localUserString);
+
+    // Seed immediately from the auth user (always has displayName/email) so the
+    // real name/email render right away, independent of the Firestore doc.
+    if (localUser) {
+      this.user = { ...(this.user || {}), ...localUser };
+      this.loading = false;
+    }
+
+    if (localUser?.uid) {
+      this.userSub?.unsubscribe();
+      this.userSub = this.usersService.getUserById(localUser.uid).subscribe(
+        (res: any) => {
+          // Firestore fields (role, updated name/photo) take precedence, while
+          // the auth user fills any gaps a stale/partial cached doc leaves.
+          this.user = { ...localUser, ...(res || {}) };
+          this.loading = false;
+        },
+        (error) => {
+          console.error('Error loading profile', error);
+          this.user = { ...localUser };
+          this.loading = false;
+        }
+      );
     }
   }
 

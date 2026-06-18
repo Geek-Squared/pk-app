@@ -1,28 +1,77 @@
-<ion-header class="details-header">
-  <ion-toolbar>
-    <ion-title>Details</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="close()">Close</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="gd-content">
+  <div class="gd-wrap">
 
-<ion-content class="details-content">
-  <div class="details-wrap">
-    <div class="group-title">{{ (chat$ | async)?.displayName || chat?.displayName || 'Group' }}</div>
-    <div class="group-meta">{{ (members$ | async)?.length || 0 }} members</div>
+    <!-- Header -->
+    <div class="gd-head">
+      <span class="overline">Group Details</span>
+      <button class="close-btn" (click)="close()" aria-label="Close">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </div>
 
-    <ion-list lines="none" class="members-list">
-      <ion-item class="member-item" *ngFor="let m of members$ | async">
-        <ion-avatar slot="start">
-          <img *ngIf="m.photoURL" [src]="m.photoURL" alt="avatar" />
-          <div *ngIf="!m.photoURL" class="member-initial">{{ (m.displayName || m.email || 'U') | slice:0:1 }}</div>
-        </ion-avatar>
-        <ion-label>
-          <div class="member-name">{{ m.displayName || 'Member' }}</div>
-          <div class="member-sub">{{ m.email || m.uid }}</div>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+    <ng-container *ngIf="members$ | async as members">
+
+      <!-- Group identity -->
+      <div class="identity">
+        <div class="g-avatar">
+          {{ (groupName || 'G') | slice:0:1 }}
+          <span class="grp"><ion-icon name="people-outline"></ion-icon></span>
+        </div>
+        <h1>{{ groupName }}</h1>
+        <span class="sub">
+          {{ members.length }} member{{ members.length === 1 ? '' : 's' }}
+          <ng-container *ngIf="isCreator"> · Created by you</ng-container>
+        </span>
+      </div>
+
+      <!-- Members -->
+      <div class="section-head">
+        <span class="label">Members</span>
+        <span class="count-pill">{{ members.length }}</span>
+      </div>
+
+      <div class="members">
+        <div class="member" *ngFor="let m of members">
+          <div class="m-avatar">
+            <img *ngIf="m.photoURL" [src]="m.photoURL" alt="" />
+            <span *ngIf="!m.photoURL">{{ (m.displayName || 'U') | slice:0:1 }}</span>
+            <span class="dot" *ngIf="m.isOnline"></span>
+          </div>
+          <div class="m-meta">
+            <div class="m-name">
+              {{ m.displayName }}
+              <span class="tag you" *ngIf="m.isSelf">You</span>
+              <span class="tag creator" *ngIf="m.isCreator">Creator</span>
+            </div>
+            <div class="m-role">
+              {{ m.role || 'Member' }}<ng-container *ngIf="m.isOnline"> · Online</ng-container>
+            </div>
+          </div>
+          <button
+            class="remove"
+            *ngIf="canRemove(m)"
+            (click)="removeMember(m)"
+            aria-label="Remove member"
+          >
+            <ion-icon name="person-remove-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty" *ngIf="!members.length">
+        <ion-icon name="people-outline"></ion-icon>
+        <p>No members to show yet.</p>
+      </div>
+
+      <!-- Leave group -->
+      <div class="foot" *ngIf="currentUid">
+        <button class="leave" (click)="leaveGroup()">
+          <ion-icon name="exit-outline"></ion-icon>
+          Leave group
+        </button>
+      </div>
+
+    </ng-container>
   </div>
 </ion-content>

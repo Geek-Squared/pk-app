@@ -231,6 +231,24 @@ export class ChatService {
     });
   }
 
+  // Remove a member by uid from both `uids` and the `members[]` objects.
+  // (arrayRemove can't match member objects reliably, so we read + filter.)
+  async removeGroupMember(chatId: string, memberUid: string) {
+    if (!chatId || !memberUid) return;
+    return runInInjectionContext(this.injector, async () => {
+      const docRef = this.afs.collection('chats').doc(chatId);
+      const snap = await docRef.ref.get();
+      const data: any = snap.data() || {};
+      const uids = (Array.isArray(data.uids) ? data.uids : []).filter(
+        (u: string) => u !== memberUid
+      );
+      const members = (Array.isArray(data.members) ? data.members : []).filter(
+        (m: any) => m?.uid !== memberUid
+      );
+      await docRef.update({ uids, members });
+    });
+  }
+
   async acceptCounsellorRequest(chatId: string, counsellorUid: string) {
     if (!chatId) return;
     const now = Date.now();
@@ -291,7 +309,6 @@ export class ChatService {
     if (chatId) {
       return runInInjectionContext(this.injector, () => {
         const ref = this.afs.collection('chats').doc(chatId);
-        console.log('DEBUG: Sending message data to Firestore:', data);
         return ref
           .update({
             messages: firebase.firestore.FieldValue.arrayUnion(data),
@@ -353,7 +370,6 @@ export class ChatService {
 
   sendPush(chatId: string | number, data: any, recipientUid: any) {
     if (Capacitor.getPlatform() === 'web') {
-      console.log('Skipping push notification on web');
       return;
     }
 
