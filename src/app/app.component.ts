@@ -158,7 +158,8 @@ export class AppComponent {
     return (
       trimmed === '/ai-assistant' ||
       trimmed.startsWith('/ai-assistant/') ||
-      trimmed.startsWith('/messages/chat/')
+      trimmed.startsWith('/messages/chat/') ||
+      trimmed === '/how-to-use'
     );
   }
 
