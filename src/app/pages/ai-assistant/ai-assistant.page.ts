@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { IonContent, IonTextarea } from '@ionic/angular';
 import { Subscription } from 'rxjs';
-import { AiChatMessage, AiChatService } from 'src/app/services/ai-chat.service';
+import { AiChatMessage, AiChatService, AiChatSource } from 'src/app/services/ai-chat.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { UtilitiesService } from 'src/app/services/utilities.service';
@@ -73,6 +73,12 @@ export class AiAssistantPage implements OnInit, OnDestroy {
 
   private activeRequest?: Subscription;
 
+  // Typewriter reveal state
+  private typingInterval?: any;
+  private typingTarget?: AiChatMessage;
+  private typingFull = '';
+  private typingMeta: { crisis?: boolean; sources?: AiChatSource[] } = {};
+
   connectingToCounsellor = false;
 
   constructor(
@@ -118,6 +124,48 @@ export class AiAssistantPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.activeRequest?.unsubscribe();
+    this.cancelTyping();
+  }
+
+  /** Reveal an assistant reply word-by-word for a live "typing" feel. */
+  private startTyping(
+    target: AiChatMessage,
+    full: string,
+    meta: { crisis?: boolean; sources?: AiChatSource[] }
+  ): void {
+    this.cancelTyping(); // finalize any in-progress reveal first
+    this.typingTarget = target;
+    this.typingFull = full;
+    this.typingMeta = meta;
+
+    const tokens = full.split(/(\s+)/); // words + the whitespace between them
+    let i = 0;
+    this.typingInterval = setInterval(() => {
+      // one word (+ its trailing space) per tick
+      target.content += (tokens[i] ?? '') + (tokens[i + 1] ?? '');
+      i += 2;
+      this.scrollToBottom();
+      if (i >= tokens.length) {
+        this.cancelTyping();
+      }
+    }, 22);
+  }
+
+  /** Stop the reveal and snap the message to its final state. */
+  private cancelTyping(): void {
+    if (this.typingInterval) {
+      clearInterval(this.typingInterval);
+      this.typingInterval = undefined;
+    }
+    if (this.typingTarget) {
+      this.typingTarget.content = this.typingFull;
+      if (this.typingMeta.crisis) this.typingTarget.crisis = true;
+      if (this.typingMeta.sources?.length) this.typingTarget.sources = this.typingMeta.sources;
+      this.typingTarget = undefined;
+      this.typingFull = '';
+      this.typingMeta = {};
+      this.scrollToBottom();
+    }
   }
 
   handleSupportAction(action: { type: 'prompt' | 'route'; value: string }): void {
@@ -136,6 +184,9 @@ export class AiAssistantPage implements OnInit, OnDestroy {
 
   sendMessage(): void {
     if (this.pending) return;
+
+    // If a previous reply is still typing out, snap it to complete first.
+    this.cancelTyping();
 
     const rawValue = this.form.value.prompt ?? '';
     const trimmedValue = rawValue.trim();
@@ -163,9 +214,20 @@ export class AiAssistantPage implements OnInit, OnDestroy {
       .sendMessage(this.messages)
       .subscribe({
         next: (assistantMessage) => {
-          this.messages = [...this.messages, assistantMessage];
-          this.aiChatService.saveMessage(this.userId, assistantMessage);
           this.pending = false;
+          // Persist the complete reply immediately…
+          this.aiChatService.saveMessage(this.userId, assistantMessage);
+          // …but reveal it on screen with a typewriter effect.
+          const typing: AiChatMessage = {
+            role: 'assistant',
+            content: '',
+            createdAt: assistantMessage.createdAt,
+          };
+          this.messages = [...this.messages, typing];
+          this.startTyping(typing, assistantMessage.content, {
+            crisis: assistantMessage.crisis,
+            sources: assistantMessage.sources,
+          });
           this.scrollToBottom();
         },
         error: (error) => {

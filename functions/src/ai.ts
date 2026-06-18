@@ -118,6 +118,23 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
 
   console.log(`[peekayChat] contextText length=${contextText.length} preview="${contextText.slice(0, 120)}"`);
 
+  // Surface which intervention(s) the retrieved context came from, so the UI
+  // can link the user straight to that intervention. (defineFirestoreRetriever
+  // returns the stored doc data under `metadata`, so our nested map is at
+  // metadata.metadata.)
+  const sources: Array<{ interventionId: string; interventionName: string }> = [];
+  const seenInterventions = new Set<string>();
+  for (const d of contextDocs as any[]) {
+    const md = d?.metadata?.metadata ?? d?.metadata ?? {};
+    const id = md?.interventionId;
+    const name = md?.interventionName;
+    if (id && !seenInterventions.has(id)) {
+      seenInterventions.add(id);
+      sources.push({ interventionId: id, interventionName: name || 'Intervention' });
+    }
+  }
+  console.log(`[peekayChat] sources=${sources.map((s) => s.interventionName).join(', ') || 'none'}`);
+
   const response = await ai.generate({
     model: openAI.model('gpt-4o-mini'),
     system: `You are Peekay, the mental health support guide for Positive Konnections.
@@ -132,7 +149,7 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
     CONTEXT FROM INTERVENTION CURRICULUM:
     ${contextText}
 
-    INSTRUCTION: Use the above curriculum content to inform your empathetic guidance. Where relevant, connect your response to themes or reflection exercises the user may recognise from their sessions.`,
+    INSTRUCTION: Use the curriculum content above ONLY when it is relevant to what the user is expressing. If it does not fit their concern, disregard it and rely on your general supportive guidance. Where it is relevant, connect your response to themes or reflection exercises the user may recognise from their sessions. Do not quote or narrate the illustrative story prompts verbatim — draw on their themes, not their plots.`,
     messages: normalizedMessages as any,
     config: {
       temperature: 0.4,
@@ -150,5 +167,6 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
       },
     ],
     crisis,
+    sources,
   };
 };

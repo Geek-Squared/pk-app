@@ -41,6 +41,19 @@
               <span class="material-symbols-outlined">support_agent</span>
               {{ connectingToCounsellor ? 'Connecting...' : 'Talk to a Counsellor' }}
             </button>
+
+            <div class="source-links" *ngIf="msg.sources?.length">
+              <span class="source-label">Related intervention</span>
+              <a
+                class="source-link"
+                *ngFor="let s of msg.sources"
+                [routerLink]="['/chapters', s.interventionId]"
+              >
+                <span class="material-symbols-outlined">menu_book</span>
+                <span class="source-name">{{ s.interventionName }}</span>
+                <span class="material-symbols-outlined chevron">chevron_right</span>
+              </a>
+            </div>
           </div>
 
           <!-- User Message -->
@@ -95,15 +108,7 @@
   <!-- Message Input Dock (Floating) -->
   <div class="ai-input-dock fixed-bottom-clear" slot="fixed">
     <form [formGroup]="form" (ngSubmit)="sendMessage()" class="input-form-inner glass-panel shadow-lg">
-      <button
-        type="button"
-        class="dock-action-btn"
-        aria-label="Focus message input"
-        (click)="focusComposer()"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
-      </button>
-      <input 
+      <input
         type="text" 
         formControlName="prompt"
         class="dock-text-input" 

@@ -3,6 +3,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { UsersService } from 'src/app/services/users.service';
 import { NavController, ToastController, AlertController } from '@ionic/angular';
 import { FileStorageService } from 'src/app/services/file-storage.service';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 @Component({
   selector: 'app-profile',
@@ -15,6 +16,7 @@ export class ProfilePage implements OnInit {
   loading = true;
   uploading = false;
   editing = false;
+  reindexing = false;
   editData: any = {
     displayName: ''
   };
@@ -25,7 +27,8 @@ export class ProfilePage implements OnInit {
     private navCtrl: NavController,
     private fileStorage: FileStorageService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private fns: AngularFireFunctions
   ) {}
 
   ngOnInit() {
@@ -71,6 +74,39 @@ export class ProfilePage implements OnInit {
       return this.user.role;
     }
     return 'Wellness Member';
+  }
+
+  get isAdmin(): boolean {
+    return `${this.userRole ?? ''}`.toLowerCase() === 'administrator';
+  }
+
+  // Admin-only: re-embed every curriculum post into knowledge_index so the
+  // Peekay RAG retrieval picks up indexing changes (runs indexAllPosts).
+  async reindexCurriculum() {
+    if (this.reindexing) return;
+    this.reindexing = true;
+    const working = await this.toastCtrl.create({ message: 'Reindexing curriculum…' });
+    working.present();
+    try {
+      const res: any = await this.fns.httpsCallable('indexAllPosts')({}).toPromise();
+      await working.dismiss();
+      const done = await this.toastCtrl.create({
+        message: `Reindexed ${res?.indexed ?? 0} of ${res?.total ?? 0} posts (skipped ${res?.skipped ?? 0}, failed ${res?.failed ?? 0}).`,
+        duration: 5000,
+        color: 'success'
+      });
+      done.present();
+    } catch (error: any) {
+      await working.dismiss();
+      const fail = await this.toastCtrl.create({
+        message: error?.message || 'Reindex failed.',
+        duration: 5000,
+        color: 'danger'
+      });
+      fail.present();
+    } finally {
+      this.reindexing = false;
+    }
   }
 
   triggerFileInput() {

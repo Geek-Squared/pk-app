@@ -52,6 +52,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private recipientUid: string | null = null;
   private recipientProfileSub: Subscription | null = null;
   public isCounsellor = false;
+  // Only counsellors and administrators may add members to a group.
+  public canManageGroupMembers = false;
   public pendingForMe = false;
   public sessionBannerText: string | null = null;
 
@@ -178,7 +180,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const currentUid =
       this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid;
 
-    if (isGroup) {
+    // Only counsellors/administrators can add members to a group.
+    if (isGroup && this.canManageGroupMembers) {
       buttons.push({
         text: 'Add members',
         icon: 'person-add-outline',
@@ -397,6 +400,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async addMember() {
+    // Defense in depth: never allow non-counsellor/admin to add group members.
+    if (!this.canManageGroupMembers) {
+      this.utilsService.presentToast('Only counsellors and administrators can add members.');
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: UserSelectionComponent,
       componentProps: { isGroup: false } // We use private mode to pick ONE person to add
@@ -449,7 +458,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           : typeof user?.role?.name === 'string'
             ? user.role.name
             : '';
-      this.isCounsellor = `${role || ''}`.toLowerCase() === 'counsellor';
+      const roleLower = `${role || ''}`.toLowerCase();
+      this.isCounsellor = roleLower === 'counsellor';
+      this.canManageGroupMembers =
+        roleLower === 'counsellor' || roleLower === 'administrator';
       console.log('Current User Chat:', user);
     });
     const chatId = this.route.snapshot.paramMap.get('chatId');

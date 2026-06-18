@@ -901,9 +901,38 @@ exports.peekayChat = functions
     }
   });
 
-async function buildPostText(postId: string, postData: any): Promise<string> {
+interface PostIndexContext {
+  text: string;
+  interventionId: string | null;
+  interventionName: string | null;
+}
+
+async function buildPostText(postId: string, postData: any): Promise<PostIndexContext> {
   const parts: string[] = [];
-  if (postData.title) parts.push(postData.title);
+  let interventionId: string | null = null;
+  let interventionName: string | null = null;
+
+  // Topical anchor: which intervention + chapter this post belongs to.
+  // Embedding this makes a query like "suicide" or "depressed" match the
+  // right intervention's posts even when the post body never uses that word.
+  try {
+    const chapterId = postData.chapterId;
+    if (chapterId) {
+      const chapterSnap = await admin.firestore().collection('chapters').doc(chapterId).get();
+      const chapterData: any = chapterSnap.data();
+      interventionId = chapterData?.interventionId || null;
+      if (interventionId) {
+        const intvSnap = await admin.firestore().collection('interventions').doc(interventionId).get();
+        interventionName = intvSnap.data()?.name || null;
+        if (interventionName) parts.push(`Intervention: ${interventionName}`);
+      }
+      if (chapterData?.title) parts.push(`Chapter: ${chapterData.title}`);
+    }
+  } catch (err) {
+    console.warn(`buildPostText: could not resolve intervention/chapter for post ${postId}`, err);
+  }
+
+  if (postData.title) parts.push(`Topic: ${postData.title}`);
   if (postData.description) parts.push(postData.description);
 
   const questionsSnap = await admin.firestore()
@@ -914,10 +943,10 @@ async function buildPostText(postId: string, postData: any): Promise<string> {
     .map((d: any) => (d.data()?.narrative || '').trim())
     .filter(Boolean);
   if (narratives.length) {
-    parts.push(`Reflection questions:\n${narratives.join('\n')}`);
+    parts.push(`Reflection prompts (illustrative):\n${narratives.join('\n')}`);
   }
 
-  return parts.join('\n');
+  return { text: parts.join('\n'), interventionId, interventionName };
 }
 
 /**
@@ -940,7 +969,7 @@ exports.onPostWrite = functions
     const data = change.after.data();
     if (!data) return null;
 
-    const text = await buildPostText(postId, data);
+    const { text, interventionId, interventionName } = await buildPostText(postId, data);
     if (!text.trim()) return null;
 
     console.log(`Indexing post ${postId}...`);
@@ -958,6 +987,8 @@ exports.onPostWrite = functions
       metadata: {
         postId,
         chapterId: data.chapterId || null,
+        interventionId: interventionId || null,
+        interventionName: interventionName || null,
         source: 'post',
         updatedAt: admin.firestore.Timestamp.now(),
       },
@@ -989,7 +1020,7 @@ exports.indexAllPosts = functions
       if (!postData) { skipped++; continue; }
 
       try {
-        const text = await buildPostText(postId, postData);
+        const { text, interventionId, interventionName } = await buildPostText(postId, postData);
         if (!text.trim()) { skipped++; continue; }
 
         const embeddingResult = await ai.embed({
@@ -1003,6 +1034,8 @@ exports.indexAllPosts = functions
           metadata: {
             postId,
             chapterId: postData.chapterId || null,
+            interventionId: interventionId || null,
+            interventionName: interventionName || null,
             source: 'post',
             updatedAt: admin.firestore.Timestamp.now(),
           },

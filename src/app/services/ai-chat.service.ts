@@ -6,11 +6,17 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 export type AiChatAuthor = 'user' | 'assistant';
 
+export interface AiChatSource {
+  interventionId: string;
+  interventionName: string;
+}
+
 export interface AiChatMessage {
   role: AiChatAuthor;
   content: string;
   createdAt: number;
   crisis?: boolean;
+  sources?: AiChatSource[];
 }
 
 @Injectable({
@@ -35,12 +41,26 @@ export class AiChatService {
           response?.choices?.[0]?.message?.content?.trim() ??
           "I'm having trouble responding right now.";
 
-        return {
+        const sources: AiChatSource[] = Array.isArray(response?.sources)
+          ? response.sources
+              .filter((s: any) => s?.interventionId)
+              .map((s: any) => ({
+                interventionId: s.interventionId,
+                interventionName: s.interventionName || 'Intervention',
+              }))
+          : [];
+
+        const message: AiChatMessage = {
           role: 'assistant' as const,
           content: assistantMessage,
           createdAt: Date.now(),
           crisis: response?.crisis === true,
         };
+        // Only attach when present — Firestore rejects undefined fields.
+        if (sources.length) {
+          message.sources = sources;
+        }
+        return message;
       })
     );
   }
