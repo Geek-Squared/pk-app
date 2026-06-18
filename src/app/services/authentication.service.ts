@@ -78,13 +78,13 @@ export class AuthenticationService {
       });
   }
 
-  SignUp(email, password, displayName) {
+  SignUp(email, password, displayName, consent?: any) {
     this.utilsService.presentLoading();
     return this.afAuth
       .createUserWithEmailAndPassword(email, password)
       .then((result) => {
         this.SendVerificationMail();
-        this.SetUserData(result.user, displayName);
+        this.SetUserData(result.user, displayName, consent);
         this.utilsService.dismissLoader();
         this.router.navigate(['/login']);
         this.utilsService.presentToast(
@@ -148,7 +148,7 @@ export class AuthenticationService {
       });
   }
 
-  SetUserData(user, displayName) {
+  SetUserData(user, displayName, consent?: any) {
     return runInInjectionContext(this.injector, () => {
       const userRef: AngularFirestoreDocument<any> = this.afs.doc(
         `users/${user.uid}`
@@ -160,6 +160,10 @@ export class AuthenticationService {
         photoURL: user.photoURL,
         emailVerified: user.emailVerified,
       };
+      // Record proof of consent to the Terms & Privacy Policy at sign-up.
+      if (consent) {
+        userData.consent = consent;
+      }
       return userRef.set(userData, {
         merge: true,
       });

@@ -35,11 +35,27 @@
             </ion-item>
           </div>
 
+          <div class="consent-row">
+            <ion-checkbox
+              [checked]="agreedToTerms"
+              (ionChange)="agreedToTerms = $event.detail.checked"
+              aria-label="Agree to terms"
+            ></ion-checkbox>
+            <span class="consent-text">
+              I agree to the
+              <a routerLink="/terms-conditions">Terms &amp; Conditions</a>
+              and
+              <a routerLink="/privacy-policy">Privacy Policy</a>, and I consent to the
+              processing of my health-related information as described.
+            </span>
+          </div>
+
           <ion-button
             type="submit"
             (click)="signUp(email, password, name)"
             expand="block"
             class="btn-primary"
+            [disabled]="!agreedToTerms"
             >Register</ion-button
           >
         </form>

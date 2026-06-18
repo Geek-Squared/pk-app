@@ -896,6 +896,83 @@ exports.peekayChat = functions
     }
   });
 
+async function deleteRefsInBatches(db: any, refs: any[]): Promise<void> {
+  const chunkSize = 400;
+  for (let i = 0; i < refs.length; i += chunkSize) {
+    const batch = db.batch();
+    refs.slice(i, i + chunkSize).forEach((ref: any) => batch.delete(ref));
+    await batch.commit();
+  }
+}
+
+/**
+ * Right to erasure — cascade-delete a user's personal data when their auth
+ * account is removed. The client (DeleteAccount) removes users/{uid} + the auth
+ * account; this trigger cleans up everything else tied to the user.
+ *
+ * NOTE: Storage uploads are not namespaced by uid (paths like
+ * `uploads/images/...`), so individual files cannot be located by uid here.
+ * A per-user file registry would be needed to also purge Storage objects.
+ */
+exports.onUserDeleted = functions
+  .runWith({ memory: '512MB', timeoutSeconds: 300 })
+  .auth.user()
+  .onDelete(async (user: any) => {
+    const uid = user.uid;
+    const db = admin.firestore();
+    console.log(`[onUserDeleted] cascade-deleting data for ${uid}`);
+
+    // 1. Peekay AI chat history (subcollection) + the user document itself.
+    try {
+      const peekaySnap = await db.collection(`users/${uid}/peekayChats`).get();
+      await deleteRefsInBatches(db, peekaySnap.docs.map((d: any) => d.ref));
+      await db.doc(`users/${uid}`).delete().catch(() => undefined);
+    } catch (err) {
+      console.error('[onUserDeleted] user doc / peekayChats', err);
+    }
+
+    // 2. Workbooks (reflections — sensitive data).
+    try {
+      const wbSnap = await db.collection('workbooks').where('uid', '==', uid).get();
+      await deleteRefsInBatches(db, wbSnap.docs.map((d: any) => d.ref));
+    } catch (err) {
+      console.error('[onUserDeleted] workbooks', err);
+    }
+
+    // 3. Chats — delete private chats; remove membership + scrub the user's
+    //    messages from group chats.
+    try {
+      const chatSnap = await db
+        .collection('chats')
+        .where('uids', 'array-contains', uid)
+        .get();
+      for (const doc of chatSnap.docs) {
+        const data: any = doc.data() || {};
+        if (data.type !== 'group') {
+          await doc.ref.delete();
+          continue;
+        }
+        const uids = (Array.isArray(data.uids) ? data.uids : []).filter(
+          (u: string) => u !== uid
+        );
+        const members = (Array.isArray(data.members) ? data.members : []).filter(
+          (m: any) => m?.uid !== uid
+        );
+        const messages = (Array.isArray(data.messages) ? data.messages : []).filter(
+          (m: any) => m?.uid !== uid
+        );
+        const hasRead = { ...(data.hasRead || {}) };
+        delete hasRead[uid];
+        await doc.ref.update({ uids, members, messages, hasRead });
+      }
+    } catch (err) {
+      console.error('[onUserDeleted] chats', err);
+    }
+
+    console.log(`[onUserDeleted] complete for ${uid}`);
+    return null;
+  });
+
 interface PostIndexContext {
   text: string;
   interventionId: string | null;

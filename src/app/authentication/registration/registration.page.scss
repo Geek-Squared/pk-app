@@ -135,6 +135,34 @@ ion-item.item-has-focus {
   text-transform: none;
 }
 
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 2px 16px;
+
+  ion-checkbox {
+    --size: 20px;
+    --checkbox-background-checked: rgb(40, 91, 167);
+    --border-color: #c2cfe2;
+    --border-color-checked: rgb(40, 91, 167);
+    margin-top: 2px;
+    flex: none;
+  }
+
+  .consent-text {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #4a5568;
+
+    a {
+      color: rgb(40, 91, 167);
+      font-weight: 700;
+      text-decoration: none;
+    }
+  }
+}
+
 .alt-link {
   color: #ffffff;
   font-size: 0.9rem;

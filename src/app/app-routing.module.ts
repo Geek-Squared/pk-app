@@ -124,6 +124,14 @@ const routes: Routes = [
   {
     path: 'surveys',
     loadChildren: () => import('./pages/surveys/surveys.module').then( m => m.SurveysPageModule)
+  },
+  {
+    path: 'privacy-policy',
+    loadComponent: () => import('./pages/legal/privacy-policy.page').then( m => m.PrivacyPolicyPage)
+  },
+  {
+    path: 'terms-conditions',
+    loadComponent: () => import('./pages/legal/terms-conditions.page').then( m => m.TermsConditionsPage)
   }
 
 ];
