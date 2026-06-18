@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { MenuController, Platform } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { HOW_TO_SEEN_KEY } from 'src/app/pages/how-to-use/how-to-use.page';
 import { FcmService } from 'src/app/services/fcm.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -23,7 +25,8 @@ export class HomePage implements OnInit {
     private authService: AuthenticationService,
     private fcmService: FcmService,
     private menuCtrl: MenuController,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private router: Router
   ) {
     this.user$ = this.authService.afAuth.authState.pipe(
       switchMap(user => {
@@ -37,6 +40,12 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
+    // First-launch walkthrough: show the "How to use PK" guide once.
+    if (!localStorage.getItem(HOW_TO_SEEN_KEY)) {
+      this.router.navigateByUrl('/how-to-use');
+      return;
+    }
+
     // Trigger the push setup
     this.fcmService.initPush();
     if (!localStorage.getItem('user')) {

@@ -1,0 +1,29 @@
+<ion-content [fullscreen]="true" class="htu-content">
+  <div class="htu">
+    <button type="button" class="htu-skip" (click)="finish()" *ngIf="!isLast">Skip</button>
+
+    <div class="htu-track" #track (scroll)="onScroll($event)">
+      <section class="htu-slide" *ngFor="let s of slides">
+        <div class="htu-illustration">
+          <ion-icon [name]="s.icon"></ion-icon>
+        </div>
+        <h1>{{ s.title }}</h1>
+        <p>{{ s.body }}</p>
+      </section>
+    </div>
+
+    <div class="htu-footer">
+      <div class="htu-dots">
+        <span
+          *ngFor="let s of slides; let i = index"
+          [class.active]="i === current"
+          (click)="goTo(i)"
+        ></span>
+      </div>
+
+      <ion-button expand="block" class="htu-cta" (click)="next()">
+        {{ isLast ? 'Get started' : 'Next' }}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

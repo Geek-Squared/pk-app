@@ -1,0 +1,124 @@
+.htu-content {
+  --background: linear-gradient(160deg, #679aca 0%, #285ba7 100%);
+}
+
+.htu {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 0
+    calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+
+.htu-skip {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: 18px;
+  z-index: 5;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Swipeable track */
+.htu-track {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.htu-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 32px;
+  color: #ffffff;
+
+  .htu-illustration {
+    width: 132px;
+    height: 132px;
+    border-radius: 40px;
+    margin-bottom: 32px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 62px;
+      color: #ffffff;
+    }
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.92);
+    max-width: 340px;
+    margin: 0;
+  }
+}
+
+.htu-footer {
+  padding: 12px 28px 0;
+}
+
+.htu-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 22px;
+
+  span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transition: width 0.25s ease, background 0.25s ease;
+    cursor: pointer;
+
+    &.active {
+      width: 22px;
+      border-radius: 5px;
+      background: #ffffff;
+    }
+  }
+}
+
+.htu-cta {
+  --background: #ffffff;
+  --background-activated: #eef3fd;
+  --color: #285ba7;
+  --border-radius: 14px;
+  --padding-top: 18px;
+  --padding-bottom: 18px;
+  --box-shadow: 0 10px 24px rgba(16, 42, 82, 0.25);
+  font-weight: 700;
+  text-transform: none;
+}

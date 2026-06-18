@@ -86,6 +86,10 @@ const routes: Routes = [
         loadChildren: () => import('./pages/introduction/introduction.module').then( m => m.IntroductionPageModule)
       },
       {
+        path: 'how-to-use',
+        loadComponent: () => import('./pages/how-to-use/how-to-use.page').then( m => m.HowToUsePage)
+      },
+      {
         path: 'interventions',
         loadChildren: () => import('./pages/interventions/interventions.module').then( m => m.InterventionsPageModule)
       },
