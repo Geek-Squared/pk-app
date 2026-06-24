@@ -112,3 +112,8 @@ Push notifications differ by platform: native uses `FirebaseMessaging` from `@ca
 - After any correction, update `tasks/lessons.md` with the pattern learned
 - Never mark a task complete without verifying it works
 - Aim for minimal-impact changes — only touch what's necessary
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->
