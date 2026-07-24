@@ -1,4 +1,9 @@
-import { Injectable, NgZone, Injector, runInInjectionContext } from '@angular/core';
+import {
+  Injectable,
+  NgZone,
+  Injector,
+  runInInjectionContext,
+} from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import {
   AngularFirestore,
@@ -42,9 +47,11 @@ export class AuthenticationService {
         this.userData = user;
         if (user.emailVerified !== false) {
           this.onlineUserId = user.uid;
-          this.usersService.updateOnlineStatus(user.uid, true).catch(() => undefined);
+          this.usersService
+            .updateOnlineStatus(user.uid, true)
+            .catch(() => undefined);
         }
-        
+
         // Only redirect to home if we are currently on the login page or at the root
         const currentUrl = this.router.url;
         if (currentUrl === '/login' || currentUrl === '/' || !currentUrl) {
@@ -172,7 +179,8 @@ export class AuthenticationService {
 
   // Sign out
   SignOut() {
-    const uid = JSON.parse(localStorage.getItem('user'))?.uid || this.onlineUserId;
+    const uid =
+      JSON.parse(localStorage.getItem('user'))?.uid || this.onlineUserId;
     this.usersService
       .updateOnlineStatus(uid, false)
       .then(() => this.usersService.updateDeviceId(uid, ''))
