@@ -15,17 +15,84 @@ async function sendMulticastCompat(message: any) {
   throw new Error('Firebase Admin messaging multicast API is unavailable.');
 }
 
-exports.processSignUp = functions.auth.user().onCreate((user) => {
-  if (user.email && user.emailVerified) {
-    const customClaims = {
-      client: true,
-    };
-    return admin
-      .auth()
-      .setCustomUserClaims(user.uid, customClaims)
-      .catch((error: any) => {
-        console.warn('Unable to set custom claims for new user', error);
-      });
+exports.processSignUp = functions.auth.user().onCreate(async (user) => {
+  // Only provision real (email-bearing) client accounts.
+  if (!user.email) {
+    return;
+  }
+
+  const db = admin.firestore();
+  const now = Date.now();
+
+  // 1) Custom claim so the account is recognised as a client. Previously this
+  //    was gated on `user.emailVerified`, which is always false at onCreate for
+  //    email/password sign-ups, so the claim was never actually set.
+  try {
+    await admin.auth().setCustomUserClaims(user.uid, { client: true });
+  } catch (error: any) {
+    console.warn('Unable to set custom claims for new user', error);
+  }
+
+  // 2) Provision the user's data atomically, server-side.
+  //    This used to run on the client after sign-up, where a dropped
+  //    connection or a closed app could leave an account with no workbook —
+  //    and the workbook was written with `uid: undefined` because the client
+  //    read the uid from localStorage before it had been set. Running it here
+  //    guarantees every account is complete. Deterministic doc ids keep this
+  //    idempotent if the platform retries the trigger. displayName + consent
+  //    stay client-owned (SetUserData), so we deliberately don't touch them.
+  const batch = db.batch();
+
+  batch.set(
+    db.collection('users').doc(user.uid),
+    {
+      uid: user.uid,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      photoURL: user.photoURL || null,
+      role: 'client',
+      createdAt: now,
+    },
+    { merge: true }
+  );
+
+  batch.set(db.collection('workbooks').doc(user.uid), {
+    uid: user.uid,
+    createdAt: now,
+    count: 0,
+    responses: [],
+    coinBalance: 0,
+    coinHistory: [],
+    heroProfile: {
+      heroName: '',
+      alias: '',
+      auraColor: '#5b21b6',
+      originStory: '',
+      signaturePower: '',
+      secondaryPowers: [],
+      unlockedUpgrades: [],
+      motto: '',
+      updatedAt: now,
+    },
+  });
+
+  batch.set(db.collection('chats').doc(user.uid), {
+    uid: user.uid,
+    uids: [user.uid],
+    recipientName: 'Private Chat',
+    createdAt: now,
+    count: 0,
+    messages: [],
+    type: 'private',
+  });
+
+  try {
+    await batch.commit();
+  } catch (error: any) {
+    // Re-throw so the platform retries provisioning rather than silently
+    // leaving a half-created account.
+    console.error('Failed to provision new user data', error);
+    throw error;
   }
 });
 
@@ -270,6 +337,99 @@ async function assertAdmin(context: functions.https.CallableContext) {
     );
   }
 }
+
+// One-off repair for accounts created before provisioning moved into
+// processSignUp. The old client-side flow wrote workbooks with `uid: undefined`
+// (it read the uid from localStorage before it was set), leaving accounts with
+// no queryable workbook. This ensures every user has a workbook, a private
+// chat, and a role. Admin-only. Safe to re-run: it only creates what's missing.
+exports.backfillUserProvisioning = functions
+  .runWith({ memory: '512MB', timeoutSeconds: 540 })
+  .https.onCall(async (data: any, context: any) => {
+    await assertAdmin(context);
+
+    const db = admin.firestore();
+    const usersSnap = await db.collection('users').get();
+
+    let scanned = 0;
+    let workbooksCreated = 0;
+    let chatsCreated = 0;
+    let usersUpdated = 0;
+
+    for (const userDoc of usersSnap.docs) {
+      const uid = userDoc.id;
+      const userData = userDoc.data() || {};
+      const now = Date.now();
+      scanned++;
+
+      // Ensure a queryable workbook exists (orphaned uid:undefined docs don't
+      // match this query, so a fresh one is created for the user).
+      const wb = await db
+        .collection('workbooks')
+        .where('uid', '==', uid)
+        .limit(1)
+        .get();
+      if (wb.empty) {
+        await db.collection('workbooks').doc(uid).set(
+          {
+            uid,
+            createdAt: now,
+            count: 0,
+            responses: [],
+            coinBalance: 0,
+            coinHistory: [],
+            heroProfile: {
+              heroName: '',
+              alias: '',
+              auraColor: '#5b21b6',
+              originStory: '',
+              signaturePower: '',
+              secondaryPowers: [],
+              unlockedUpgrades: [],
+              motto: '',
+              updatedAt: now,
+            },
+          },
+          { merge: true }
+        );
+        workbooksCreated++;
+      }
+
+      // Ensure the user has at least one private chat.
+      const chat = await db
+        .collection('chats')
+        .where('uids', 'array-contains', uid)
+        .where('type', '==', 'private')
+        .limit(1)
+        .get();
+      if (chat.empty) {
+        await db.collection('chats').doc(uid).set(
+          {
+            uid,
+            uids: [uid],
+            recipientName: 'Private Chat',
+            createdAt: now,
+            count: 0,
+            messages: [],
+            type: 'private',
+          },
+          { merge: true }
+        );
+        chatsCreated++;
+      }
+
+      // Ensure a role is set.
+      if (!userData.role) {
+        await db
+          .collection('users')
+          .doc(uid)
+          .set({ role: 'client' }, { merge: true });
+        usersUpdated++;
+      }
+    }
+
+    return { scanned, workbooksCreated, chatsCreated, usersUpdated };
+  });
 
 exports.onWorkbookCompletion = functions.firestore
   .document('workbooks/{workbookId}')

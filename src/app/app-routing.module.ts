@@ -122,6 +122,10 @@ const routes: Routes = [
     loadChildren: () => import('./authentication/reset-password/reset-password.module').then( m => m.ResetPasswordPageModule)
   },
   {
+    path: 'verify-email',
+    loadChildren: () => import('./authentication/verify-email/verify-email.module').then( m => m.VerifyEmailPageModule)
+  },
+  {
     path: 'surveys',
     loadChildren: () => import('./pages/surveys/surveys.module').then( m => m.SurveysPageModule)
   },

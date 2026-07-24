@@ -84,7 +84,12 @@ export class AppComponent {
     });
 
     this.titleService.title$.subscribe(title => {
-      this.currentPageTitle = title;
+      // Defer to the next microtask. A page can emit its title from ngOnInit,
+      // which runs inside the same change-detection tick as this shell header.
+      // Mutating currentPageTitle synchronously there triggers NG0100
+      // (ExpressionChangedAfterItHasBeenCheckedError); deferring lets the
+      // change render in a fresh tick instead.
+      Promise.resolve().then(() => (this.currentPageTitle = title));
     });
     CapacitorApp.addListener('backButton', ({ canGoBack }) => {
       if (!canGoBack) {

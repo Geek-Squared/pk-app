@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { ChatService } from 'src/app/services/chat.service';
 import { UtilitiesService } from 'src/app/services/utilities.service';
-import { WorkbookService } from 'src/app/services/workbook.service';
 
 @Component({
   selector: 'app-registration',
@@ -20,9 +18,7 @@ export class RegistrationPage implements OnInit {
   constructor(
     public authService: AuthenticationService,
     public router: Router,
-    public workBooksService: WorkbookService,
-    private utils: UtilitiesService,
-    private chatService: ChatService
+    private utils: UtilitiesService
   ) {}
 
   ngOnInit() {}
@@ -39,15 +35,13 @@ export class RegistrationPage implements OnInit {
       version: this.CONSENT_VERSION,
       acceptedAt: Date.now(),
     };
+    // Account provisioning (user doc, workbook, private chat) is handled
+    // server-side by the processSignUp onCreate Cloud Function, so it can't be
+    // lost if the app is backgrounded/offline right after sign-up.
     this.authService
       .SignUp(email.value, password.value, displayName.value, consent)
-      .then(() => {})
       .catch((error) => {
         this.utils.presentToast(error.message);
-      })
-      .then(() => {
-        this.workBooksService.create();
-        this.chatService.create();
       });
   }
 }
