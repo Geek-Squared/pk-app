@@ -29,20 +29,4 @@ export interface Intervention {
    * Absent means 'all'.
    */
   audience?: 'adolescent' | 'adult' | 'all';
-
-  /**
-   * Measurement surveys for this intervention, by timepoint. Arrays rather than
-   * single ids so an intervention can administer several instruments at a
-   * point, and so the SAME instrument can repeat across timepoints — which is
-   * the whole basis of measuring change.
-   */
-  surveys?: InterventionSurveys;
-}
-
-export type SurveyTimepoint = 'baseline' | 'midline' | 'endline';
-
-export interface InterventionSurveys {
-  baseline?: string[];
-  midline?: string[];
-  endline?: string[];
 }

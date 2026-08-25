@@ -1,23 +1,6 @@
 <ion-content [fullscreen]="true" class="page-content chapters-content text-on-surface font-body">
   <div class="dashboard-wrapper">
     
-    <!-- Measurement prompt. Dismissible on purpose: it returns next visit
-         until answered, but never blocks access to the content. -->
-    <div class="survey-prompt" *ngIf="dueSurveys.length">
-      <div class="survey-prompt-text">
-        <strong>{{ surveyPromptLabel() }}</strong>
-        <span>
-          {{ dueSurveys.length }}
-          {{ dueSurveys.length === 1 ? 'short survey' : 'short surveys' }}
-          — it helps the programme see what is working.
-        </span>
-      </div>
-      <div class="survey-prompt-actions">
-        <button type="button" class="ghost" (click)="dismissSurveyPrompt()">Not now</button>
-        <button type="button" class="primary" (click)="openSurvey(dueSurveys[0])">Start</button>
-      </div>
-    </div>
-
     <!-- Editorial Header Section -->
     <section class="chapter-editorial-header">
       <span class="overline">Chapter Overview</span>
