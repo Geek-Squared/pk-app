@@ -252,7 +252,14 @@ export class OnboardingPage implements OnInit {
       await this.care.composeFromSelections(this.uid, Array.from(this.selected));
       await this.intake.saveStep(this.uid, 'confirm', {});
       await this.intake.completeIntake(this.uid);
-      this.router.navigateByUrl('/home');
+
+      // The walkthrough belongs here — after intake, and only for someone
+      // genuinely new. canDefer marks accounts that predate onboarding; those
+      // members have been using the app for years and do not need telling how.
+      const firstTimer = !this.canDefer;
+      this.router.navigateByUrl(firstTimer ? '/how-to-use' : '/home', {
+        replaceUrl: true,
+      });
     } catch (e) {
       console.error('[Onboarding] finish failed', e);
       await this.toast('Could not finish just now — please try again.');

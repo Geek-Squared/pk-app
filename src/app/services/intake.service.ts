@@ -189,6 +189,20 @@ export class IntakeService {
     }
   }
 
+  /**
+   * Records that the walkthrough has been seen, on the user document rather
+   * than only in localStorage — otherwise a returning member is shown it again
+   * on every new device or after clearing site data.
+   */
+  async markHowToSeen(uid: string): Promise<void> {
+    await runInInjectionContext(this.injector, () =>
+      this.afs.doc(`users/${uid}`).set(
+        { howToSeenAt: firebase.firestore.FieldValue.serverTimestamp() },
+        { merge: true }
+      )
+    );
+  }
+
   /** True when the account predates onboarding, so a deferral is offered. */
   predatesOnboarding(creationTime?: string | null): boolean {
     if (!creationTime) {
