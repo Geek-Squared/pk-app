@@ -2,19 +2,22 @@ import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { Observable, of, combineLatest } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
 import { map, switchMap, take, catchError } from 'rxjs/operators';
 
 /**
- * Sends new members through onboarding before they reach the app.
+ * Sends members who have not completed intake to /onboarding.
  *
- * Runs after AuthGuard, and reads `users/{uid}.onboardingStatus` rather than
- * the intake document — the guard costs one read of a document the app already
- * fetches, and learns nothing sensitive.
+ * Deliberately simple: one identity lookup, one Firestore read, one decision.
  *
- * The branch that matters most is the third: an existing member who joined
- * before onboarding existed must never be locked out of years of their own
- * progress by a form they have not filled in. They get invited, not blocked.
+ * An earlier version re-subscribed to `authState` and also queried `workbooks`
+ * to detect long-standing members. Two reads in a guard meant two ways to fail,
+ * and because it fell open on error a failure was indistinguishable from
+ * "no onboarding needed" — the guard appeared to do nothing at all.
+ *
+ * Existing members are now handled on the onboarding page itself, which offers
+ * them a skip. That keeps the "never lock anyone out" guarantee while making
+ * the guard's behaviour observable rather than silent.
  */
 @Injectable({ providedIn: 'root' })
 export class OnboardingGuard {
@@ -26,47 +29,44 @@ export class OnboardingGuard {
   ) {}
 
   canActivate(): Observable<boolean | UrlTree> {
-    return this.afAuth.authState.pipe(
-      take(1),
+    // currentUser resolves once, deterministically. AuthGuard has already
+    // established there is a verified session by the time this runs, so we do
+    // not re-derive it from the authState stream.
+    return from(this.afAuth.currentUser).pipe(
       switchMap((user) => {
         if (!user) {
-          // AuthGuard owns this case; don't compete with it.
-          return of(true);
+          console.log('[OnboardingGuard] no session; AuthGuard owns this');
+          return of(true as boolean | UrlTree);
         }
-        const status$ = runInInjectionContext(this.injector, () =>
+
+        return runInInjectionContext(this.injector, () =>
           this.afs
             .doc<any>(`users/${user.uid}`)
             .valueChanges()
             .pipe(
               take(1),
-              map((u) => u?.onboardingStatus ?? 'none')
+              map((u) => {
+                const status = u?.onboardingStatus ?? 'none';
+                const allow = status === 'complete';
+                console.log('[OnboardingGuard]', {
+                  uid: user.uid,
+                  userDocExists: !!u,
+                  status,
+                  decision: allow ? 'allow' : 'redirect -> /onboarding',
+                });
+                return allow ? true : this.router.parseUrl('/onboarding');
+              })
             )
-        );
-        const hasHistory$ = runInInjectionContext(this.injector, () =>
-          this.afs
-            .collection<any>('workbooks', (ref) => ref.where('uid', '==', user.uid).limit(1))
-            .valueChanges()
-            .pipe(
-              take(1),
-              map((w) => (w?.length ?? 0) > 0)
-            )
-        );
-
-        return combineLatest([status$, hasHistory$]).pipe(
-          map(([status, hasHistory]) => {
-            if (status === 'complete') {
-              return true;
-            }
-            if (hasHistory) {
-              // Existing member: invite via the app, never block.
-              return true;
-            }
-            return this.router.parseUrl('/onboarding');
-          })
         );
       }),
-      // A failed lookup must not strand anyone outside the app.
-      catchError(() => of(true))
+      catchError((err) => {
+        // Send them to onboarding rather than into the app: a new member seeing
+        // intake twice is a small annoyance, whereas skipping it silently is
+        // the bug we have been chasing. The page itself offers a skip, so an
+        // existing member can still get past it.
+        console.error('[OnboardingGuard] lookup failed, routing to onboarding:', err);
+        return of(this.router.parseUrl('/onboarding'));
+      })
     );
   }
 }

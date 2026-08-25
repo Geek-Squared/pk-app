@@ -135,6 +135,10 @@
       </button>
     </div>
 
+    <button type="button" class="skip" *ngIf="canSkip" (click)="skipForNow()">
+      Skip for now — I've been using the app already
+    </button>
+
     <!-- Always available, on every step. Never content-triggered. -->
     <button type="button" class="crisis" (click)="talkToSomeone()">
       <span class="material-symbols-outlined">support_agent</span>

@@ -107,6 +107,16 @@ export class CareAssignmentService {
     );
   }
 
+  /** Does this member predate onboarding? Used to offer them a skip. */
+  hasExistingProgress(uid: string): Observable<boolean> {
+    return runInInjectionContext(this.injector, () =>
+      this.afs
+        .collection<any>('workbooks', (ref) => ref.where('uid', '==', uid).limit(1))
+        .valueChanges()
+        .pipe(map((w) => (w?.length ?? 0) > 0))
+    );
+  }
+
   /** Staff placement that may disagree with the member's own selection. */
   async applyStaffOverride(
     uid: string,
