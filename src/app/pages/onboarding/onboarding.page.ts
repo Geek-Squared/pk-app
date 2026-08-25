@@ -90,7 +90,7 @@ export class OnboardingPage implements OnInit {
       }
     });
 
-    const existing = await this.intake.getIntake(this.uid).pipe(take(1)).toPromise();
+    const existing = await this.intake.getIntakeOnce(this.uid).pipe(take(1)).toPromise();
 
     // Already finished, and not here to revise: send them into the app.
     //

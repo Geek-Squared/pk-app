@@ -44,23 +44,36 @@ export class OnboardingGuard {
           return of(true as boolean | UrlTree);
         }
 
+        // get(), not valueChanges().take(1).
+        //
+        // At startup the app writes isOnline to users/{uid}. If the server copy
+        // has not arrived yet, Firestore serves a latency-compensated LOCAL
+        // document containing only the fields just written — so the doc appears
+        // to exist while onboardingStatus is missing, and a member who had
+        // finished intake was read as 'none' and sent back to the form. That is
+        // exactly what happens on a cold load, which is why only refresh and
+        // the root route were affected.
+        //
+        // get() waits for a real snapshot rather than taking whatever the cache
+        // can answer with immediately.
         return runInInjectionContext(this.injector, () =>
           this.afs
             .doc<any>(`users/${user.uid}`)
-            .valueChanges()
+            .get()
             .pipe(
               take(1),
-              // One retry absorbs the remaining window where the token is
-              // still settling; without it a single denied read decides the
-              // route.
+              // One retry absorbs the window where the auth token is still
+              // settling; without it a single denied read decides the route.
               retry(1),
-              map((u) => {
+              map((snap) => {
+                const u: any = snap?.data();
                 const status = u?.onboardingStatus ?? 'none';
                 const deferred = this.intake.isDeferredThisSession(user.uid);
                 const allow = status === 'complete' || deferred;
                 console.log('[OnboardingGuard]', {
                   uid: user.uid,
-                  userDocExists: !!u,
+                  userDocExists: !!snap?.exists,
+                  fromCache: snap?.metadata?.fromCache,
                   status,
                   deferredThisSession: deferred,
                   decision: allow ? 'allow' : 'redirect -> /onboarding',

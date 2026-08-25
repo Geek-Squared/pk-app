@@ -56,6 +56,21 @@ export class IntakeService {
     );
   }
 
+  /**
+   * One-shot read that waits for a real snapshot instead of accepting whatever
+   * the local cache can answer with. Used where a decision is made on the
+   * result — valueChanges() can serve a latency-compensated local document that
+   * is missing every field not written on this device.
+   */
+  getIntakeOnce(uid: string): Observable<Intake | null> {
+    return runInInjectionContext(this.injector, () =>
+      this.afs
+        .doc<Intake>(`intakes/${uid}`)
+        .get()
+        .pipe(map((snap) => (snap.exists ? ((snap.data() as Intake) ?? null) : null)))
+    );
+  }
+
   /** The signed-in member's intake, or null when there is none yet. */
   currentIntake$(): Observable<Intake | null> {
     return this.afAuth.authState.pipe(
