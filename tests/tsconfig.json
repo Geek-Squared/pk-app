@@ -1,0 +1,13 @@
+{
+  // Separate from tsconfig.spec.json on purpose. That one scopes Karma to
+  // src/**/*.spec.ts and runs in a browser; @firebase/rules-unit-testing is a
+  // Node library and cannot run there. See tasks.md T004.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/rules",
+    "types": ["node", "vitest/globals"],
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["**/*.ts"]
+}

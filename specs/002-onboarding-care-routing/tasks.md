@@ -25,10 +25,10 @@ Angular app at `src/app/`, Firebase config at repo root, rules tests at `tests/r
 
 **Purpose**: Environment, both test runners, and the two prerequisites that are expensive to skip.
 
-- [ ] T001 Confirm toolchain: run `nvm use` (22.12 per `.nvmrc`) and `npm install --legacy-peer-deps`, then `npm run build` to establish a clean baseline before any change
-- [ ] T002 [P] Add the Firestore emulator to local tooling and verify `firebase emulators:start --only firestore` runs
-- [ ] T003 [P] Install `@firebase/rules-unit-testing` as a dev dependency (use `--legacy-peer-deps`, per the pre-existing `firebase` 11 vs 12 peer conflict)
-- [ ] T004 Add a **Node** test runner for the rules suite: create `tests/rules/` with its own tsconfig and a `test:rules` script in `package.json`. `ng test` cannot run these — `tsconfig.spec.json` scopes Karma to `src/**/*.spec.ts`, and `@firebase/rules-unit-testing` is a Node library that will not run in a browser. Without this task, T010 is a blocking gate that cannot execute
+- [X] T001 Confirm toolchain: run `nvm use` (22.12 per `.nvmrc`) and `npm install --legacy-peer-deps`, then `npm run build` to establish a clean baseline before any change
+- [X] T002 [P] Add the Firestore emulator to local tooling and verify `firebase emulators:start --only firestore` runs
+- [X] T003 [P] Install `@firebase/rules-unit-testing` as a dev dependency (use `--legacy-peer-deps`, per the pre-existing `firebase` 11 vs 12 peer conflict)
+- [X] T004 Add a **Node** test runner for the rules suite: create `tests/rules/` with its own tsconfig and a `test:rules` script in `package.json`. `ng test` cannot run these — `tsconfig.spec.json` scopes Karma to `src/**/*.spec.ts`, and `@firebase/rules-unit-testing` is a Node library that will not run in a browser. Without this task, T010 is a blocking gate that cannot execute
 - [ ] T005 **BLOCKING** Export the live ruleset from the Firebase console (Firestore → Rules) and save it verbatim to `firestore.rules` — do not edit it in this task. Deploying a rules file replaces the entire live ruleset, so this baseline is what stops the feature silently stripping protection from `users`, `chats` and `workbooks`
 - [ ] T006 [P] Export one real `interventions/{id}` document and one `users/{uid}` document from the console and reconcile field names against `data-model.md`; record any mismatch in `research.md` R7. This is the check that would have caught the `phone` vs `phoneNumber` bug already shipped in `referrals.interface.ts`
 
@@ -49,10 +49,10 @@ Angular app at `src/app/`, Firebase config at repo root, rules tests at `tests/r
 - [ ] T011 Add a rules regression test asserting the pre-existing collections (`users`, `chats`, `workbooks`, `interventions`) behave exactly as they did at the T005 baseline
 - [ ] T012 [P] Create the `config/onboarding` document in Firestore per `data-model.md` — `defaultInterventionIds` (must be non-empty), `adolescentAgeThreshold: 18`, `demographicsConsentVersion`, and the gender/region/language option lists
 - [ ] T013 [P] Add `selectableAtOnboarding`, `onboardingLabel`, `onboardingOrder` and `audience` to a representative set of `interventions/{id}` documents, including at least one `audience: 'adolescent'`
-- [ ] T014 [P] Create `src/app/models/intake.interface.ts` per `contracts/firestore-documents.md`. **It must contain no free-text field** — its absence is FR-006, not an omission
-- [ ] T015 [P] Enforce FR-025 the same way T014 enforces FR-006: assert no HIV-status field exists on the intake model, on any step form, or in `config/onboarding`'s option lists, and comment that its absence is the requirement. A negative requirement with nothing enforcing it is only a comment
-- [ ] T016 [P] Create `src/app/models/care-assignment.interface.ts` with `CareAssignment` and the `CareAssignmentSource` union
-- [ ] T017 [P] Extend `src/app/models/intervention.interface.ts` with the four new optional onboarding fields, keeping every existing field unchanged so documents lacking them keep working
+- [X] T014 [P] Create `src/app/models/intake.interface.ts` per `contracts/firestore-documents.md`. **It must contain no free-text field** — its absence is FR-006, not an omission
+- [X] T015 [P] Enforce FR-025 the same way T014 enforces FR-006: assert no HIV-status field exists on the intake model, on any step form, or in `config/onboarding`'s option lists, and comment that its absence is the requirement. A negative requirement with nothing enforcing it is only a comment
+- [X] T016 [P] Create `src/app/models/care-assignment.interface.ts` with `CareAssignment` and the `CareAssignmentSource` union
+- [X] T017 [P] Extend `src/app/models/intervention.interface.ts` with the four new optional onboarding fields, keeping every existing field unchanged so documents lacking them keep working
 
 **Checkpoint**: Rules deployed and proven, config readable, models compile. User stories can begin.
 
@@ -221,3 +221,32 @@ US1 and US2 are not fully independent: US2 extends the service US1 creates. They
 Deliver in that order rather than by layer. The most common failure mode here would be building the intake UI first and discovering at integration that demographics were written to a document every group-chat peer can read — which is why the rules and the collection split land in Phase 2, before a single screen exists.
 
 **Do not start Phase 3 until T010 passes.** A member being unable to read another member's intake is the requirement the entire data model was shaped around; proving it after the UI is built means proving it too late to change anything. T004 exists because that gate was previously specified with no runner able to execute it.
+
+---
+
+## Implementation status — halted at T005 (2026-08-25)
+
+Phase 1 and the Phase 2 model tasks are done and verified. **Implementation is
+stopped at T005**, which cannot be performed from a development machine: it
+requires exporting the live ruleset from the Firebase console. `firebase login`
+is interactive and the project's live rules are not in the repository.
+
+Everything downstream of T005 is genuinely blocked, not skipped:
+
+| Task | Blocked by |
+|---|---|
+| T005 | Firebase console access — export the live ruleset |
+| T006 | Firebase console access — export a real `interventions` and `users` document |
+| T007, T008, T009 | T005 (the baseline file must exist before it is registered or edited) |
+| T010, T011 | T007–T009 |
+| T012, T013 | Firestore write access — create `config/onboarding`, add pill fields |
+| Phase 3 onward | The plan's own gate: do not start until T010 passes |
+
+Phase 3 was not started. Beginning the intake UI before T010 proves that a
+member cannot read another member's intake would mean discovering a data-model
+error after the screens exist — the exact failure the phase ordering was
+designed to prevent, and what constitution Principle I means by stopping to
+re-plan rather than pushing forward.
+
+**To resume**: run T005 and T006 (both console tasks), commit the baseline
+`firestore.rules` unchanged, then continue from T007.
