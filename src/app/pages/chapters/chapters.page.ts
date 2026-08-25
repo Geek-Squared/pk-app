@@ -73,7 +73,7 @@ export class ChaptersPage implements OnInit {
   }
 
   openSurvey(due: DueSurvey): void {
-    this.router.navigate(['/surveys', due.surveyId], {
+    this.router.navigate(['/surveys/take-survey', due.surveyId], {
       queryParams: { interventionId: due.interventionId, timepoint: due.timepoint },
     });
   }
