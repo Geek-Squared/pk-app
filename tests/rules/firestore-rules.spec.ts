@@ -127,6 +127,69 @@ describe('account deletion still works (US2 regression)', () => {
   });
 });
 
+describe('intake and care assignments (feature 002)', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'intakes', MEMBER_A), { uid: MEMBER_A, gender: 'x', region: 'y' });
+      await setDoc(doc(db, 'careAssignments', MEMBER_A), { uid: MEMBER_A, interventionIds: [] });
+      await setDoc(doc(db, 'config', 'onboarding'), { defaultInterventionIds: ['x1'] });
+    });
+  });
+
+  it('ALLOWS a member to read their own intake', async () => {
+    await assertSucceeds(getDoc(doc(asA(), 'intakes', MEMBER_A)));
+  });
+
+  it('DENIES a member reading another intake — the whole point of the split', async () => {
+    await assertFails(getDoc(doc(asB(), 'intakes', MEMBER_A)));
+  });
+
+  it('ALLOWS staff to read an intake', async () => {
+    await assertSucceeds(getDoc(doc(asStaff(), 'intakes', MEMBER_A)));
+  });
+
+  it('ALLOWS a member to write their own intake', async () => {
+    await assertSucceeds(setDoc(doc(asA(), 'intakes', MEMBER_A), { gender: 'z' }, { merge: true }));
+  });
+
+  it('DENIES a member writing another intake', async () => {
+    await assertFails(setDoc(doc(asB(), 'intakes', MEMBER_A), { gender: 'z' }, { merge: true }));
+  });
+
+  it('DENIES deleting an intake', async () => {
+    await assertFails(deleteDoc(doc(asA(), 'intakes', MEMBER_A)));
+  });
+
+  it('ALLOWS a member to read their own care assignment', async () => {
+    await assertSucceeds(getDoc(doc(asA(), 'careAssignments', MEMBER_A)));
+  });
+
+  it('DENIES a member reading another care assignment', async () => {
+    await assertFails(getDoc(doc(asB(), 'careAssignments', MEMBER_A)));
+  });
+
+  it('ALLOWS appending to assignment history', async () => {
+    await assertSucceeds(addDoc(collection(asA(), 'careAssignments', MEMBER_A, 'history'), { x: 1 }));
+  });
+
+  it('DENIES editing an existing history entry (append-only)', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'careAssignments', MEMBER_A, 'history', 'h1'), { x: 1 });
+    });
+    await assertFails(setDoc(doc(asA(), 'careAssignments', MEMBER_A, 'history', 'h1'), { x: 2 }));
+    await assertFails(deleteDoc(doc(asA(), 'careAssignments', MEMBER_A, 'history', 'h1')));
+  });
+
+  it('ALLOWS any member to read onboarding config', async () => {
+    await assertSucceeds(getDoc(doc(asA(), 'config', 'onboarding')));
+  });
+
+  it('DENIES a member writing onboarding config', async () => {
+    await assertFails(setDoc(doc(asA(), 'config', 'onboarding'), { x: 1 }));
+  });
+});
+
 describe('chats are limited to participants (FR-008)', () => {
   it('ALLOWS a participant to read', async () => {
     await assertSucceeds(getDoc(doc(asA(), 'chats', 'chat-ab')));

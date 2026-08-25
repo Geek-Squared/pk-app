@@ -47,8 +47,8 @@ Angular app at `src/app/`, Firebase config at repo root, rules tests at `tests/r
 - [ ] T009 Implement the `isStaff()` rules helper against the existing `administrator` / `counsellor` roles, preferring a custom claim over a `get()` on `users/{uid}` (a `get()` inside a rule is billed and evaluated on every read; `processSignUp` already sets a `client` claim so the mechanism exists)
 - [ ] T010 Write emulator rules tests in `tests/rules/firestore-rules.spec.ts`, run via `npm run test:rules` (T004), covering every case in `contracts/firestore-rules.md`. **The decisive case is that a member cannot read another member's `intakes/{uid}`** — if that passes, the collection split has done its job; if it fails, the whole reason for a separate collection is void
 - [ ] T011 Add a rules regression test asserting the pre-existing collections (`users`, `chats`, `workbooks`, `interventions`) behave exactly as they did at the T005 baseline
-- [ ] T012 [P] Create the `config/onboarding` document in Firestore per `data-model.md` — `defaultInterventionIds` (must be non-empty), `adolescentAgeThreshold: 18`, `demographicsConsentVersion`, and the gender/region/language option lists
-- [ ] T013 [P] Add `selectableAtOnboarding`, `onboardingLabel`, `onboardingOrder` and `audience` to a representative set of `interventions/{id}` documents, including at least one `audience: 'adolescent'`
+- [X] T012 [P] Create the `config/onboarding` document in Firestore per `data-model.md` — `defaultInterventionIds` (must be non-empty), `adolescentAgeThreshold: 18`, `demographicsConsentVersion`, and the gender/region/language option lists
+- [X] T013 [P] Add `selectableAtOnboarding`, `onboardingLabel`, `onboardingOrder` and `audience` to a representative set of `interventions/{id}` documents, including at least one `audience: 'adolescent'`
 - [X] T014 [P] Create `src/app/models/intake.interface.ts` per `contracts/firestore-documents.md`. **It must contain no free-text field** — its absence is FR-006, not an omission
 - [X] T015 [P] Enforce FR-025 the same way T014 enforces FR-006: assert no HIV-status field exists on the intake model, on any step form, or in `config/onboarding`'s option lists, and comment that its absence is the requirement. A negative requirement with nothing enforcing it is only a comment
 - [X] T016 [P] Create `src/app/models/care-assignment.interface.ts` with `CareAssignment` and the `CareAssignmentSource` union
@@ -67,30 +67,30 @@ Angular app at `src/app/`, Firebase config at repo root, rules tests at `tests/r
 ### Tests for User Story 1
 
 - [ ] T018 [P] [US1] Spec for `IntakeService` covering step writes, validation and completion in `src/app/services/intake.service.spec.ts`
-- [ ] T019 [P] [US1] Spec for `CareAssignmentService` covering composition from selections, the empty-selection default, and the in-progress union in `src/app/services/care-assignment.service.spec.ts`
+- [X] T019 [P] [US1] Spec for `CareAssignmentService` covering composition from selections, the empty-selection default, and the in-progress union in `src/app/services/care-assignment.service.spec.ts`
 - [ ] T020 [P] [US1] Spec for `OnboardingGuard` covering all three branches — complete, new-member redirect, and existing-member pass-through — in `src/app/guards/onboarding.guard.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T021 [US1] Implement `IntakeService` in `src/app/services/intake.service.ts` with `getIntake`, `saveStep` (merge writes) and `completeIntake`, per the contract in `contracts/firestore-documents.md`
-- [ ] T022 [US1] Add age and phone validation to `IntakeService`, reusing the `toDialable` sanitiser already written for the Referrals call button rather than writing a second one. No minimum age — under-18s are admitted (FR-021). Each rejection must carry a plain-language message saying what is wrong, not a validation code (FR-007)
-- [ ] T023 [US1] Implement `CareAssignmentService` in `src/app/services/care-assignment.service.ts` with `composeFromSelections`, `getAssignment` and `visibleInterventionIds`. Composition is synchronous on completion — no review step, no waiting state shown to the member (FR-012a)
-- [ ] T024 [US1] Add the history write in `CareAssignmentService` — copy the current assignment to `careAssignments/{uid}/history/{autoId}` before overwriting the parent
-- [ ] T025 [US1] Add `getSelectableInterventions(age)` to `src/app/services/interventions.service.ts`, ordering by `onboardingOrder ?? order` and placing the age-matching audience first (FR-005b)
+- [X] T021 [US1] Implement `IntakeService` in `src/app/services/intake.service.ts` with `getIntake`, `saveStep` (merge writes) and `completeIntake`, per the contract in `contracts/firestore-documents.md`
+- [X] T022 [US1] Add age and phone validation to `IntakeService`, reusing the `toDialable` sanitiser already written for the Referrals call button rather than writing a second one. No minimum age — under-18s are admitted (FR-021). Each rejection must carry a plain-language message saying what is wrong, not a validation code (FR-007)
+- [X] T023 [US1] Implement `CareAssignmentService` in `src/app/services/care-assignment.service.ts` with `composeFromSelections`, `getAssignment` and `visibleInterventionIds`. Composition is synchronous on completion — no review step, no waiting state shown to the member (FR-012a)
+- [X] T024 [US1] Add the history write in `CareAssignmentService` — copy the current assignment to `careAssignments/{uid}/history/{autoId}` before overwriting the parent
+- [X] T025 [US1] Add `getSelectableInterventions(age)` to `src/app/services/interventions.service.ts`, ordering by `onboardingOrder ?? order` and placing the age-matching audience first (FR-005b)
 - [ ] T026 [US1] Handle intervention ids in a package that no longer resolve — unpublished or deleted since selection. Surface them to the member rather than silently shrinking their package, consistent with User Story 3 acceptance scenario 4 — nothing disappears without explanation. Listed in the spec's Edge Cases
-- [ ] T027 [US1] Implement `OnboardingGuard` in `src/app/guards/onboarding.guard.ts` reading `users/{uid}.onboardingStatus` — never the intake document, so the guard reveals nothing sensitive
-- [ ] T028 [US1] Create the lazy-loaded onboarding feature module and routes in `src/app/pages/onboarding/onboarding.module.ts` and `onboarding-routing.module.ts`
-- [ ] T029 [US1] Create the stepped shell in `src/app/pages/onboarding/onboarding.page.ts|html|scss`, at the standard 104px content offset (no bleeding background)
-- [ ] T030 [P] [US1] Build the identity step in `src/app/pages/onboarding/steps/identity-step.component.ts|html|scss`, pre-filling email from the verified account so it is never retyped (FR-003)
-- [ ] T031 [P] [US1] Build the demographics step in `src/app/pages/onboarding/steps/demographics-step.component.ts|html|scss` — gender, region and language only, sourced from `config/onboarding`
-- [ ] T032 [P] [US1] Build the pill multi-select in `src/app/pages/onboarding/steps/selection-step.component.ts|html|scss`, styling pills with the existing `--pk-card-*` logo tokens rather than new colours
-- [ ] T033 [P] [US1] Build the confirm step in `src/app/pages/onboarding/steps/confirm-step.component.ts|html|scss`, showing **all answers given plus the composed package** back to the member before they finish — this is where FR-022 (a member can see what was collected about them) is satisfied at MVP; post-completion editing follows in US3
-- [ ] T034 [US1] Capture versioned demographic consent into `intakes/{uid}.consent` on the demographics step, reading `demographicsConsentVersion` from config (FR-019)
-- [ ] T035 [US1] **SAFETY-CRITICAL** Add a persistent crisis affordance to every intake step, invoking the existing counsellor path (`requestCounsellorChat`, `functions/src/index.ts:740`). It is permanently visible, never content-triggered. This is the **only** safeguarding in this flow — the free-text field it originally depended on no longer exists, so it looks like an orphan requirement and is not one (FR-018, Story 1 scenario 7, SC-007)
-- [ ] T036 [US1] Write `users/{uid}.onboardingStatus` on intake start and completion, and nothing else to that document — demographics must never land there (research R1)
-- [ ] T037 [US1] Register `OnboardingGuard` after `AuthGuard` on the protected subtree in `src/app/app-routing.module.ts`, leaving `/onboarding` itself behind `AuthGuard` only, to avoid a redirect loop
+- [X] T027 [US1] Implement `OnboardingGuard` in `src/app/guards/onboarding.guard.ts` reading `users/{uid}.onboardingStatus` — never the intake document, so the guard reveals nothing sensitive
+- [X] T028 [US1] Create the lazy-loaded onboarding feature module and routes in `src/app/pages/onboarding/onboarding.module.ts` and `onboarding-routing.module.ts`
+- [X] T029 [US1] Create the stepped shell in `src/app/pages/onboarding/onboarding.page.ts|html|scss`, at the standard 104px content offset (no bleeding background)
+- [X] T030 [P] [US1] Build the identity step in `src/app/pages/onboarding/steps/identity-step.component.ts|html|scss`, pre-filling email from the verified account so it is never retyped (FR-003)
+- [X] T031 [P] [US1] Build the demographics step in `src/app/pages/onboarding/steps/demographics-step.component.ts|html|scss` — gender, region and language only, sourced from `config/onboarding`
+- [X] T032 [P] [US1] Build the pill multi-select in `src/app/pages/onboarding/steps/selection-step.component.ts|html|scss`, styling pills with the existing `--pk-card-*` logo tokens rather than new colours
+- [X] T033 [P] [US1] Build the confirm step in `src/app/pages/onboarding/steps/confirm-step.component.ts|html|scss`, showing **all answers given plus the composed package** back to the member before they finish — this is where FR-022 (a member can see what was collected about them) is satisfied at MVP; post-completion editing follows in US3
+- [X] T034 [US1] Capture versioned demographic consent into `intakes/{uid}.consent` on the demographics step, reading `demographicsConsentVersion` from config (FR-019)
+- [X] T035 [US1] **SAFETY-CRITICAL** Add a persistent crisis affordance to every intake step, invoking the existing counsellor path (`requestCounsellorChat`, `functions/src/index.ts:740`). It is permanently visible, never content-triggered. This is the **only** safeguarding in this flow — the free-text field it originally depended on no longer exists, so it looks like an orphan requirement and is not one (FR-018, Story 1 scenario 7, SC-007)
+- [X] T036 [US1] Write `users/{uid}.onboardingStatus` on intake start and completion, and nothing else to that document — demographics must never land there (research R1)
+- [X] T037 [US1] Register `OnboardingGuard` after `AuthGuard` on the protected subtree in `src/app/app-routing.module.ts`, leaving `/onboarding` itself behind `AuthGuard` only, to avoid a redirect loop
 - [ ] T038 [US1] Verify ordering against the existing first-run walkthrough — `verify-email` → `/onboarding` → `/how-to-use` → `/home`. The walkthrough is a redirect inside `HomePage.ngOnInit`, not a guard; do not deepen that pattern, but test the two together or a member can be bounced between them
-- [ ] T039 [US1] Filter the list in `src/app/pages/interventions/interventions.page.ts` by `visibleInterventionIds`, keeping the existing `canView()` allowlist applied on top and leaving `allowedUserIds` untouched (research R3)
+- [X] T039 [US1] Filter the list in `src/app/pages/interventions/interventions.page.ts` by `visibleInterventionIds`, keeping the existing `canView()` allowlist applied on top and leaving `allowedUserIds` untouched (research R3)
 
 **Checkpoint**: A new member completes intake and sees only their package. US1 is independently demonstrable.
 
@@ -108,10 +108,10 @@ Angular app at `src/app/`, Firebase config at repo root, rules tests at `tests/r
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Add `saveDraft`, `readDraft` and `clearDraft` to `src/app/services/intake.service.ts`, keyed per uid so a shared device never leaks one member's draft into another's intake
-- [ ] T042 [US2] Mirror the in-flight step to the draft on change, and clear it once the step is committed to Firestore
-- [ ] T043 [US2] Maintain `completedSteps` on `intakes/{uid}` and resume at the first unanswered step on entry
-- [ ] T044 [US2] Allow backward navigation to review and change an earlier answer before submission (FR-009)
+- [X] T041 [US2] Add `saveDraft`, `readDraft` and `clearDraft` to `src/app/services/intake.service.ts`, keyed per uid so a shared device never leaks one member's draft into another's intake
+- [X] T042 [US2] Mirror the in-flight step to the draft on change, and clear it once the step is committed to Firestore
+- [X] T043 [US2] Maintain `completedSteps` on `intakes/{uid}` and resume at the first unanswered step on entry
+- [X] T044 [US2] Allow backward navigation to review and change an earlier answer before submission (FR-009)
 - [ ] T045 [US2] Define behaviour when two devices write the same intake concurrently — last-write-wins per step, with `status` guarded so it can only move `in_progress` → `complete` once and a second completion cannot produce a duplicate assignment. Listed in the spec's Edge Cases
 - [ ] T046 [US2] Verify offline behaviour: answer a step in airplane mode, confirm it is retained and submitted on reconnect. **Do not** enable Firestore persistence to achieve this — it is an app-wide behaviour change for one flow's benefit (research R4)
 

@@ -70,6 +70,36 @@ service cloud.firestore {
       }
     }
 
+    // ---------- onboarding intake ----------
+    // Demographics live here, NOT on users/{uid}, because that document is read
+    // by other members for chat avatars and Firestore has no field-level read
+    // control. Staff can read for support; nobody else can.
+
+    match /intakes/{uid} {
+      allow read: if isSelf(uid) || isStaff();
+      allow create, update: if isSelf(uid);
+      allow delete: if false;
+    }
+
+    match /careAssignments/{uid} {
+      allow read: if isSelf(uid) || isStaff();
+      allow create, update: if isSelf(uid) || isStaff();
+      allow delete: if false;
+
+      // Append-only: a superseded assignment is evidence and must not be edited.
+      match /history/{entry} {
+        allow read: if isSelf(uid) || isStaff();
+        allow create: if isSelf(uid) || isStaff();
+        allow update, delete: if false;
+      }
+    }
+
+    // Programme-managed onboarding configuration.
+    match /config/{doc} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
     // ---------- chats ----------
 
     match /chats/{chatId} {

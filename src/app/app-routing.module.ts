@@ -1,12 +1,24 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth.guard';
+import { OnboardingGuard } from './guards/onboarding.guard';
 
 const routes: Routes = [
   {
+    // Sits OUTSIDE the guarded subtree on purpose. Angular runs a parent's
+    // canActivate for its children too, so nesting this under OnboardingGuard
+    // would redirect onboarding to itself, forever.
+    path: 'onboarding',
+    canActivate: [AuthGuard],
+    loadChildren: () =>
+      import('./pages/onboarding/onboarding.module').then(
+        (m) => m.OnboardingPageModule
+      ),
+  },
+  {
     path: '',
 
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, OnboardingGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       {
