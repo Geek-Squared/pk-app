@@ -19,6 +19,11 @@ export class PostsPage implements OnInit {
   public workBook;
   private readonly MIN_MEANINGFUL_SCORE = 5;
 
+  // Peekay deep-links to the exact story it drew on: /posts/:chapterId?post=:postId
+  private deepLinkPostId: string | null = null;
+  private deepLinkHandled = false;
+  private workbookLoaded = false;
+
   constructor(
     private postsService: PostsService,
     private route: ActivatedRoute,
@@ -29,8 +34,11 @@ export class PostsPage implements OnInit {
 
   ngOnInit(): void {
     this.utilsService.presentLoading();
+    this.deepLinkPostId = this.route.snapshot.queryParamMap.get('post');
     this.workbookService.getUserWorkbook().subscribe((data) => {
       this.workBook = data;
+      this.workbookLoaded = true;
+      this.openDeepLinkedStory();
     });
     this.postsService
       .getPostsByChapterId(this.route.snapshot.paramMap.get('chapterId'))
@@ -44,11 +52,44 @@ export class PostsPage implements OnInit {
           });
           this.posts = this.posts.sort((a, b) => (a.order > b.order ? 1 : -1));
           this.utilsService.dismissLoader();
+          this.openDeepLinkedStory();
         },
         () => {
           this.utilsService.dismissLoader();
         }
       );
+  }
+
+  /**
+   * Opens the story Peekay cited, once both the story list and the workbook are
+   * in (the lock check reads workbook progress). Respects the same sequential
+   * lock as tapping the list, so a citation cannot skip the programme order.
+   */
+  private async openDeepLinkedStory(): Promise<void> {
+    if (this.deepLinkHandled || !this.deepLinkPostId) {
+      return;
+    }
+    if (!this.posts?.length || !this.workbookLoaded) {
+      return;
+    }
+
+    this.deepLinkHandled = true;
+
+    const index = this.posts.findIndex(
+      (post) => post.postId === this.deepLinkPostId
+    );
+    if (index === -1) {
+      return;
+    }
+
+    if (!this.isStoryUnlocked(index)) {
+      this.utilsService.presentToast(
+        'Please complete the previous story to unlock this one.'
+      );
+      return;
+    }
+
+    await this.presentModal(this.posts[index]);
   }
 
   async presentModal(post: UPost) {

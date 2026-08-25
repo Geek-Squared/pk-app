@@ -1137,6 +1137,7 @@ interface PostIndexContext {
   text: string;
   interventionId: string | null;
   interventionName: string | null;
+  postTitle: string | null;
 }
 
 async function buildPostText(
@@ -1193,7 +1194,12 @@ async function buildPostText(
     parts.push(`Reflection prompts (illustrative):\n${narratives.join('\n')}`);
   }
 
-  return { text: parts.join('\n'), interventionId, interventionName };
+  return {
+    text: parts.join('\n'),
+    interventionId,
+    interventionName,
+    postTitle: postData.title || null,
+  };
 }
 
 /**
@@ -1222,10 +1228,8 @@ exports.onPostWrite = functions
     const data = change.after.data();
     if (!data) return null;
 
-    const { text, interventionId, interventionName } = await buildPostText(
-      postId,
-      data
-    );
+    const { text, interventionId, interventionName, postTitle } =
+      await buildPostText(postId, data);
     if (!text.trim()) return null;
 
     const { getAi, openAI } = require('./ai');
@@ -1245,6 +1249,7 @@ exports.onPostWrite = functions
         chapterId: data.chapterId || null,
         interventionId: interventionId || null,
         interventionName: interventionName || null,
+        postTitle: postTitle || null,
         source: 'post',
         updatedAt: admin.firestore.Timestamp.now(),
       },
@@ -1279,10 +1284,8 @@ exports.indexAllPosts = functions
       }
 
       try {
-        const { text, interventionId, interventionName } = await buildPostText(
-          postId,
-          postData
-        );
+        const { text, interventionId, interventionName, postTitle } =
+          await buildPostText(postId, postData);
         if (!text.trim()) {
           skipped++;
           continue;
@@ -1307,6 +1310,7 @@ exports.indexAllPosts = functions
               chapterId: postData.chapterId || null,
               interventionId: interventionId || null,
               interventionName: interventionName || null,
+              postTitle: postTitle || null,
               source: 'post',
               updatedAt: admin.firestore.Timestamp.now(),
             },

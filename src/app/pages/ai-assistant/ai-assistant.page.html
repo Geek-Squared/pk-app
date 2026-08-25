@@ -43,14 +43,15 @@
             </button>
 
             <div class="source-links" *ngIf="msg.sources?.length">
-              <span class="source-label">Related intervention</span>
+              <span class="source-label">{{ msg.sources[0].postTitle ? 'From your workbook' : 'Related intervention' }}</span>
               <a
                 class="source-link"
                 *ngFor="let s of msg.sources"
-                [routerLink]="['/chapters', s.interventionId]"
+                [routerLink]="s.postId && s.chapterId ? ['/posts', s.chapterId] : ['/chapters', s.interventionId]"
+                [queryParams]="s.postId && s.chapterId ? { post: s.postId } : {}"
               >
                 <span class="material-symbols-outlined">menu_book</span>
-                <span class="source-name">{{ s.interventionName }}</span>
+                <span class="source-name">{{ s.postTitle || s.interventionName }}</span>
                 <span class="material-symbols-outlined chevron">chevron_right</span>
               </a>
             </div>
