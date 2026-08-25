@@ -113,9 +113,13 @@
 
       <h2>You'll be working on</h2>
       <div class="pills readonly">
-        <span class="pill on" *ngFor="let i of selectable$ | async">
-          <ng-container *ngIf="isSelected(i.id)">{{ i.onboardingLabel || i.name }}</ng-container>
-        </span>
+        <!-- The *ngIf sits on the pill itself, not on its text. Putting it on
+             the text rendered an empty pill for every unselected option. -->
+        <ng-container *ngFor="let i of selectable$ | async">
+          <span class="pill on" *ngIf="isSelected(i.id)">
+            {{ i.onboardingLabel || i.name }}
+          </span>
+        </ng-container>
       </div>
       <p class="lede subtle" *ngIf="selected.size === 0">
         You didn't choose anything, so we'll start you with the programme's suggested set.
