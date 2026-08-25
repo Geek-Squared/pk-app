@@ -76,7 +76,19 @@ export class OnboardingPage implements OnInit {
     // Auth's own creationTime — the only signal present on every account.
     this.canDefer = this.intake.predatesOnboarding(user.metadata?.creationTime);
 
+    // Read from the live stream, not the snapshot: navigating to /onboarding
+    // again from Interventions can reuse the component instance, leaving a
+    // snapshot from the previous activation.
     this.editMode = this.route.snapshot.queryParamMap.get('mode') === 'edit';
+    this.route.queryParamMap.subscribe((q) => {
+      const editing = q.get('mode') === 'edit';
+      if (editing !== this.editMode) {
+        this.editMode = editing;
+      }
+      if (editing) {
+        this.step = 'selection';
+      }
+    });
 
     const existing = await this.intake.getIntake(this.uid).pipe(take(1)).toPromise();
     this.hydrate(existing ?? null);

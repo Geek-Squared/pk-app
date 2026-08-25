@@ -1,6 +1,12 @@
 <ion-content [fullscreen]="true" class="onboarding-content">
   <div class="onboarding-wrap">
 
+    <!-- Only present when editing from Interventions. First-run intake has no
+         way out, so it must not show a dismiss affordance. -->
+    <button type="button" class="close-edit" *ngIf="editMode" (click)="cancelEdit()" aria-label="Close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
     <!-- Progress -->
     <div class="progress-row" *ngIf="!editMode">
       <div class="pip" *ngFor="let s of steps; let i = index" [class.done]="i <= stepIndex()"></div>
@@ -144,7 +150,6 @@
     </div>
 
     <div class="actions" *ngIf="editMode">
-      <button type="button" class="ghost" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
       <button type="button" class="primary" (click)="saveSelections()" [disabled]="saving">
         {{ saving ? 'Saving…' : 'Save' }}
       </button>
