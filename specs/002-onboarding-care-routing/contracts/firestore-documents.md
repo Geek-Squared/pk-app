@@ -111,7 +111,7 @@ immediately (research R4). `completeIntake` composes the package and writes the
 assignment; it is the only place `status` becomes `'complete'`.
 
 ```ts
-// src/app/services/care-package.service.ts
+// src/app/services/care-assignment.service.ts
 getAssignment(uid: string): Observable<CareAssignment | null>;
 composeFromSelections(uid: string, ids: string[]): Promise<CareAssignment>;
 applyStaffOverride(uid: string, ids: string[], staffUid: string, reason: string): Promise<void>;

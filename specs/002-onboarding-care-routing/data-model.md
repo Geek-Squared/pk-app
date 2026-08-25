@@ -29,7 +29,7 @@ peers in group chats, and Firestore has no field-level read control (R1).
 | `updatedAt` | timestamp | yes | |
 | `completedAt` | timestamp | no | Set once, when `status` becomes `complete` |
 
-**`consent` map** (FR-019, FR-024):
+**`consent` map** (FR-019, FR-024) — this is where the spec's **Consent Record** entity lives. It is realised as an embedded map rather than a separate document, because it is written and read only with its parent intake:
 
 | Field | Type | Notes |
 |---|---|---|

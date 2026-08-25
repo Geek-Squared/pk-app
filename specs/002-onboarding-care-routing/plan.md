@@ -21,7 +21,7 @@ Two findings from reading the codebase shape this plan more than the spec does:
 
 **Storage**: Cloud Firestore. New: `intakes/{uid}`, `careAssignments/{uid}` (+ `history` subcollection), `config/onboarding`. Modified: `interventions/{id}` gains onboarding fields.
 
-**Testing**: Karma + Jasmine (`ng test`); 44 existing `.spec.ts` files, service-level specs are the established pattern
+**Testing**: Two runners. Karma + Jasmine (`ng test`) for app code — 44 existing `.spec.ts` files, service-level specs are the established pattern. Separately, a Node runner (`npm run test:rules`) for the Firestore rules suite under `tests/rules/`, because `tsconfig.spec.json` scopes Karma to `src/**/*.spec.ts` and `@firebase/rules-unit-testing` cannot run in a browser
 
 **Target Platform**: Android via Capacitor (primary), responsive web (secondary). Low-end devices, intermittent connectivity.
 
@@ -42,7 +42,7 @@ Two findings from reading the codebase shape this plan more than the spec does:
 | I. Spec-First, Plan-First | **PASS** | `spec.md` complete, three clarifications resolved, zero markers outstanding. This plan precedes any code. |
 | II. Minimal-Impact Changes | **PASS with justification** | Reuses the existing `interventions` collection rather than a parallel catalogue, and the existing counsellor-request path for FR-018. Two additions need justification — new collections and security rules — see Complexity Tracking. |
 | III. Root-Cause Discipline | **PASS** | The absent security rules are treated as the root cause of FR-023 having nowhere to live, rather than patched with client-side filtering that any caller could bypass. |
-| IV. Verification Before Done | **PASS** | Every task carries a verification step; the Firestore emulator gives rules a real test target rather than an assertion that they "should" work. |
+| IV. Verification Before Done | **PASS** | Every task carries a verification step; the Firestore emulator gives rules a real test target rather than an assertion that they "should" work. **This requires a second test runner** — Karma cannot run the rules suite (see Technical Context). An analysis pass caught that being assumed rather than provided. |
 | V. Self-Improvement Loop | **PASS** | `tasks/lessons.md` to be updated with the `users/{uid}` read-surface finding, which is the kind of mistake that would otherwise recur. |
 
 **Domain constraints**:
@@ -112,7 +112,7 @@ src/app/
 │   └── onboarding.guard.ts             # NEW — redirects until intake complete
 ├── services/
 │   ├── intake.service.ts               # NEW — read/write intake, draft mirror
-│   ├── care-package.service.ts         # NEW — compose/read assignment
+│   ├── care-assignment.service.ts         # NEW — compose/read assignment
 │   └── interventions.service.ts        # MODIFIED — selectable-set query
 ├── models/
 │   ├── intake.interface.ts             # NEW

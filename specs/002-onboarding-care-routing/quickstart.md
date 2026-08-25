@@ -42,12 +42,18 @@ npm run build           # must stay clean
 npm test                # Karma + Jasmine
 ```
 
-For rules work:
+For rules work — note this is a **separate runner**, not `ng test`:
 
 ```bash
 firebase emulators:start --only firestore
-npm i -D @firebase/rules-unit-testing
+npm run test:rules
 ```
+
+`ng test` runs Karma in a browser and `tsconfig.spec.json` only includes
+`src/**/*.spec.ts`. `@firebase/rules-unit-testing` is a Node library, so the
+rules suite lives at `tests/rules/` with its own Node runner and its own
+tsconfig. Without that, the rules tests are specified but unrunnable — and the
+gate that proves FR-023 never actually runs.
 
 ---
 
@@ -83,7 +89,7 @@ control is reachable in one tap from every step.
 
 ### Phase C — package application
 
-10. `CarePackageService`; compose on completion; default when nothing selected.
+10. `CareAssignmentService`; compose on completion; default when nothing selected.
 11. Filter the interventions list by `visibleInterventionIds` — the package
     **unioned with** anything already in progress.
 
@@ -127,7 +133,7 @@ Per constitution Principle IV — "it should work" is not verification.
 
 - [ ] `npm run build` clean
 - [ ] `npm test` green, including new service and guard specs
-- [ ] Emulator rules tests green, cross-member read denied
+- [ ] `npm run test:rules` green against the emulator, cross-member read denied
 - [ ] Existing collections' rules unchanged from the baseline commit
 - [ ] Intake completes on a real Android device
 - [ ] Resume verified after a force-close and after an offline step
