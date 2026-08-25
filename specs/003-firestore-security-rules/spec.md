@@ -4,7 +4,7 @@
 
 **Created**: 2026-08-25
 
-**Status**: Clarified — ready for `/speckit-plan`
+**Status**: Implemented, not deployed. Rules written and proven against the emulator (77 tests). Deployment awaits a low-traffic window and the rollback drill (FR-021b).
 
 **Input**: Discovered executing task T005 of feature 002. The live Firestore ruleset grants read, update, write and delete on every document to any signed-in account. See `specs/002-onboarding-care-routing/SECURITY-FINDING.md`.
 
@@ -234,6 +234,43 @@ If the tightened rules deny something the live app needs, the previous ruleset c
 - Building an admin console or formal staff management.
 - Auditing historical access to determine whether the exposure was exploited. That is an incident-response question and, if the programme wants it, its own piece of work.
 - Feature 002's own intake rules, which land with that feature once this one unblocks it.
+
+## Implementation notes (2026-08-25)
+
+Rules written to `firestore.rules`, tests to `tests/rules/firestore-rules.spec.ts`.
+77 tests pass. Run with `npm run test:rules`.
+
+**The suite was proven, not just passed.** Run against the *currently live*
+ruleset it fails 23 tests; against the new rules it passes 77. A suite that
+passes either way would prove nothing.
+
+**Two real breakages were found by tracing code, not by testing** — both would
+have reached production:
+
+1. `AuthenticationService.DeleteAccount()` deletes the member's own user
+   document. An `allow delete: if false` on `users` would have broken account
+   deletion, which is also a data-protection obligation.
+2. `chat.component.ts` lets participants delete their own chats and group
+   creators delete groups. A staff-only delete on `chats` would have broken it.
+
+Both are now permitted and covered by regression tests. This is what User Story
+2 is for: the rules were easy, and not breaking the app was the actual work.
+
+**Query rules were tested separately from document reads.** Firestore evaluates
+a query differently from a `get` — a rule can permit `getDoc` and still reject
+the equivalent query. Eight tests mirror the exact queries the services issue.
+
+**One requirement cannot be fully met by rules alone.** FR-009 wants members to
+read only *limited* profile fields of others. Firestore has no field-level read
+control, and messaging depends on reading peers' display names and avatars, so
+peer reads of `users` expose the whole document including email. Denying it
+would break chat. The fix is a public-profile subcollection holding only
+`displayName` and `photoURL` — an application change, and this feature is rules
+only. Recorded rather than silently accepted; worth its own small feature.
+
+**`firebase.json` now registers `firestore.rules`.** That is required for the
+fix to ship, but it means a bare `firebase deploy` will carry the rules change
+with it. Use `--only` for unrelated deploys until this one is made deliberately.
 
 ## Dependencies
 

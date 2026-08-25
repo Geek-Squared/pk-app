@@ -1,36 +1,182 @@
 rules_version = '2';
+
+// Positive Konnections — Firestore security rules.
+//
+// Replaces a ruleset that granted read/update/write/delete on /{document=**}
+// to any signed-in account. See specs/003-firestore-security-rules/spec.md.
+//
+// Default is deny: there is no catch-all match, so a collection without an
+// explicit rule below is unreachable by clients (FR-001, FR-002).
+//
+// Cloud Functions use the Firebase Admin SDK and bypass these rules entirely
+// (FR-025), so nothing here can break background delivery, push, or AI
+// indexing. Everything below constrains CLIENTS only.
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, update, write,delete: if isSignedIn();
+
+    // ---------- helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Counsellors and administrators share one staff capability (FR-014).
+    // Referenced by name everywhere so splitting it later is a one-line change
+    // rather than a rewrite (FR-014a).
+    //
+    // This reads the caller's own user document, which costs a billed get()
+    // per evaluation. A custom claim would be cheaper, but the only claim that
+    // exists today is `client: true` from processSignUp — and inferring staff
+    // from its ABSENCE would silently promote every account created before that
+    // claim existed. Correctness over cost.
+    function isStaff() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['counsellor', 'administrator'];
+    }
+
+    // ---------- users ----------
+
+    match /users/{uid} {
+      // KNOWN LIMITATION (FR-009): the app reads other members' user documents
+      // to render display names and avatars in chats, and Firestore has no
+      // field-level read control — so a peer read exposes the whole document,
+      // including email. Denying it would break messaging.
+      //
+      // The fix is a public-profile subcollection holding only displayName and
+      // photoURL, but that is an application change and this feature is rules
+      // only. Tracked in the spec; not silently accepted.
+      //
+      // Writes are now restricted, which they were not before: any signed-in
+      // account could previously overwrite any member's profile.
+      allow read: if isSignedIn();
+      allow create, update: if isSelf(uid) || isStaff();
+      // Self-delete is required: AuthenticationService.DeleteAccount() removes
+      // the member's own user document before deleting their auth account. A
+      // blanket `if false` here would break account deletion — found by tracing
+      // the deletion path rather than by testing, which is why User Story 2
+      // exists. The onUserDeleted auth trigger then cascades the rest via the
+      // Admin SDK.
+      allow delete: if isSelf(uid) || isStaff();
+
+      // Per-user notifications: users/{uid}/notifications/{id}
+      match /notifications/{notificationId} {
+        allow read, write: if isSelf(uid) || isStaff();
+      }
+    }
+
+    // ---------- chats ----------
+
+    match /chats/{chatId} {
+      // Membership is the `uids` array. Staff need chat access to do their work
+      // — it is the bulk of what counsellors and administrators do in the app.
+      allow read, update: if isStaff()
+        || (isSignedIn() && request.auth.uid in resource.data.uids);
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.uids;
+      // Participants delete their own chats from the chat UI (chat.component.ts
+      // "Delete chat" / "Delete group"). Staff-only here would break it — a
+      // second break found by tracing the code rather than by testing.
+      //
+      // The app restricts group deletion to the creator; that stays a UI rule,
+      // since the chat documents carry no creator field to check. Not a
+      // regression — it is the behaviour that exists today.
+      allow delete: if isStaff()
+        || (isSignedIn() && request.auth.uid in resource.data.uids);
+    }
+
+    // ---------- workbooks ----------
+
+    match /workbooks/{workbookId} {
+      // A member's own reflections. Deliberately NOT readable by staff: nothing
+      // in the app reads another member's workbook, so granting it would be
+      // access without a use case.
+      allow read, update, delete: if isSignedIn() && request.auth.uid == resource.data.uid;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.uid;
+    }
+
+    // ---------- curriculum: readable by members, writable by staff ----------
+    // This is the protection the old ruleset intended but never delivered —
+    // its blocks matched /databases/chapters/documents, where that segment is
+    // the database name, so they never matched a request.
+
+    match /interventions/{id} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
+    match /chapters/{id} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
+    match /posts/{id} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
+    match /questions/{id} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
+    match /categories/{id} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
+    match /referrals/{id} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+    }
+
+    // ---------- surveys ----------
+
+    match /surveys/{surveyId} {
+      allow read: if isSignedIn();
+      allow write: if isStaff();
+
+      // A member submits one response and reads back only their own.
+      match /responses/{responseId} {
+        allow read: if isStaff()
+          || (isSignedIn() && request.auth.uid == resource.data.uid);
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.uid;
+        allow update, delete: if isStaff();
+      }
+    }
+
+    // ---------- submission-only collections ----------
+    // The client creates these and never reads them back — confirmed against
+    // bookings.service.ts and feedback.service.ts, which only call .add().
+    // Read is therefore staff-only. Previously every member could read every
+    // other member's bookings, including their phone numbers.
+
+    match /bookings/{id} {
+      allow create: if isSignedIn();
+      allow read: if isStaff();
+      allow update, delete: if isStaff();
+    }
+
+    match /feedback/{id} {
+      allow create: if isSignedIn();
+      allow read: if isStaff();
+      allow update, delete: if isStaff();
+    }
+
+    // ---------- backend-only ----------
+    // Written and read exclusively by Cloud Functions, which bypass rules.
+    // No client touches either, so clients get nothing (FR-025).
+
+    match /adminNotifications/{id} {
+      allow read, write: if false;
+    }
+
+    match /knowledge_index/{id} {
+      allow read, write: if false;
     }
   }
-  
-  match /databases/chapters/documents {
-    match /{document=**} {
-      allow update, write,delete: if !isClient();
-    }
-  }
-  
-  match /databases/posts/documents {
-    match /{document=**} {
-      allow update, write,delete: if !isClient();
-    }
-  }
-  
-  match /databases/{database}/users {
-    match /{document=**} {
-      allow read, update, write: if isSignedIn();
-    }
-  }
-  
-  //functions
-  function isSignedIn(){
-  return request.auth != null
-  }
-  
-  function isClient(){
-  return request.auth.token.client
-  }
-  
 }
