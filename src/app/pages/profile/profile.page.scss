@@ -275,9 +275,11 @@
       
       .material-symbols-outlined { font-size: 1.4rem; }
 
-      &.primary-tonal { background: #dde1ff; color: #00288e; }
-      &.secondary-tonal { background: #d4e3ff; color: #0060ac; }
-      &.tertiary-tonal { background: #ffdbce; color: #611e00; }
+      // Tonal chips drawn from the logo palette rather than ad-hoc hues.
+      // Coral is skipped — it is reserved for urgency/crisis.
+      &.primary-tonal { background: var(--pk-card-cyan-tint); color: var(--pk-card-cyan-ink); }
+      &.secondary-tonal { background: var(--pk-card-teal-tint); color: var(--pk-card-teal-ink); }
+      &.tertiary-tonal { background: var(--pk-card-amber-tint); color: var(--pk-card-amber-ink); }
     }
 
     .item-text {

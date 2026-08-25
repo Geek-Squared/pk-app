@@ -6,6 +6,7 @@ import { HOW_TO_SEEN_KEY } from 'src/app/pages/how-to-use/how-to-use.page';
 import { FcmService } from 'src/app/services/fcm.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { UsersService } from 'src/app/services/users.service';
+import { ShareService } from 'src/app/services/share.service';
 import { Observable, of, switchMap } from 'rxjs';
 
 @Component({
@@ -26,7 +27,8 @@ export class HomePage implements OnInit {
     private fcmService: FcmService,
     private menuCtrl: MenuController,
     private usersService: UsersService,
-    private router: Router
+    private router: Router,
+    private shareService: ShareService
   ) {
     this.user$ = this.authService.afAuth.authState.pipe(
       switchMap(user => {
@@ -37,6 +39,16 @@ export class HomePage implements OnInit {
         }
       })
     );
+  }
+
+  /**
+   * The button lives inside the card's routerLink, so without stopping the
+   * event the tap would navigate to /referrals instead of opening the sheet.
+   */
+  async shareApp(event: Event): Promise<void> {
+    event.stopPropagation();
+    event.preventDefault();
+    await this.shareService.shareApp();
   }
 
   ngOnInit() {

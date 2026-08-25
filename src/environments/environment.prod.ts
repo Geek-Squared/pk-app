@@ -1,4 +1,12 @@
 export const environment = {
+  /* Invite link used by the "Share App" action. Defaults to the Play Store
+     listing derived from the Capacitor appId (com.positivekonnections.app).
+     Point this at a landing page or dynamic link if one exists. */
+  share: {
+    url: 'https://play.google.com/store/apps/details?id=com.positivekonnections.app',
+    title: 'Positive Konnections',
+    text: 'Positive Konnections is a free, private space for support and reflection. Thought you might find it helpful.',
+  },
   production: true,
   fcmVapidKey: 'BECrzYb8qf8KI7CwOXahIdLZ8JyDvm_FSJjczIPziroT_VG0K8DYlPz61J4r8OfHF6iauLybi5n7_EK67Igt5qg',
   firebaseConfig: {

@@ -1,3 +1,12 @@
+// Section accent — see --pk-card-* in theme/variables.scss.
+// The hue rides on this page's icon chip only; buttons, links and focus
+// states stay on --pk-primary so blue remains the action colour.
+:host {
+  --pk-section-tint: var(--pk-card-green-tint);
+  --pk-section-ink: var(--pk-card-green-ink);
+  --pk-section-soft: var(--pk-card-green-soft);
+}
+
 // Desktop-only styles
 @media (min-width: 768px) {
   // Hide mobile content on desktop
@@ -42,7 +51,7 @@
         &:hover {
           transform: translateY(-4px);
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-          border-color: var(--pk-blue);
+          border-color: var(--pk-section-ink);
         }
 
         .survey-icon {
@@ -51,8 +60,8 @@
 
           ion-icon {
             font-size: 3rem;
-            color: var(--pk-blue);
-            background: #f1f5f9;
+            color: var(--pk-section-ink);
+            background: var(--pk-section-tint);
             padding: 1.5rem;
             border-radius: 50%;
             display: inline-block;

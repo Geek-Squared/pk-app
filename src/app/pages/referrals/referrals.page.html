@@ -14,8 +14,16 @@
             <ion-label>
               <h3><strong>{{ referral.name }}</strong></h3>
               <h3>Address: {{ referral.address }}</h3>
-              <p>Tel: {{ referral.phoneNumber }}</p>
+              <p>Tel: {{ phoneOf(referral) || 'Not provided' }}</p>
             </ion-label>
+            <ion-button
+              slot="end"
+              fill="clear"
+              *ngIf="phoneOf(referral)"
+              (click)="call(referral)"
+              [attr.aria-label]="'Call ' + referral.name">
+              <ion-icon name="call-outline" slot="icon-only"></ion-icon>
+            </ion-button>
           </ion-item>
         </ion-list>
       </ion-card-content>
@@ -24,7 +32,7 @@
   <div class="desktop-content">
     <div class="referrals-content">
       <div class="page-title desktop-only-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-        <ion-icon name="people-outline" style="font-size: 1.5rem; color: #2d72ad;"></ion-icon>
+        <ion-icon name="people-outline" style="font-size: 1.5rem; color: var(--pk-section-ink);"></ion-icon>
         <h1 style="font-size: 1.75rem; font-weight: 600; color: #1e293b; margin: 0;">Referrals</h1>
       </div>
       <p class="page-description">Connect with trusted professionals and resources in our network</p>
@@ -42,11 +50,16 @@
             </div>
             <div class="phone">
               <ion-icon name="call-outline"></ion-icon>
-              <span>{{ referral.phoneNumber }}</span>
+              <span>{{ phoneOf(referral) || 'Not provided' }}</span>
             </div>
           </div>
           <div class="referral-actions">
-            <ion-button fill="outline" color="primary">
+            <ion-button
+              fill="outline"
+              color="primary"
+              [disabled]="!phoneOf(referral)"
+              (click)="call(referral)"
+              [attr.aria-label]="'Call ' + referral.name">
               <ion-icon name="call-outline" slot="start"></ion-icon>
               Call
             </ion-button>

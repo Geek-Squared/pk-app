@@ -1,3 +1,12 @@
+// Section accent — see --pk-card-* in theme/variables.scss.
+// Cyan, the Messages-family hue: Peekay is a chat surface, so its avatar
+// reads as a conversation partner rather than a fifth unrelated colour.
+:host {
+  --pk-section-tint: var(--pk-card-cyan-tint);
+  --pk-section-ink: var(--pk-card-cyan-ink);
+  --pk-section-soft: var(--pk-card-cyan-soft);
+}
+
 .ai-canvas {
   --background: #eef2fb;
   font-family: 'Manrope', sans-serif;
@@ -49,7 +58,7 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: linear-gradient(145deg, #679aca 0%, #285ba7 100%);
+    background: linear-gradient(145deg, var(--pk-section-soft) 0%, var(--pk-section-ink) 100%);
     color: #ffffff;
     font-weight: 800;
     font-size: 1.05rem;

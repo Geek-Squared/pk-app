@@ -95,6 +95,49 @@
   --pk-surface-container-lowest: #ffffff;
   --pk-surface-container-highest: #dbdde2;
   --pk-outline-variant: #acadb1;
+
+  /* Card accent palette, keyed to the PK logo (logo.png).
+
+     The mark uses exactly FIVE hues. Sampled from the file, with the share of
+     coloured pixels each one occupies:
+       coral  #d14546  hue 360  39%  (also the "POSITIVE" wordmark)
+       purple #a06fa9  hue 291  21%  (also the "KONNECTIONS" wordmark)
+       amber  #f6c141  hue  42  17%
+       cyan   #00accc  hue 189  12%
+       green  #a6ca64  hue  81  11%
+     Every tint/ink/soft triple below is locked to its hue angle, within 2°.
+
+     TEAL IS NOT IN THE LOGO. It is a derived sixth hue at 165°, in the arc
+     between green and cyan, added because the app needs six distinct section
+     accents and coral is reserved for urgency (see below). Treat it as ours,
+     not the brand's — if the logo is ever restyled, the other five follow it
+     and teal has to be re-judged by eye.
+
+     These are ACCENTS, not surfaces. They belong on a card's icon chip only —
+     card bodies stay neutral and blue (--pk-primary) stays the action colour.
+     Home is the one exception: its action pills match their tile's hue.
+
+     Every tint/ink pair clears 7:1, so a glyph on the chip stays legible in
+     bright sun. The -soft value is the light end for gradient fills; white
+     text on it still clears 5:1. */
+  --pk-card-coral-tint: #fbe3e3;
+  --pk-card-coral-ink: #901e1f;
+  --pk-card-coral-soft: #cf2b2c;
+  --pk-card-amber-tint: #fdf3dc;
+  --pk-card-amber-ink: #694c05;
+  --pk-card-amber-soft: #8e6607;
+  --pk-card-cyan-tint: #dcf2f6;
+  --pk-card-cyan-ink: #045766;
+  --pk-card-cyan-soft: #067a90;
+  --pk-card-green-tint: #edf4e1;
+  --pk-card-green-ink: #42571c;
+  --pk-card-green-soft: #5b7827;
+  --pk-card-purple-tint: #f1e8f3;
+  --pk-card-purple-ink: #603468;
+  --pk-card-purple-soft: #9954a6;
+  --pk-card-teal-tint: #dff2ec;
+  --pk-card-teal-ink: #0b5946;
+  --pk-card-teal-soft: #107e63;
 }
 
 @media (max-width: 991px) {
