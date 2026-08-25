@@ -3,7 +3,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import firebase from 'firebase/compat/app';
 import { Observable, of } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, take } from 'rxjs/operators';
 import { Intake, IntakeStatus } from 'src/app/models/intake.interface';
 
 export const INTAKE_STEPS = ['identity', 'demographics', 'selection', 'confirm'] as const;
@@ -111,6 +111,19 @@ export class IntakeService {
    * reading the intake. Nothing else about intake is written here.
    */
   async setOnboardingStatus(uid: string, status: 'in_progress' | 'complete'): Promise<void> {
+    // Never downgrade. Landing on the onboarding page used to stamp
+    // 'in_progress' unconditionally, so a member who had already finished was
+    // knocked back to incomplete on every refresh — and the guard then sent
+    // them straight back here. One-way transition closes that loop for good,
+    // wherever the call comes from.
+    if (status === 'in_progress') {
+      const current = await runInInjectionContext(this.injector, () =>
+        this.afs.doc<any>(`users/${uid}`).valueChanges().pipe(take(1)).toPromise()
+      );
+      if (current?.onboardingStatus === 'complete') {
+        return;
+      }
+    }
     await runInInjectionContext(this.injector, () =>
       this.afs.doc(`users/${uid}`).set({ onboardingStatus: status }, { merge: true })
     );

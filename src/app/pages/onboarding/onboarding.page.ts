@@ -91,6 +91,19 @@ export class OnboardingPage implements OnInit {
     });
 
     const existing = await this.intake.getIntake(this.uid).pipe(take(1)).toPromise();
+
+    // Already finished, and not here to revise: send them into the app.
+    //
+    // /onboarding sits outside the guarded subtree so OnboardingGuard cannot
+    // redirect it to itself — which also means nothing stops a completed member
+    // landing here by refreshing on this URL. resumeStep then returns 'confirm'
+    // (no unanswered step remains) and parks them on the summary indefinitely.
+    if (existing?.status === 'complete' && !this.editMode) {
+      console.log('[Onboarding] intake already complete; going to /home');
+      this.router.navigateByUrl('/home', { replaceUrl: true });
+      return;
+    }
+
     this.hydrate(existing ?? null);
     // Editing jumps straight to the picker; resumeStep would send a member who
     // has already finished intake to the confirmation screen.
