@@ -4,6 +4,16 @@ export interface Intervention {
   id: string;
   order?: number;
 
+  // Present on the live documents but never declared here until now — found by
+  // exporting a real document (research R7, task T006). Optional because both
+  // were empty strings in every document sampled.
+  uid?: string;
+  /**
+   * The intervention's category. Confirm whether this is populated before
+   * relying on `audience` below — it may already express what FR-005b needs.
+   */
+  categoryId?: string;
+
   // ---- Added by 002-onboarding-care-routing ----
   // All optional: an existing document carrying none of these is simply not
   // selectable at onboarding, and keeps working exactly as before.

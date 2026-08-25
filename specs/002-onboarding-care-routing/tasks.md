@@ -29,8 +29,8 @@ Angular app at `src/app/`, Firebase config at repo root, rules tests at `tests/r
 - [X] T002 [P] Add the Firestore emulator to local tooling and verify `firebase emulators:start --only firestore` runs
 - [X] T003 [P] Install `@firebase/rules-unit-testing` as a dev dependency (use `--legacy-peer-deps`, per the pre-existing `firebase` 11 vs 12 peer conflict)
 - [X] T004 Add a **Node** test runner for the rules suite: create `tests/rules/` with its own tsconfig and a `test:rules` script in `package.json`. `ng test` cannot run these — `tsconfig.spec.json` scopes Karma to `src/**/*.spec.ts`, and `@firebase/rules-unit-testing` is a Node library that will not run in a browser. Without this task, T010 is a blocking gate that cannot execute
-- [ ] T005 **BLOCKING** Export the live ruleset from the Firebase console (Firestore → Rules) and save it verbatim to `firestore.rules` — do not edit it in this task. Deploying a rules file replaces the entire live ruleset, so this baseline is what stops the feature silently stripping protection from `users`, `chats` and `workbooks`
-- [ ] T006 [P] Export one real `interventions/{id}` document and one `users/{uid}` document from the console and reconcile field names against `data-model.md`; record any mismatch in `research.md` R7. This is the check that would have caught the `phone` vs `phoneNumber` bug already shipped in `referrals.interface.ts`
+- [X] T005 **BLOCKING** Export the live ruleset from the Firebase console (Firestore → Rules) and save it verbatim to `firestore.rules` — do not edit it in this task. Deploying a rules file replaces the entire live ruleset, so this baseline is what stops the feature silently stripping protection from `users`, `chats` and `workbooks`
+- [X] T006 [P] Export one real `interventions/{id}` document and one `users/{uid}` document from the console and reconcile field names against `data-model.md`; record any mismatch in `research.md` R7. This is the check that would have caught the `phone` vs `phoneNumber` bug already shipped in `referrals.interface.ts`
 
 **Checkpoint**: Build clean, emulator running, both runners working, live rules committed unchanged.
 
@@ -224,29 +224,52 @@ Deliver in that order rather than by layer. The most common failure mode here wo
 
 ---
 
-## Implementation status — halted at T005 (2026-08-25)
+## Implementation status — halted at T007 (2026-08-25)
 
-Phase 1 and the Phase 2 model tasks are done and verified. **Implementation is
-stopped at T005**, which cannot be performed from a development machine: it
-requires exporting the live ruleset from the Firebase console. `firebase login`
-is interactive and the project's live rules are not in the repository.
+Phase 1 complete (T001-T006). Phase 2 models complete (T014-T017).
+**Halted at T007 by a security finding, not by tooling.**
 
-Everything downstream of T005 is genuinely blocked, not skipped:
+### T005 turned into a security audit
 
-| Task | Blocked by |
+T005 was framed as deployment safety: capture the live ruleset so the feature's
+rules do not silently replace it. Exporting it revealed that the live rules —
+unchanged since **2021-07-11** — grant `read, update, write, delete` on
+`/{document=**}` to any signed-in account. Three narrower blocks beneath it
+match `/databases/chapters/documents`, where that segment is the *database*
+name, so they have never matched anything.
+
+See `SECURITY-FINDING.md`.
+
+**This invalidates the plan's approach to FR-023.** Firestore ORs its rules — a
+blanket allow cannot be narrowed by a more specific rule underneath. Adding
+`intakes/{uid}` rules (T008) would not restrict anything. T010 would fail
+against the live rules today, which is what that gate was for.
+
+### Why work stopped rather than continued
+
+Continuing means one of:
+
+- deploying tightened global rules, which is a risky change to a live
+  mental-health service and far beyond this feature's scope; or
+- building intake UI that writes minors' demographic data into a database every
+  signed-in account can read, with FR-023 knowingly unmet.
+
+Neither is a call to make unilaterally. Three options are set out at the end of
+`SECURITY-FINDING.md`.
+
+### Also resolved
+
+T006 exported the real document shapes. `interventions/{id}` carries `uid` and
+`categoryId`, neither previously declared — both now optional on the model.
+`users/{uid}` carries no `role` field in any sampled document, so `isStaff()`
+(T009) must treat an absent role as "not staff". Recorded in research R7.
+
+### State
+
+| Task | Status |
 |---|---|
-| T005 | Firebase console access — export the live ruleset |
-| T006 | Firebase console access — export a real `interventions` and `users` document |
-| T007, T008, T009 | T005 (the baseline file must exist before it is registered or edited) |
-| T010, T011 | T007–T009 |
-| T012, T013 | Firestore write access — create `config/onboarding`, add pill fields |
-| Phase 3 onward | The plan's own gate: do not start until T010 passes |
-
-Phase 3 was not started. Beginning the intake UI before T010 proves that a
-member cannot read another member's intake would mean discovering a data-model
-error after the screens exist — the exact failure the phase ordering was
-designed to prevent, and what constitution Principle I means by stopping to
-re-plan rather than pushing forward.
-
-**To resume**: run T005 and T006 (both console tasks), commit the baseline
-`firestore.rules` unchanged, then continue from T007.
+| T001-T006 | Done |
+| T007-T011 | **Blocked on the rules decision** |
+| T012, T013 | Available — Firestore write access works; deferred until the rules decision, since they add data to an open database |
+| T014-T017 | Done |
+| Phase 3 onward | Gated on T010, which cannot pass under current rules |

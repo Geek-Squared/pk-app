@@ -96,7 +96,27 @@ Building an admin console inside this feature would be larger than the feature a
 
 **Rationale**: The live Firestore data is not visible from here. This exact blind spot already produced a real bug in this codebase: `models/referrals.interface.ts` declares `phone`, both referrals templates read `phoneNumber`, and because `strictTemplates` is off it compiled silently and rendered an empty value. Repeating that pattern on demographic data would be worse.
 
-**Follow-up**: export one real `interventions` document and one `users` document before Phase A, and reconcile. Cheap, and it removes the guesswork.
+**RESOLVED 2026-08-25 (T006)** — exported from the live project.
+
+`interventions/{id}` actually carries: `uid` (string, empty in sampled docs), `name`, `order` (integer), `createdDate` (string, e.g. `2025-05-07`), and **`categoryId`** (string, empty in sampled docs). Two fields the model never declared: `uid` and `categoryId`. Neither `visibility` nor `allowedUserIds` appears on the sampled documents, consistent with `canView()` treating their absence as "visible to everyone".
+
+`categoryId` matters: the spec assumed interventions were grouped by the adolescents / parents / self-care / skills categories seen in the UI. There is a `categoryId` field for exactly that, and it was empty in the documents sampled. **Confirm whether categories are populated before relying on `audience` (FR-005b)** — the new field may duplicate something that already exists.
+
+`users/{uid}` carries: `uid`, `email`, `displayName`, `photoURL` (null in all sampled), `emailVerified`, `deviceId` (map). Across three sampled documents there was **no `role` field**, so the `isStaff()` helper in T009 must treat an absent role as "not staff" rather than assuming the field is present.
+
+Field names in `data-model.md` are unaffected — the new collections are ours to define. `Intervention` should gain optional `uid` and `categoryId` to match reality.
+
+---
+
+## R10. The live security rules are effectively open (CRITICAL)
+
+**Discovered executing T005.** Full write-up in `SECURITY-FINDING.md`.
+
+The live ruleset — unchanged since 2021-07-11 — grants `read, update, write, delete` on `/{document=**}` to any signed-in account. The three narrower blocks beneath it match `/databases/chapters/documents` and similar, where that segment is the *database* name, so they have never matched anything.
+
+**This invalidates the plan's assumption that FR-023 can be satisfied by adding rules.** Firestore ORs its rules: a blanket allow cannot be narrowed by a more specific rule underneath it. T010 would fail against the live rules today — which is exactly what that gate existed to catch.
+
+**Decision required before Phase 2 continues.** Three options at the end of `SECURITY-FINDING.md`. This is a scope call, not a task.
 
 ---
 
