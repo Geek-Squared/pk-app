@@ -6,6 +6,8 @@ import { UtilitiesService } from 'src/app/services/utilities.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { WorkbookResponse } from 'src/app/models/workbook.interface';
 import { InterventionsService } from 'src/app/services/interventions.service';
+import { InterventionSurveysService } from 'src/app/services/intervention-surveys.service';
+import { DueSurvey } from 'src/app/services/intervention-surveys.service';
 
 @Component({
   selector: 'app-chapters',
@@ -33,6 +35,7 @@ export class ChaptersPage implements OnInit {
 
   constructor(
     private chaptersService: ChaptersService,
+    private interventionSurveys: InterventionSurveysService,
     private interventionsService: InterventionsService,
     private utilsService: UtilitiesService,
     private route: ActivatedRoute,
@@ -40,9 +43,50 @@ export class ChaptersPage implements OnInit {
     private router: Router
   ) {}
 
+  /** Measurement surveys owed at this intervention's current timepoint. */
+  dueSurveys: DueSurvey[] = [];
+
   ngOnInit() {
     this.getChapters();
     this.listenForWorkbookProgress();
+    this.watchDueSurveys();
+  }
+
+  private watchDueSurveys(): void {
+    const interventionId = this.route.snapshot.paramMap.get('interventionId');
+    const uid = JSON.parse(localStorage.getItem('user') || 'null')?.uid;
+    if (!interventionId || !uid) {
+      return;
+    }
+    this.interventionSurveys
+      .dueSurveys(uid, interventionId)
+      .subscribe((due) => (this.dueSurveys = due));
+  }
+
+  /**
+   * Surveys are never a gate. Someone can dismiss the prompt and carry on with
+   * the content; it reappears next visit until answered. Blocking a person in
+   * distress behind a questionnaire is not a trade worth making for data.
+   */
+  dismissSurveyPrompt(): void {
+    this.dueSurveys = [];
+  }
+
+  openSurvey(due: DueSurvey): void {
+    this.router.navigate(['/surveys', due.surveyId], {
+      queryParams: { interventionId: due.interventionId, timepoint: due.timepoint },
+    });
+  }
+
+  surveyPromptLabel(): string {
+    const point = this.dueSurveys[0]?.timepoint;
+    if (point === 'baseline') {
+      return 'Before you start, a few questions';
+    }
+    if (point === 'midline') {
+      return 'You are halfway — a few questions';
+    }
+    return 'You have finished — a few last questions';
   }
 
   private async getChapters(): Promise<void> {

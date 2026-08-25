@@ -189,3 +189,57 @@
     }
   }
 }
+
+// Baseline / midline / endline prompt. Uses the amber card tokens so it reads
+// as a programme request rather than an alert — coral is reserved for crisis.
+.survey-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--pk-card-amber-tint);
+  border: 1px solid var(--pk-card-amber-ink);
+
+  .survey-prompt-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--pk-card-amber-ink);
+    }
+
+    span {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--pk-on-surface-variant);
+    }
+  }
+
+  .survey-prompt-actions {
+    display: flex;
+    gap: 10px;
+
+    button {
+      flex: 1;
+      height: 42px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+    }
+
+    .primary { background: var(--pk-card-amber-ink); color: #ffffff; }
+
+    .ghost {
+      flex: 0 0 100px;
+      background: transparent;
+      color: var(--pk-on-surface-variant);
+      border: 1px solid var(--pk-outline-variant);
+    }
+  }
+}
