@@ -257,6 +257,10 @@ Continuing means one of:
 Neither is a call to make unilaterally. Three options are set out at the end of
 `SECURITY-FINDING.md`.
 
+**Decision (2026-08-25): Option A.** Rules remediation becomes its own feature.
+This one stays paused at T007 until that lands, then resumes from T007 with the
+tightened ruleset as its baseline instead of the open one.
+
 ### Also resolved
 
 T006 exported the real document shapes. `interventions/{id}` carries `uid` and

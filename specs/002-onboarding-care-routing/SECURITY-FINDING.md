@@ -4,6 +4,7 @@
 **Project**: `positive-konnections-42d8a`
 **Live ruleset**: `cae55955-b65d-42fd-a51b-de7a87576c5d`, last updated **2021-07-11** — over five years ago.
 **Status**: NOT remediated. Exported verbatim to `firestore.rules`; nothing deployed.
+**Decision (2026-08-25)**: **Option A** — remediation becomes its own feature. Onboarding (002) is paused at T007 until it lands.
 
 T005 was written as a deployment-safety step: capture the baseline so the
 feature's rules do not silently replace it. It turned into a security audit.
@@ -102,3 +103,38 @@ probably be its own spec.
 
 Option C should not be chosen without the same legal review already flagged for
 FR-021.
+
+---
+
+## Decision: Option A (2026-08-25)
+
+Rules remediation is its own feature. Feature 002 is paused at T007 and resumes
+once the ruleset is tightened and proven.
+
+Rationale: the exposure exists today regardless of whether onboarding ships, so
+it is not really "onboarding's problem to solve" — it is a live defect that
+onboarding happened to surface. Fixing it inside 002 would also couple a UI
+feature to a risky production change, which Principle II forbids.
+
+Collections requiring rules, from the client and Functions inventory:
+
+| Collection | Client | Functions | Live |
+|---|---|---|---|
+| `users` | ✓ | ✓ | ✓ |
+| `chats` | ✓ | ✓ | ✓ |
+| `workbooks` | ✓ | ✓ | ✓ |
+| `interventions` | ✓ | ✓ | ✓ |
+| `chapters` | ✓ | ✓ | ✓ |
+| `posts` | ✓ | ✓ | ✓ |
+| `questions` | ✓ | ✓ | ✓ |
+| `categories` | — | — | ✓ |
+| `surveys` | ✓ | — | ✓ |
+| `bookings` | ✓ | — | ✓ |
+| `feedback` | ✓ | — | ✓ |
+| `referrals` | ✓ | — | ✓ |
+| `adminNotifications` | — | ✓ | ✓ |
+| `knowledge_index` | — | ✓ | ✓ |
+
+`notifications` and `responses` are referenced in code but returned nothing
+live — either unused or subcollections. Both need confirming rather than
+assuming.
