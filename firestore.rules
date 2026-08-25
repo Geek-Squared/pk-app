@@ -37,7 +37,19 @@ service cloud.firestore {
     function isStaff() {
       return isSignedIn()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['counsellor', 'administrator'];
+        && staffRole(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role);
+    }
+
+    // Case-insensitive, and string-guarded.
+    //
+    // The live data stores 'Administrator' with a capital A, while the app
+    // compares lowercase (chat.component.ts lowercases before matching). A
+    // case-sensitive rule here locked every administrator out of writing
+    // curriculum. Some records also carry role as a map rather than a string,
+    // so the type check comes first — `is string` short-circuits before
+    // .lower() is reached.
+    function staffRole(role) {
+      return role is string && role.lower() in ['counsellor', 'administrator'];
     }
 
     // ---------- users ----------

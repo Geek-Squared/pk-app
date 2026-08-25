@@ -258,6 +258,28 @@ describe('staff capability (FR-011, FR-012, US4)', () => {
     await assertFails(setDoc(doc(asA(), 'interventions', 'new'), { name: 'x' }));
   });
 
+  it('accepts the capitalised role the live data actually stores', async () => {
+    // Production stores 'Administrator', not 'administrator'. A case-sensitive
+    // rule locked every admin out of curriculum writes.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users', 'admin-caps'), {
+        uid: 'admin-caps', role: 'Administrator',
+      });
+    });
+    const db = env.authenticatedContext('admin-caps').firestore();
+    await assertSucceeds(setDoc(doc(db, 'interventions', 'new'), { name: 'ok' }));
+  });
+
+  it('a role stored as a map is NOT staff, and does not error the rule', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users', 'role-map'), {
+        uid: 'role-map', role: { name: 'Administrator' },
+      });
+    });
+    const db = env.authenticatedContext('role-map').firestore();
+    await assertFails(setDoc(doc(db, 'interventions', 'new'), { name: 'x' }));
+  });
+
   it('FR-012: a user with no document at all is NOT staff', async () => {
     const ghost = env.authenticatedContext('no-such-user').firestore();
     await assertFails(setDoc(doc(ghost, 'interventions', 'new'), { name: 'x' }));
