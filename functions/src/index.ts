@@ -1087,6 +1087,22 @@ exports.onUserDeleted = functions
       const peekaySnap = await db.collection(`users/${uid}/peekayChats`).get();
       await deleteRefsInBatches(db, peekaySnap.docs.map((d: any) => d.ref));
       await db.doc(`users/${uid}`).delete().catch(() => undefined);
+
+      // Onboarding records. Added with feature 002 — without these, deleting an
+      // account leaves its intake and care assignment behind, and a later
+      // signup on the same email looks like a duplicate that already finished
+      // onboarding. Also a data-protection matter: intake holds demographics.
+      await db.doc(`intakes/${uid}`).delete().catch(() => undefined);
+      const historySnap = await db
+        .collection(`careAssignments/${uid}/history`)
+        .get()
+        .catch(() => null);
+      if (historySnap) {
+        await Promise.all(
+          historySnap.docs.map((d: any) => d.ref.delete().catch(() => undefined))
+        );
+      }
+      await db.doc(`careAssignments/${uid}`).delete().catch(() => undefined);
     } catch (err) {
       console.error('[onUserDeleted] user doc / peekayChats', err);
     }

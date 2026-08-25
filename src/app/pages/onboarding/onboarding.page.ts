@@ -65,6 +65,7 @@ export class OnboardingPage implements OnInit {
     }
     this.uid = user.uid;
     this.email = user.email ?? '';
+    console.log('[Onboarding] signed in as', user.uid, user.email);
     // Auth's own creationTime — the only signal present on every account.
     this.canDefer = this.intake.predatesOnboarding(user.metadata?.creationTime);
 
@@ -195,6 +196,9 @@ export class OnboardingPage implements OnInit {
       const i = this.stepIndex();
       if (i < this.steps.length - 1) this.step = this.steps[i + 1] as IntakeStep;
     } catch (e) {
+      // Log before toasting: a swallowed write is why an intake could report
+      // "in_progress" on the user document while intakes/{uid} was never created.
+      console.error('[Onboarding] saveStep failed on step', this.step, e);
       await this.toast('Could not save just now — your answers are kept, please try again.');
     } finally {
       this.saving = false;
@@ -210,6 +214,7 @@ export class OnboardingPage implements OnInit {
       await this.intake.completeIntake(this.uid);
       this.router.navigateByUrl('/home');
     } catch (e) {
+      console.error('[Onboarding] finish failed', e);
       await this.toast('Could not finish just now — please try again.');
     } finally {
       this.saving = false;
