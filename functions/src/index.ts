@@ -15,17 +15,84 @@ async function sendMulticastCompat(message: any) {
   throw new Error('Firebase Admin messaging multicast API is unavailable.');
 }
 
-exports.processSignUp = functions.auth.user().onCreate((user) => {
-  if (user.email && user.emailVerified) {
-    const customClaims = {
-      client: true,
-    };
-    return admin
-      .auth()
-      .setCustomUserClaims(user.uid, customClaims)
-      .catch((error: any) => {
-        console.warn('Unable to set custom claims for new user', error);
-      });
+exports.processSignUp = functions.auth.user().onCreate(async (user) => {
+  // Only provision real (email-bearing) client accounts.
+  if (!user.email) {
+    return;
+  }
+
+  const db = admin.firestore();
+  const now = Date.now();
+
+  // 1) Custom claim so the account is recognised as a client. Previously this
+  //    was gated on `user.emailVerified`, which is always false at onCreate for
+  //    email/password sign-ups, so the claim was never actually set.
+  try {
+    await admin.auth().setCustomUserClaims(user.uid, { client: true });
+  } catch (error: any) {
+    console.warn('Unable to set custom claims for new user', error);
+  }
+
+  // 2) Provision the user's data atomically, server-side.
+  //    This used to run on the client after sign-up, where a dropped
+  //    connection or a closed app could leave an account with no workbook —
+  //    and the workbook was written with `uid: undefined` because the client
+  //    read the uid from localStorage before it had been set. Running it here
+  //    guarantees every account is complete. Deterministic doc ids keep this
+  //    idempotent if the platform retries the trigger. displayName + consent
+  //    stay client-owned (SetUserData), so we deliberately don't touch them.
+  const batch = db.batch();
+
+  batch.set(
+    db.collection('users').doc(user.uid),
+    {
+      uid: user.uid,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      photoURL: user.photoURL || null,
+      role: 'client',
+      createdAt: now,
+    },
+    { merge: true }
+  );
+
+  batch.set(db.collection('workbooks').doc(user.uid), {
+    uid: user.uid,
+    createdAt: now,
+    count: 0,
+    responses: [],
+    coinBalance: 0,
+    coinHistory: [],
+    heroProfile: {
+      heroName: '',
+      alias: '',
+      auraColor: '#5b21b6',
+      originStory: '',
+      signaturePower: '',
+      secondaryPowers: [],
+      unlockedUpgrades: [],
+      motto: '',
+      updatedAt: now,
+    },
+  });
+
+  batch.set(db.collection('chats').doc(user.uid), {
+    uid: user.uid,
+    uids: [user.uid],
+    recipientName: 'Private Chat',
+    createdAt: now,
+    count: 0,
+    messages: [],
+    type: 'private',
+  });
+
+  try {
+    await batch.commit();
+  } catch (error: any) {
+    // Re-throw so the platform retries provisioning rather than silently
+    // leaving a half-created account.
+    console.error('Failed to provision new user data', error);
+    throw error;
   }
 });
 
@@ -56,19 +123,22 @@ exports.generateHeroAvatar = functions
     }
 
     const prompt = buildHeroPrompt(profile);
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt,
-        size: '512x512',
-        response_format: 'b64_json',
-      }),
-    });
+    const response = await fetch(
+      'https://api.openai.com/v1/images/generations',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-image-1',
+          prompt,
+          size: '512x512',
+          response_format: 'b64_json',
+        }),
+      }
+    );
 
     if (!response.ok) {
       const text = await response.text();
@@ -92,10 +162,9 @@ exports.generateHeroAvatar = functions
   });
 
 function buildHeroPrompt(profile: any): string {
-  const powers =
-    profile?.secondaryPowers?.length
-      ? `Secondary powers: ${profile.secondaryPowers.join(', ')}.`
-      : '';
+  const powers = profile?.secondaryPowers?.length
+    ? `Secondary powers: ${profile.secondaryPowers.join(', ')}.`
+    : '';
 
   const motto = profile?.motto ? `Hero motto: "${profile.motto}".` : '';
 
@@ -164,7 +233,6 @@ async function getAdminTokens(): Promise<string[]> {
     }
   });
 
-  console.log(`Found ${tokens.length} admin web token(s).`);
   return Array.from(new Set(tokens));
 }
 
@@ -191,7 +259,9 @@ async function getUserTokensByUids(uids: string[]): Promise<string[]> {
     return [];
   }
 
-  const refs = uids.map((uid) => admin.firestore().collection('users').doc(uid));
+  const refs = uids.map((uid) =>
+    admin.firestore().collection('users').doc(uid)
+  );
   const docs = await admin.firestore().getAll(...refs);
   const tokens: string[] = [];
   docs.forEach((doc: any) => {
@@ -267,6 +337,99 @@ async function assertAdmin(context: functions.https.CallableContext) {
     );
   }
 }
+
+// One-off repair for accounts created before provisioning moved into
+// processSignUp. The old client-side flow wrote workbooks with `uid: undefined`
+// (it read the uid from localStorage before it was set), leaving accounts with
+// no queryable workbook. This ensures every user has a workbook, a private
+// chat, and a role. Admin-only. Safe to re-run: it only creates what's missing.
+exports.backfillUserProvisioning = functions
+  .runWith({ memory: '512MB', timeoutSeconds: 540 })
+  .https.onCall(async (data: any, context: any) => {
+    await assertAdmin(context);
+
+    const db = admin.firestore();
+    const usersSnap = await db.collection('users').get();
+
+    let scanned = 0;
+    let workbooksCreated = 0;
+    let chatsCreated = 0;
+    let usersUpdated = 0;
+
+    for (const userDoc of usersSnap.docs) {
+      const uid = userDoc.id;
+      const userData = userDoc.data() || {};
+      const now = Date.now();
+      scanned++;
+
+      // Ensure a queryable workbook exists (orphaned uid:undefined docs don't
+      // match this query, so a fresh one is created for the user).
+      const wb = await db
+        .collection('workbooks')
+        .where('uid', '==', uid)
+        .limit(1)
+        .get();
+      if (wb.empty) {
+        await db.collection('workbooks').doc(uid).set(
+          {
+            uid,
+            createdAt: now,
+            count: 0,
+            responses: [],
+            coinBalance: 0,
+            coinHistory: [],
+            heroProfile: {
+              heroName: '',
+              alias: '',
+              auraColor: '#5b21b6',
+              originStory: '',
+              signaturePower: '',
+              secondaryPowers: [],
+              unlockedUpgrades: [],
+              motto: '',
+              updatedAt: now,
+            },
+          },
+          { merge: true }
+        );
+        workbooksCreated++;
+      }
+
+      // Ensure the user has at least one private chat.
+      const chat = await db
+        .collection('chats')
+        .where('uids', 'array-contains', uid)
+        .where('type', '==', 'private')
+        .limit(1)
+        .get();
+      if (chat.empty) {
+        await db.collection('chats').doc(uid).set(
+          {
+            uid,
+            uids: [uid],
+            recipientName: 'Private Chat',
+            createdAt: now,
+            count: 0,
+            messages: [],
+            type: 'private',
+          },
+          { merge: true }
+        );
+        chatsCreated++;
+      }
+
+      // Ensure a role is set.
+      if (!userData.role) {
+        await db
+          .collection('users')
+          .doc(uid)
+          .set({ role: 'client' }, { merge: true });
+        usersUpdated++;
+      }
+    }
+
+    return { scanned, workbooksCreated, chatsCreated, usersUpdated };
+  });
 
 exports.onWorkbookCompletion = functions.firestore
   .document('workbooks/{workbookId}')
@@ -344,7 +507,9 @@ exports.onWorkbookCompletion = functions.firestore
       updates[`completedChapters.${chapterId}`] = completedAt;
     });
 
-    const workbookAlreadyCompleted = Boolean(before.completedAt || after.completedAt);
+    const workbookAlreadyCompleted = Boolean(
+      before.completedAt || after.completedAt
+    );
     const hasCompletedWorkbook =
       !workbookAlreadyCompleted && completedPostIds.size >= totalPosts;
     if (hasCompletedWorkbook) {
@@ -534,9 +699,7 @@ exports.sendUserBroadcastNotification = functions.https.onCall(
         ? data.body.trim()
         : 'You have a new update.';
     const url =
-      typeof data?.url === 'string' && data.url.trim()
-        ? data.url.trim()
-        : '';
+      typeof data?.url === 'string' && data.url.trim() ? data.url.trim() : '';
 
     const createdAt = admin.firestore.Timestamp.now();
     const { tokens, uids } = await getAllUsersForNotifications();
@@ -574,168 +737,178 @@ exports.sendUserBroadcastNotification = functions.https.onCall(
   }
 );
 
-exports.requestCounsellorChat = functions.https.onCall(async (data, context) => {
-  if (!context.auth?.uid) {
-    throw new functions.https.HttpsError(
-      'unauthenticated',
-      'User must be signed in.'
-    );
-  }
+exports.requestCounsellorChat = functions.https.onCall(
+  async (data, context) => {
+    if (!context.auth?.uid) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be signed in.'
+      );
+    }
 
-  const requesterUid = context.auth.uid;
+    const requesterUid = context.auth.uid;
 
-  // Find an available counsellor.
-  //
-  // Notes:
-  // - Firestore equality matching is case-sensitive.
-  // - Some user docs may have role casing drift or even role objects (older migrations).
-  // - "isOnline" can be stale if a client doesn't update cleanly; "lastSeenAt" is a safer fallback.
-  const roleCandidates = ['Counsellor', 'counsellor', 'COUNSELLOR'];
-  const nowMs = Date.now();
-  const activeWindowMs = 5 * 60 * 1000; // 5 minutes
+    // Find an available counsellor.
+    //
+    // Notes:
+    // - Firestore equality matching is case-sensitive.
+    // - Some user docs may have role casing drift or even role objects (older migrations).
+    // - "isOnline" can be stale if a client doesn't update cleanly; "lastSeenAt" is a safer fallback.
+    const roleCandidates = ['Counsellor', 'counsellor', 'COUNSELLOR'];
+    const nowMs = Date.now();
+    const activeWindowMs = 5 * 60 * 1000; // 5 minutes
 
-  // Prefer an index-friendly query first (role IN), then filter by availability in code.
-  const counsellorsSnap = await admin
-    .firestore()
-    .collection('users')
-    .where('role', 'in', roleCandidates)
-    .limit(50)
-    .get();
+    // Prefer an index-friendly query first (role IN), then filter by availability in code.
+    const counsellorsSnap = await admin
+      .firestore()
+      .collection('users')
+      .where('role', 'in', roleCandidates)
+      .limit(50)
+      .get();
 
-  const counsellors = counsellorsSnap.docs.map((d: FirebaseFirestore.QueryDocumentSnapshot) => ({
-    uid: d.id,
-    ...(d.data() || {}),
-  })) as any[];
+    const counsellors = counsellorsSnap.docs.map(
+      (d: FirebaseFirestore.QueryDocumentSnapshot) => ({
+        uid: d.id,
+        ...(d.data() || {}),
+      })
+    ) as any[];
 
-  const availableCounsellors = counsellors
-    .filter((u) => {
-    const roleLower =
-      typeof u?.role === 'string'
-        ? `${u.role}`.toLowerCase()
-        : typeof u?.role?.name === 'string'
-          ? `${u.role.name}`.toLowerCase()
-          : '';
-    if (roleLower !== 'counsellor') return false;
+    const availableCounsellors = counsellors
+      .filter((u) => {
+        const roleLower =
+          typeof u?.role === 'string'
+            ? `${u.role}`.toLowerCase()
+            : typeof u?.role?.name === 'string'
+            ? `${u.role.name}`.toLowerCase()
+            : '';
+        if (roleLower !== 'counsellor') return false;
 
-    const lastSeenAt =
-      typeof u?.lastSeenAt === 'number'
-        ? u.lastSeenAt
-        : typeof u?.lastSeenAt?.toMillis === 'function'
-          ? u.lastSeenAt.toMillis()
-          : 0;
+        const lastSeenAt =
+          typeof u?.lastSeenAt === 'number'
+            ? u.lastSeenAt
+            : typeof u?.lastSeenAt?.toMillis === 'function'
+            ? u.lastSeenAt.toMillis()
+            : 0;
 
-    const recentlyActive = lastSeenAt > 0 && nowMs - lastSeenAt <= activeWindowMs;
-    return u?.isOnline === true || recentlyActive;
-    })
-    .sort((a, b) => {
-      const aSeen =
-        typeof a?.lastSeenAt === 'number'
-          ? a.lastSeenAt
-          : typeof a?.lastSeenAt?.toMillis === 'function'
+        const recentlyActive =
+          lastSeenAt > 0 && nowMs - lastSeenAt <= activeWindowMs;
+        return u?.isOnline === true || recentlyActive;
+      })
+      .sort((a, b) => {
+        const aSeen =
+          typeof a?.lastSeenAt === 'number'
+            ? a.lastSeenAt
+            : typeof a?.lastSeenAt?.toMillis === 'function'
             ? a.lastSeenAt.toMillis()
             : 0;
-      const bSeen =
-        typeof b?.lastSeenAt === 'number'
-          ? b.lastSeenAt
-          : typeof b?.lastSeenAt?.toMillis === 'function'
+        const bSeen =
+          typeof b?.lastSeenAt === 'number'
+            ? b.lastSeenAt
+            : typeof b?.lastSeenAt?.toMillis === 'function'
             ? b.lastSeenAt.toMillis()
             : 0;
-      // Prefer explicit online first, then most recent activity.
-      const aOnline = a?.isOnline === true ? 1 : 0;
-      const bOnline = b?.isOnline === true ? 1 : 0;
-      if (aOnline !== bOnline) return bOnline - aOnline;
-      return bSeen - aSeen;
-    });
+        // Prefer explicit online first, then most recent activity.
+        const aOnline = a?.isOnline === true ? 1 : 0;
+        const bOnline = b?.isOnline === true ? 1 : 0;
+        if (aOnline !== bOnline) return bOnline - aOnline;
+        return bSeen - aSeen;
+      });
 
-  if (!availableCounsellors.length) {
-    console.log('[requestCounsellorChat] No available counsellor found', {
-      requesterUid,
-      totalCandidates: counsellors.length,
-    });
-    return { available: false };
+    if (!availableCounsellors.length) {
+      return { available: false };
+    }
+
+    const counsellor = availableCounsellors[0];
+    const counsellorUid = counsellor.uid;
+
+    // Continuity: if there's already a private chat between this requester and this counsellor,
+    // reuse it instead of creating a fresh thread each time.
+    //
+    // We avoid composite-index-heavy queries by fetching a bounded set of the requester's private chats
+    // and filtering in code.
+    const existingChatsSnap = await admin
+      .firestore()
+      .collection('chats')
+      .where('type', '==', 'private')
+      .where('uids', 'array-contains', requesterUid)
+      .limit(50)
+      .get();
+
+    const existingChats = existingChatsSnap.docs.map(
+      (d: FirebaseFirestore.QueryDocumentSnapshot) => ({
+        id: d.id,
+        ...(d.data() || {}),
+      })
+    ) as any[];
+
+    const matchingExisting = existingChats
+      .filter((c) => Array.isArray(c?.uids) && c.uids.includes(counsellorUid))
+      .sort((a, b) => {
+        const aMsg =
+          Array.isArray(a?.messages) && a.messages.length
+            ? a.messages[a.messages.length - 1]?.createdAt
+            : null;
+        const bMsg =
+          Array.isArray(b?.messages) && b.messages.length
+            ? b.messages[b.messages.length - 1]?.createdAt
+            : null;
+        const aTs =
+          typeof aMsg === 'number'
+            ? aMsg
+            : typeof a?.createdAt === 'number'
+            ? a.createdAt
+            : 0;
+        const bTs =
+          typeof bMsg === 'number'
+            ? bMsg
+            : typeof b?.createdAt === 'number'
+            ? b.createdAt
+            : 0;
+        return bTs - aTs;
+      });
+
+    if (matchingExisting.length) {
+      const chatId = matchingExisting[0].id;
+
+      return { available: true, chatId, counsellorUid, reused: true };
+    }
+
+    const requesterDoc = await admin
+      .firestore()
+      .collection('users')
+      .doc(requesterUid)
+      .get();
+    const requester = requesterDoc.exists ? requesterDoc.data() || {} : {};
+
+    const chatRef = await admin
+      .firestore()
+      .collection('chats')
+      .add({
+        type: 'private',
+        createdAt: admin.firestore.Timestamp.now(),
+        status: 'pending',
+        uids: [requesterUid, counsellorUid],
+        uid: requesterUid,
+        recipientName:
+          counsellor?.displayName || counsellor?.email || 'Counsellor',
+        recipientId: counsellorUid,
+        messages: [],
+        // Minimal metadata to help admin/support.
+        request: {
+          requestedAt: admin.firestore.Timestamp.now(),
+          requesterUid,
+          counsellorUid,
+          requesterName: requester?.displayName || requester?.email || null,
+          counsellorName:
+            counsellor?.displayName || counsellor?.email || 'Counsellor',
+          status: 'pending',
+        },
+      });
+
+
+    return { available: true, chatId: chatRef.id, counsellorUid };
   }
-
-  const counsellor = availableCounsellors[0];
-  const counsellorUid = counsellor.uid;
-
-  // Continuity: if there's already a private chat between this requester and this counsellor,
-  // reuse it instead of creating a fresh thread each time.
-  //
-  // We avoid composite-index-heavy queries by fetching a bounded set of the requester's private chats
-  // and filtering in code.
-  const existingChatsSnap = await admin
-    .firestore()
-    .collection('chats')
-    .where('type', '==', 'private')
-    .where('uids', 'array-contains', requesterUid)
-    .limit(50)
-    .get();
-
-  const existingChats = existingChatsSnap.docs.map((d: FirebaseFirestore.QueryDocumentSnapshot) => ({
-    id: d.id,
-    ...(d.data() || {}),
-  })) as any[];
-
-  const matchingExisting = existingChats
-    .filter((c) => Array.isArray(c?.uids) && c.uids.includes(counsellorUid))
-    .sort((a, b) => {
-      const aMsg = Array.isArray(a?.messages) && a.messages.length
-        ? a.messages[a.messages.length - 1]?.createdAt
-        : null;
-      const bMsg = Array.isArray(b?.messages) && b.messages.length
-        ? b.messages[b.messages.length - 1]?.createdAt
-        : null;
-      const aTs = typeof aMsg === 'number' ? aMsg : typeof a?.createdAt === 'number' ? a.createdAt : 0;
-      const bTs = typeof bMsg === 'number' ? bMsg : typeof b?.createdAt === 'number' ? b.createdAt : 0;
-      return bTs - aTs;
-    });
-
-  if (matchingExisting.length) {
-    const chatId = matchingExisting[0].id;
-    console.log('[requestCounsellorChat] Reusing existing counsellor chat', {
-      requesterUid,
-      counsellorUid,
-      chatId,
-    });
-    return { available: true, chatId, counsellorUid, reused: true };
-  }
-
-  const requesterDoc = await admin
-    .firestore()
-    .collection('users')
-    .doc(requesterUid)
-    .get();
-  const requester = requesterDoc.exists ? requesterDoc.data() || {} : {};
-
-  const chatRef = await admin.firestore().collection('chats').add({
-    type: 'private',
-    createdAt: admin.firestore.Timestamp.now(),
-    status: 'pending',
-    uids: [requesterUid, counsellorUid],
-    uid: requesterUid,
-    recipientName:
-      counsellor?.displayName || counsellor?.email || 'Counsellor',
-    recipientId: counsellorUid,
-    messages: [],
-    // Minimal metadata to help admin/support.
-    request: {
-      requestedAt: admin.firestore.Timestamp.now(),
-      requesterUid,
-      counsellorUid,
-      requesterName: requester?.displayName || requester?.email || null,
-      counsellorName: counsellor?.displayName || counsellor?.email || 'Counsellor',
-      status: 'pending',
-    },
-  });
-
-  console.log('[requestCounsellorChat] Assigned counsellor', {
-    requesterUid,
-    counsellorUid,
-    chatId: chatRef.id,
-  });
-
-  return { available: true, chatId: chatRef.id, counsellorUid };
-});
+);
 
 exports.onChatMessageCreated = functions.firestore
   .document('chats/{chatId}')
@@ -743,7 +916,9 @@ exports.onChatMessageCreated = functions.firestore
     const before = change.before.data() || {};
     const after = change.after.data() || {};
 
-    const beforeMessages = Array.isArray(before.messages) ? before.messages : [];
+    const beforeMessages = Array.isArray(before.messages)
+      ? before.messages
+      : [];
     const afterMessages = Array.isArray(after.messages) ? after.messages : [];
 
     if (afterMessages.length <= beforeMessages.length) {
@@ -763,7 +938,11 @@ exports.onChatMessageCreated = functions.firestore
       after.uids.forEach((entry: any) => {
         if (typeof entry === 'string' && entry) {
           recipientUids.add(entry);
-        } else if (entry && typeof entry === 'object' && typeof entry.uid === 'string') {
+        } else if (
+          entry &&
+          typeof entry === 'object' &&
+          typeof entry.uid === 'string'
+        ) {
           recipientUids.add(entry.uid);
         }
       });
@@ -793,21 +972,13 @@ exports.onChatMessageCreated = functions.firestore
     }
 
     if (!recipientUids.size) {
-      console.log('[onChatMessageCreated] No recipients after excluding sender', {
-        chatId: context.params.chatId,
-        senderUid,
-      });
+
       return null;
     }
 
     const tokens = await getUserTokensByUids(Array.from(recipientUids));
     if (!tokens.length) {
-      console.log('[onChatMessageCreated] No tokens found for recipients', {
-        chatId: context.params.chatId,
-        senderUid,
-        recipientCount: recipientUids.size,
-        recipients: Array.from(recipientUids),
-      });
+
       return null;
     }
 
@@ -819,15 +990,6 @@ exports.onChatMessageCreated = functions.firestore
       latest?.type === 'audio'
         ? 'Sent a voice note.'
         : latest?.content || 'New message received.';
-
-    console.log('[onChatMessageCreated] Sending push', {
-      chatId: context.params.chatId,
-      senderUid,
-      recipientCount: recipientUids.size,
-      tokenCount: tokens.length,
-      title,
-      bodyPreview: typeof body === 'string' ? body.slice(0, 80) : '',
-    });
 
     const createdAt = admin.firestore.Timestamp.now();
     await writeUserNotifications(Array.from(recipientUids), {
@@ -862,21 +1024,8 @@ exports.onChatMessageCreated = functions.firestore
       },
     });
 
-    console.log('[onChatMessageCreated] Push result', {
-      chatId: context.params.chatId,
-      successCount: result.successCount,
-      failureCount: result.failureCount,
-      // Log only error codes, never tokens.
-      errors: (result.responses || [])
-        .map((r: any) => r?.error?.code)
-        .filter(Boolean)
-        .slice(0, 10),
-    });
-
     return result;
   });
-
-
 
 /**
  * Peekay Chat Entry Point (Phase 2 - GenKit RAG Flow)
@@ -886,7 +1035,10 @@ exports.peekayChat = functions
   .runWith({ memory: '1GB', timeoutSeconds: 300, secrets: ['OPENAI_API_KEY'] })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'User must be signed in.');
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'User must be signed in.'
+      );
     }
 
     try {
@@ -897,16 +1049,141 @@ exports.peekayChat = functions
       });
     } catch (error: any) {
       console.error('Peekay Chat Error:', error);
-      throw new functions.https.HttpsError('internal', error.message || 'Peekay is resting.');
+      throw new functions.https.HttpsError(
+        'internal',
+        error.message || 'Peekay is resting.'
+      );
     }
   });
 
-async function buildPostText(postId: string, postData: any): Promise<string> {
+async function deleteRefsInBatches(db: any, refs: any[]): Promise<void> {
+  const chunkSize = 400;
+  for (let i = 0; i < refs.length; i += chunkSize) {
+    const batch = db.batch();
+    refs.slice(i, i + chunkSize).forEach((ref: any) => batch.delete(ref));
+    await batch.commit();
+  }
+}
+
+/**
+ * Right to erasure — cascade-delete a user's personal data when their auth
+ * account is removed. The client (DeleteAccount) removes users/{uid} + the auth
+ * account; this trigger cleans up everything else tied to the user.
+ *
+ * NOTE: Storage uploads are not namespaced by uid (paths like
+ * `uploads/images/...`), so individual files cannot be located by uid here.
+ * A per-user file registry would be needed to also purge Storage objects.
+ */
+exports.onUserDeleted = functions
+  .runWith({ memory: '512MB', timeoutSeconds: 300 })
+  .auth.user()
+  .onDelete(async (user: any) => {
+    const uid = user.uid;
+    const db = admin.firestore();
+    console.log(`[onUserDeleted] cascade-deleting data for ${uid}`);
+
+    // 1. Peekay AI chat history (subcollection) + the user document itself.
+    try {
+      const peekaySnap = await db.collection(`users/${uid}/peekayChats`).get();
+      await deleteRefsInBatches(db, peekaySnap.docs.map((d: any) => d.ref));
+      await db.doc(`users/${uid}`).delete().catch(() => undefined);
+    } catch (err) {
+      console.error('[onUserDeleted] user doc / peekayChats', err);
+    }
+
+    // 2. Workbooks (reflections — sensitive data).
+    try {
+      const wbSnap = await db.collection('workbooks').where('uid', '==', uid).get();
+      await deleteRefsInBatches(db, wbSnap.docs.map((d: any) => d.ref));
+    } catch (err) {
+      console.error('[onUserDeleted] workbooks', err);
+    }
+
+    // 3. Chats — delete private chats; remove membership + scrub the user's
+    //    messages from group chats.
+    try {
+      const chatSnap = await db
+        .collection('chats')
+        .where('uids', 'array-contains', uid)
+        .get();
+      for (const doc of chatSnap.docs) {
+        const data: any = doc.data() || {};
+        if (data.type !== 'group') {
+          await doc.ref.delete();
+          continue;
+        }
+        const uids = (Array.isArray(data.uids) ? data.uids : []).filter(
+          (u: string) => u !== uid
+        );
+        const members = (Array.isArray(data.members) ? data.members : []).filter(
+          (m: any) => m?.uid !== uid
+        );
+        const messages = (Array.isArray(data.messages) ? data.messages : []).filter(
+          (m: any) => m?.uid !== uid
+        );
+        const hasRead = { ...(data.hasRead || {}) };
+        delete hasRead[uid];
+        await doc.ref.update({ uids, members, messages, hasRead });
+      }
+    } catch (err) {
+      console.error('[onUserDeleted] chats', err);
+    }
+
+    console.log(`[onUserDeleted] complete for ${uid}`);
+    return null;
+  });
+
+interface PostIndexContext {
+  text: string;
+  interventionId: string | null;
+  interventionName: string | null;
+  postTitle: string | null;
+}
+
+async function buildPostText(
+  postId: string,
+  postData: any
+): Promise<PostIndexContext> {
   const parts: string[] = [];
-  if (postData.title) parts.push(postData.title);
+  let interventionId: string | null = null;
+  let interventionName: string | null = null;
+
+  // Topical anchor: which intervention + chapter this post belongs to.
+  // Embedding this makes a query like "suicide" or "depressed" match the
+  // right intervention's posts even when the post body never uses that word.
+  try {
+    const chapterId = postData.chapterId;
+    if (chapterId) {
+      const chapterSnap = await admin
+        .firestore()
+        .collection('chapters')
+        .doc(chapterId)
+        .get();
+      const chapterData: any = chapterSnap.data();
+      interventionId = chapterData?.interventionId || null;
+      if (interventionId) {
+        const intvSnap = await admin
+          .firestore()
+          .collection('interventions')
+          .doc(interventionId)
+          .get();
+        interventionName = intvSnap.data()?.name || null;
+        if (interventionName) parts.push(`Intervention: ${interventionName}`);
+      }
+      if (chapterData?.title) parts.push(`Chapter: ${chapterData.title}`);
+    }
+  } catch (err) {
+    console.warn(
+      `buildPostText: could not resolve intervention/chapter for post ${postId}`,
+      err
+    );
+  }
+
+  if (postData.title) parts.push(`Topic: ${postData.title}`);
   if (postData.description) parts.push(postData.description);
 
-  const questionsSnap = await admin.firestore()
+  const questionsSnap = await admin
+    .firestore()
     .collection('questions')
     .where('postId', '==', postId)
     .get();
@@ -914,10 +1191,15 @@ async function buildPostText(postId: string, postData: any): Promise<string> {
     .map((d: any) => (d.data()?.narrative || '').trim())
     .filter(Boolean);
   if (narratives.length) {
-    parts.push(`Reflection questions:\n${narratives.join('\n')}`);
+    parts.push(`Reflection prompts (illustrative):\n${narratives.join('\n')}`);
   }
 
-  return parts.join('\n');
+  return {
+    text: parts.join('\n'),
+    interventionId,
+    interventionName,
+    postTitle: postData.title || null,
+  };
 }
 
 /**
@@ -925,12 +1207,18 @@ async function buildPostText(postId: string, postData: any): Promise<string> {
  * Handles create, update, and delete.
  */
 exports.onPostWrite = functions
-  .runWith({ memory: '512MB', timeoutSeconds: 300, secrets: ['OPENAI_API_KEY'] })
-  .firestore
-  .document('posts/{postId}')
+  .runWith({
+    memory: '512MB',
+    timeoutSeconds: 300,
+    secrets: ['OPENAI_API_KEY'],
+  })
+  .firestore.document('posts/{postId}')
   .onWrite(async (change, context) => {
     const postId = context.params.postId;
-    const docRef = admin.firestore().collection('knowledge_index').doc(`post_${postId}`);
+    const docRef = admin
+      .firestore()
+      .collection('knowledge_index')
+      .doc(`post_${postId}`);
 
     if (!change.after.exists) {
       await docRef.delete();
@@ -940,10 +1228,9 @@ exports.onPostWrite = functions
     const data = change.after.data();
     if (!data) return null;
 
-    const text = await buildPostText(postId, data);
+    const { text, interventionId, interventionName, postTitle } =
+      await buildPostText(postId, data);
     if (!text.trim()) return null;
-
-    console.log(`Indexing post ${postId}...`);
 
     const { getAi, openAI } = require('./ai');
     const ai = getAi();
@@ -954,10 +1241,15 @@ exports.onPostWrite = functions
 
     await docRef.set({
       text,
-      embedding: admin.firestore.FieldValue.vector(embeddingResult[0].embedding),
+      embedding: admin.firestore.FieldValue.vector(
+        embeddingResult[0].embedding
+      ),
       metadata: {
         postId,
         chapterId: data.chapterId || null,
+        interventionId: interventionId || null,
+        interventionName: interventionName || null,
+        postTitle: postTitle || null,
         source: 'post',
         updatedAt: admin.firestore.Timestamp.now(),
       },
@@ -986,27 +1278,43 @@ exports.indexAllPosts = functions
     for (const doc of postsSnap.docs) {
       const postId = doc.id;
       const postData = doc.data();
-      if (!postData) { skipped++; continue; }
+      if (!postData) {
+        skipped++;
+        continue;
+      }
 
       try {
-        const text = await buildPostText(postId, postData);
-        if (!text.trim()) { skipped++; continue; }
+        const { text, interventionId, interventionName, postTitle } =
+          await buildPostText(postId, postData);
+        if (!text.trim()) {
+          skipped++;
+          continue;
+        }
 
         const embeddingResult = await ai.embed({
           embedder: openAI.embedder('text-embedding-3-small'),
           content: text,
         });
 
-        await admin.firestore().collection('knowledge_index').doc(`post_${postId}`).set({
-          text,
-          embedding: admin.firestore.FieldValue.vector(embeddingResult[0].embedding),
-          metadata: {
-            postId,
-            chapterId: postData.chapterId || null,
-            source: 'post',
-            updatedAt: admin.firestore.Timestamp.now(),
-          },
-        });
+        await admin
+          .firestore()
+          .collection('knowledge_index')
+          .doc(`post_${postId}`)
+          .set({
+            text,
+            embedding: admin.firestore.FieldValue.vector(
+              embeddingResult[0].embedding
+            ),
+            metadata: {
+              postId,
+              chapterId: postData.chapterId || null,
+              interventionId: interventionId || null,
+              interventionName: interventionName || null,
+              postTitle: postTitle || null,
+              source: 'post',
+              updatedAt: admin.firestore.Timestamp.now(),
+            },
+          });
 
         indexed++;
       } catch (err) {
@@ -1015,7 +1323,7 @@ exports.indexAllPosts = functions
       }
     }
 
-    console.log(`indexAllPosts complete: indexed=${indexed}, skipped=${skipped}, failed=${failed}`);
+
     return { indexed, skipped, failed, total: postsSnap.size };
   });
 
@@ -1027,17 +1335,24 @@ exports.validateAiResponse = functions
   .runWith({ memory: '1GB', timeoutSeconds: 300, secrets: ['OPENAI_API_KEY'] })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'Validation requires authentication.');
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'Validation requires authentication.'
+      );
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new functions.https.HttpsError('failed-precondition', 'OpenAI configuration missing.');
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'OpenAI configuration missing.'
+      );
     }
 
     const { question, response, storyContext } = data;
 
-    const systemPrompt = 'You are a therapeutic content validator for Positive Konnections, an HIV support platform. Users provide reflections on their HERO\'s journey. Evaluate responses honestly and consistently.';
+    const systemPrompt =
+      "You are a therapeutic content validator for Positive Konnections, an HIV support platform. Users provide reflections on their HERO's journey. Evaluate responses honestly and consistently.";
 
     const prompt = `EVALUATE THE FOLLOWING USER REFLECTION:
 
@@ -1065,26 +1380,36 @@ Respond ONLY in JSON:
   "suggestions": "how to improve if score < 6, otherwise empty string"
 }`;
 
-    const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        response_format: { type: 'json_object' },
-      }),
-    });
+    const apiResponse = await fetch(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt },
+          ],
+          response_format: { type: 'json_object' },
+        }),
+      }
+    );
 
     if (!apiResponse.ok) {
       const errText = await apiResponse.text();
-      console.error('OpenAI validation API error:', apiResponse.status, errText);
-      throw new functions.https.HttpsError('unavailable', 'Validation service temporarily unavailable.');
+      console.error(
+        'OpenAI validation API error:',
+        apiResponse.status,
+        errText
+      );
+      throw new functions.https.HttpsError(
+        'unavailable',
+        'Validation service temporarily unavailable.'
+      );
     }
 
     try {
@@ -1092,6 +1417,9 @@ Respond ONLY in JSON:
       return JSON.parse(result.choices[0].message.content);
     } catch (parseError) {
       console.error('Validation response parse error:', parseError);
-      throw new functions.https.HttpsError('internal', 'Validation returned an unexpected response.');
+      throw new functions.https.HttpsError(
+        'internal',
+        'Validation returned an unexpected response.'
+      );
     }
   });

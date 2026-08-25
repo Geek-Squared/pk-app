@@ -1,11 +1,15 @@
 <ion-content [fullscreen]="true" class="page-content ai-canvas">
   <div class="ai-wrapper">
-    
+
     <!-- AI Identity Header Section (Streamlined) -->
-    <header class="ai-identity-section no-avatar">
-      <div class="identity-text text-center">
+    <header class="ai-identity-section">
+      <button type="button" class="ai-back-btn" (click)="goBack()" aria-label="Go back">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <div class="peekay-avatar">P</div>
+      <div class="identity-text">
         <h2 class="assistant-name">Peekay Assistant</h2>
-        <p class="curator-greeting">Your mental health support guide. {{ greeting }}, {{ userName }}!</p>
+        <p class="curator-greeting"><span class="online-dot"></span> Online</p>
       </div>
     </header>
 
@@ -37,6 +41,20 @@
               <span class="material-symbols-outlined">support_agent</span>
               {{ connectingToCounsellor ? 'Connecting...' : 'Talk to a Counsellor' }}
             </button>
+
+            <div class="source-links" *ngIf="msg.sources?.length">
+              <span class="source-label">{{ msg.sources[0].postTitle ? 'From your workbook' : 'Related intervention' }}</span>
+              <a
+                class="source-link"
+                *ngFor="let s of msg.sources"
+                [routerLink]="s.postId && s.chapterId ? ['/posts', s.chapterId] : ['/chapters', s.interventionId]"
+                [queryParams]="s.postId && s.chapterId ? { post: s.postId } : {}"
+              >
+                <span class="material-symbols-outlined">menu_book</span>
+                <span class="source-name">{{ s.postTitle || s.interventionName }}</span>
+                <span class="material-symbols-outlined chevron">chevron_right</span>
+              </a>
+            </div>
           </div>
 
           <!-- User Message -->
@@ -91,15 +109,7 @@
   <!-- Message Input Dock (Floating) -->
   <div class="ai-input-dock fixed-bottom-clear" slot="fixed">
     <form [formGroup]="form" (ngSubmit)="sendMessage()" class="input-form-inner glass-panel shadow-lg">
-      <button
-        type="button"
-        class="dock-action-btn"
-        aria-label="Focus message input"
-        (click)="focusComposer()"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
-      </button>
-      <input 
+      <input
         type="text" 
         formControlName="prompt"
         class="dock-text-input" 

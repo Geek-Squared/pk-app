@@ -64,7 +64,7 @@
             </div>
             <div class="text-meta">
               <h4 class="name">{{ chat?.recipientName || chat?.displayName || 'Care Provider' }}</h4>
-              <p class="role">{{ chat.messages[chat.messages.length - 1]?.content || 'Connected' }}</p>
+              <p class="role">{{ lastMessagePreview(chat, 'Connected') }}</p>
             </div>
           </div>
           <div class="action-spread">
@@ -100,7 +100,7 @@
             </div>
             <div class="text-meta">
               <h4 class="name">{{ chat?.recipientName || 'Counsellor' }}</h4>
-              <p class="role">{{ chat.messages[chat.messages.length - 1]?.content || 'Connected' }}</p>
+              <p class="role">{{ lastMessagePreview(chat, 'Connected') }}</p>
             </div>
           </div>
           <div class="action-spread">
@@ -135,7 +135,7 @@
             </div>
             <div class="text-meta">
               <h4 class="name">{{ group.displayName || 'Community Space' }}</h4>
-              <p class="role">{{ group.messages[group.messages.length - 1]?.content || 'Join the conversation' }}</p>
+              <p class="role">{{ lastMessagePreview(group, 'Join the conversation') }}</p>
             </div>
           </div>
           <div class="action-spread">

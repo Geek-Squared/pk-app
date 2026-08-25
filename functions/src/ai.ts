@@ -109,14 +109,60 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
       })
     : [];
 
-  console.log(`[peekayChat] query="${queryText.slice(0, 80)}" docs=${contextDocs.length}`);
 
   const contextText = contextDocs
     .map((d: any) => d.text ?? d.content?.[0]?.text ?? '')
     .filter(Boolean)
     .join('\n---\n');
 
-  console.log(`[peekayChat] contextText length=${contextText.length} preview="${contextText.slice(0, 120)}"`);
+
+  // Surface which workbook story the retrieved context came from, so the UI can
+  // deep-link the user straight to that story (falling back to the intervention
+  // for docs indexed before postTitle/chapterId were stored).
+  // (defineFirestoreRetriever returns the stored doc data under `metadata`, so
+  // our nested map is at metadata.metadata.)
+  const sources: Array<{
+    postId?: string;
+    chapterId?: string;
+    postTitle?: string;
+    interventionId?: string;
+    interventionName?: string;
+  }> = [];
+  const seen = new Set<string>();
+  for (const d of contextDocs as any[]) {
+    const md = d?.metadata?.metadata ?? d?.metadata ?? {};
+    const postId = md?.postId;
+    const chapterId = md?.chapterId;
+    const interventionId = md?.interventionId;
+
+    // Only surface a source the UI can actually navigate to.
+    const canLinkToPost = !!(postId && chapterId);
+    if (!canLinkToPost && !interventionId) continue;
+
+    // Identify by post where we can, so two stories from the same intervention
+    // both show rather than collapsing into one chip.
+    const key = canLinkToPost ? `post:${postId}` : `intv:${interventionId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const source: {
+      postId?: string;
+      chapterId?: string;
+      postTitle?: string;
+      interventionId?: string;
+      interventionName?: string;
+    } = {};
+    if (canLinkToPost) {
+      source.postId = postId;
+      source.chapterId = chapterId;
+      if (md?.postTitle) source.postTitle = md.postTitle;
+    }
+    if (interventionId) {
+      source.interventionId = interventionId;
+      source.interventionName = md?.interventionName || 'Intervention';
+    }
+    sources.push(source);
+  }
 
   const response = await ai.generate({
     model: openAI.model('gpt-4o-mini'),
@@ -132,7 +178,11 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
     CONTEXT FROM INTERVENTION CURRICULUM:
     ${contextText}
 
-    INSTRUCTION: Use the above curriculum content to inform your empathetic guidance. Where relevant, connect your response to themes or reflection exercises the user may recognise from their sessions.`,
+    INSTRUCTION: The curriculum above is the Positive Konnections programme material this user is working through in their sessions. It is your primary source. Ground your reply in it whenever it speaks to what the user is expressing, and prefer it over generic advice.
+
+    Much of this material teaches through story metaphors — a character, a battle, a journey — which are then applied to living with HIV and to mental health. The metaphor IS the teaching, not decoration. Use it: name the image in a sentence or two, then carry it into the point it makes and into what this user is going through, so they recognise it from their sessions. Do not simply retell the plot and do not quote long passages.
+
+    Fall back on general supportive guidance only when nothing in the curriculum above genuinely relates to the user's concern.`,
     messages: normalizedMessages as any,
     config: {
       temperature: 0.4,
@@ -150,5 +200,6 @@ export const runPeekayChat = async (input: { messages: any[]; userId: string }) 
       },
     ],
     crisis,
+    sources,
   };
 };

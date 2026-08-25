@@ -1,25 +1,32 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AuthGuard  {
+export class AuthGuard {
   constructor(private router: Router, private auth: AuthenticationService) {}
 
-  canActivate(
-    next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ):
-    | Observable<boolean | UrlTree>
-    | Promise<boolean | UrlTree>
-    | boolean
-    | UrlTree {
-    if (!this.auth.isLoggedIn) {
-      this.router.navigate(['login']);
-    }
-    return this.auth.isLoggedIn ? true : false;
+  canActivate(): Observable<boolean | UrlTree> {
+    // Gate on the live Firebase session (fresh, and not user-editable) rather
+    // than the localStorage snapshot, which can go stale or be tampered with.
+    // take(1) waits for auth persistence to be restored, then settles.
+    return this.auth.afAuth.authState.pipe(
+      take(1),
+      map((user) => {
+        if (user && user.emailVerified) {
+          // Keep the localStorage snapshot the rest of the app reads in sync.
+          localStorage.setItem('user', JSON.stringify(user));
+          return true;
+        }
+        if (user && !user.emailVerified) {
+          return this.router.parseUrl('/verify-email');
+        }
+        return this.router.parseUrl('/login');
+      })
+    );
   }
 }

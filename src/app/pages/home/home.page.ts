@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { MenuController, Platform } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { HOW_TO_SEEN_KEY } from 'src/app/pages/how-to-use/how-to-use.page';
 import { FcmService } from 'src/app/services/fcm.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { UsersService } from 'src/app/services/users.service';
@@ -15,6 +17,7 @@ import { Observable, of, switchMap } from 'rxjs';
 export class HomePage implements OnInit {
   subscription: any;
   user$: Observable<any>;
+  hasInterventionProgress = false;
 
   constructor(
     public workBooksService: WorkbookService,
@@ -22,7 +25,8 @@ export class HomePage implements OnInit {
     private authService: AuthenticationService,
     private fcmService: FcmService,
     private menuCtrl: MenuController,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private router: Router
   ) {
     this.user$ = this.authService.afAuth.authState.pipe(
       switchMap(user => {
@@ -36,18 +40,24 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit() {
+    // First-launch walkthrough: show the "How to use PK" guide once.
+    if (!localStorage.getItem(HOW_TO_SEEN_KEY)) {
+      this.router.navigateByUrl('/how-to-use');
+      return;
+    }
+
     // Trigger the push setup
     this.fcmService.initPush();
     if (!localStorage.getItem('user')) {
       this.authService.saveUser();
     }
 
+    this.checkInterventionProgress();
+
     this.authService.afAuth.authState.subscribe((authUser) => {
-      console.log('[Home] authState', authUser?.uid, authUser?.email);
     });
 
     this.user$.subscribe((userDoc) => {
-      console.log('[Home] userDoc', userDoc);
     });
   }
 
@@ -67,6 +77,39 @@ export class HomePage implements OnInit {
     if (!localStorage.getItem('userWorkbookId')) {
       this.saveWorkBookId();
     }
+    // Refresh progress when returning to home (e.g. after an intervention session)
+    this.checkInterventionProgress();
+  }
+
+  private checkInterventionProgress() {
+    this.workBooksService.getUserQuestionResponses().subscribe(
+      (res: any) => {
+        const responses = res?.[0]?.responses ?? [];
+        this.hasInterventionProgress = responses.some((r: any) =>
+          this.isMeaningfulResponse(r)
+        );
+      },
+      () => undefined
+    );
+  }
+
+  private isMeaningfulResponse(response: any): boolean {
+    if (!response) {
+      return false;
+    }
+    if (typeof response.qualityScore === 'number') {
+      return response.qualityScore >= 5;
+    }
+    const content = response?.content;
+    const text = (typeof content === 'string' ? content : JSON.stringify(content ?? ''))
+      .replace(/[\n\r]/g, ' ')
+      .trim()
+      .toLowerCase();
+    if (!text || text === '""') {
+      return false;
+    }
+    const banned = ['x', 'n/a', 'na', 'none', 'nil'];
+    return !banned.includes(text);
   }
 
   private saveWorkBookId() {

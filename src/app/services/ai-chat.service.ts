@@ -6,11 +6,22 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 
 export type AiChatAuthor = 'user' | 'assistant';
 
+export interface AiChatSource {
+  // Present when we can deep-link to the exact workbook story.
+  postId?: string;
+  chapterId?: string;
+  postTitle?: string;
+  // Fallback target — also present on messages saved before story links existed.
+  interventionId?: string;
+  interventionName?: string;
+}
+
 export interface AiChatMessage {
   role: AiChatAuthor;
   content: string;
   createdAt: number;
   crisis?: boolean;
+  sources?: AiChatSource[];
 }
 
 @Injectable({
@@ -35,12 +46,38 @@ export class AiChatService {
           response?.choices?.[0]?.message?.content?.trim() ??
           "I'm having trouble responding right now.";
 
-        return {
+        const sources: AiChatSource[] = Array.isArray(response?.sources)
+          ? response.sources
+              .filter(
+                (s: any) => (s?.postId && s?.chapterId) || s?.interventionId
+              )
+              .map((s: any) => {
+                // Firestore rejects undefined fields, so only set what we have.
+                const source: AiChatSource = {};
+                if (s.postId && s.chapterId) {
+                  source.postId = s.postId;
+                  source.chapterId = s.chapterId;
+                  if (s.postTitle) source.postTitle = s.postTitle;
+                }
+                if (s.interventionId) {
+                  source.interventionId = s.interventionId;
+                  source.interventionName = s.interventionName || 'Intervention';
+                }
+                return source;
+              })
+          : [];
+
+        const message: AiChatMessage = {
           role: 'assistant' as const,
           content: assistantMessage,
           createdAt: Date.now(),
           crisis: response?.crisis === true,
         };
+        // Only attach when present — Firestore rejects undefined fields.
+        if (sources.length) {
+          message.sources = sources;
+        }
+        return message;
       })
     );
   }

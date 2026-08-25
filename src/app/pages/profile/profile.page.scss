@@ -332,6 +332,36 @@
   }
 }
 
+/* Admin Tools */
+.admin-tools {
+  .reindex-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #eef3fd;
+    color: #285ba7;
+    border: 1.5px solid #d8e6fa;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 700;
+
+    .material-symbols-outlined { font-size: 1.2rem; }
+
+    &:disabled { opacity: 0.6; }
+    &:active { transform: scale(0.98); }
+  }
+
+  .admin-hint {
+    margin: 10px 2px 0;
+    font-size: 12px;
+    color: #757684;
+    line-height: 1.4;
+  }
+}
+
 /* Danger Zone Footer */
 .profile-footer {
   display: flex;

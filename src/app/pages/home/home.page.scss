@@ -20,9 +20,12 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    background-image: url('../../../assets/images/joshua-coleman-WTrfvtoe3yM-unsplash.jpg');
-    background-size: cover;
-    background-position: center;
+    // Brand blue gradient hero (matches the Positive Konnections design)
+    background: linear-gradient(
+      150deg,
+      rgb(103, 154, 202) 0%,
+      rgb(40, 91, 167) 100%
+    );
     transition: transform 1s ease;
     z-index: 0;
   }
@@ -30,12 +33,11 @@
   .hero-overlay {
     position: absolute;
     inset: 0;
-    // Darker overlay for reliable text contrast across image regions.
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.88) 0%,
-      rgba(0, 0, 0, 0.60) 55%,
-      rgba(0, 0, 0, 0.15) 100%
+    // Soft tint for depth; decorative orb top-right echoes the mockup.
+    background: radial-gradient(
+      circle at 85% 12%,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0) 38%
     );
   }
 
@@ -165,13 +167,16 @@
 
     // Variations
     &.urgent-variant {
-      background: var(--pk-primary-container);
-      border: 1px solid rgba(255,255,255,0.2);
-      box-shadow: 0 8px 24px rgba(15, 75, 224, 0.12);
+      // Bold blue gradient card (matches the mockup's "Urgent" hero card)
+      background: linear-gradient(145deg, #2f66b6 0%, #234f8c 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 28px rgba(40, 91, 167, 0.28);
 
-      .icon-box { background: white; color: var(--pk-primary); }
-      .card-text h3, .card-text p { color: var(--pk-on-primary-container) !important; }
-      .card-action-btn { background: var(--pk-primary); color: white; }
+      .icon-box { background: rgba(255, 255, 255, 0.18); color: #ffffff; }
+      .urgent-badge { background: #ffd6d6; color: #c0392b; }
+      .card-text h3, .card-text p { color: #ffffff !important; }
+      .card-text p { opacity: 0.88; }
+      .card-action-btn { background: rgba(255, 255, 255, 0.16); color: #ffffff; }
     }
 
     &.standard-variant {
@@ -182,7 +187,8 @@
       .icon-box { background: var(--card-inner-bg); color: var(--card-inner-text); }
       .card-text h3 { color: var(--pk-on-surface) !important; }
       .card-text p { color: var(--pk-on-surface-variant) !important; }
-      .card-action-btn { background: var(--pk-primary); color: #ffffff; }
+      // Soft-blue action pill with brand-blue text (matches mockup)
+      .card-action-btn { background: #eef3fd; color: var(--pk-primary); }
     }
   }
 }

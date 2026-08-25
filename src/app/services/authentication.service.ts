@@ -1,4 +1,9 @@
-import { Injectable, NgZone, Injector, runInInjectionContext } from '@angular/core';
+import {
+  Injectable,
+  NgZone,
+  Injector,
+  runInInjectionContext,
+} from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import {
   AngularFirestore,
@@ -42,12 +47,19 @@ export class AuthenticationService {
         this.userData = user;
         if (user.emailVerified !== false) {
           this.onlineUserId = user.uid;
-          this.usersService.updateOnlineStatus(user.uid, true).catch(() => undefined);
+          this.usersService
+            .updateOnlineStatus(user.uid, true)
+            .catch(() => undefined);
         }
-        
-        // Only redirect to home if we are currently on the login page or at the root
+
+        // Only redirect to home for verified users on the login page or root.
+        // Unverified users are routed to /verify-email by SignIn/SignUp, so we
+        // must not bounce them into a guarded route here.
         const currentUrl = this.router.url;
-        if (currentUrl === '/login' || currentUrl === '/' || !currentUrl) {
+        if (
+          user.emailVerified &&
+          (currentUrl === '/login' || currentUrl === '/' || !currentUrl)
+        ) {
           this.router.navigate(['home']);
         }
       } else {
@@ -69,7 +81,10 @@ export class AuthenticationService {
         this.saveUser();
         this.utilsService.dismissLoader();
         if (!result.user.emailVerified) {
-          this.utilsService.presentToast('Email not verified!');
+          this.utilsService.presentToast(
+            'Please verify your email to continue.'
+          );
+          this.router.navigate(['/verify-email']);
         }
       })
       .catch((error) => {
@@ -78,17 +93,17 @@ export class AuthenticationService {
       });
   }
 
-  SignUp(email, password, displayName) {
+  SignUp(email, password, displayName, consent?: any) {
     this.utilsService.presentLoading();
     return this.afAuth
       .createUserWithEmailAndPassword(email, password)
       .then((result) => {
         this.SendVerificationMail();
-        this.SetUserData(result.user, displayName);
+        this.SetUserData(result.user, displayName, consent);
         this.utilsService.dismissLoader();
-        this.router.navigate(['/login']);
+        this.router.navigate(['/verify-email']);
         this.utilsService.presentToast(
-          'Registered successfully. Check your email to verify your account.'
+          'Account created! Check your email to verify your account.'
         );
       })
       .catch((error) => {
@@ -107,15 +122,35 @@ export class AuthenticationService {
     return this.afAuth
       .sendPasswordResetEmail(passwordResetEmail)
       .then(() => {
-        // window.alert('Password reset email sent, check your inbox.');
         this.utilsService.presentAlert(
-          '<ion-icon name="checkmark-done-outline" size="large"></ion-icon> Account successfully reset. Please check your email.'
+          '<ion-icon name="checkmark-done-outline" size="large"></ion-icon> Password reset email sent — please check your inbox (and spam).'
         );
       })
       .catch((error) => {
-        // window.alert(error);
+        let message = 'Something went wrong. Please try again.';
+        switch (error?.code) {
+          case 'auth/invalid-email':
+            message = 'Please enter a valid email address.';
+            break;
+          case 'auth/missing-email':
+            message = 'Please enter your email address.';
+            break;
+          case 'auth/user-not-found':
+            // Don't reveal whether an account exists for this email.
+            message =
+              'If an account exists for that email, a reset link has been sent.';
+            break;
+          case 'auth/too-many-requests':
+            message = 'Too many attempts. Please wait a moment and try again.';
+            break;
+          case 'auth/network-request-failed':
+            message = 'Network error. Check your connection and try again.';
+            break;
+          default:
+            message = error?.message || message;
+        }
         this.utilsService.presentAlert(
-          '<ion-icon name="alert-circle-outline" size="large"></ion-icon> Please enter your email.'
+          `<ion-icon name="alert-circle-outline" size="large"></ion-icon> ${message}`
         );
       });
   }
@@ -148,7 +183,7 @@ export class AuthenticationService {
       });
   }
 
-  SetUserData(user, displayName) {
+  SetUserData(user, displayName, consent?: any) {
     return runInInjectionContext(this.injector, () => {
       const userRef: AngularFirestoreDocument<any> = this.afs.doc(
         `users/${user.uid}`
@@ -160,6 +195,10 @@ export class AuthenticationService {
         photoURL: user.photoURL,
         emailVerified: user.emailVerified,
       };
+      // Record proof of consent to the Terms & Privacy Policy at sign-up.
+      if (consent) {
+        userData.consent = consent;
+      }
       return userRef.set(userData, {
         merge: true,
       });
@@ -168,7 +207,8 @@ export class AuthenticationService {
 
   // Sign out
   SignOut() {
-    const uid = JSON.parse(localStorage.getItem('user'))?.uid || this.onlineUserId;
+    const uid =
+      JSON.parse(localStorage.getItem('user'))?.uid || this.onlineUserId;
     this.usersService
       .updateOnlineStatus(uid, false)
       .then(() => this.usersService.updateDeviceId(uid, ''))

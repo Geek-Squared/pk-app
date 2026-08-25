@@ -134,6 +134,16 @@
       </div>
     </section>
 
+    <!-- Admin Tools -->
+    <section class="profile-section admin-tools" *ngIf="isAdmin">
+      <h2 class="section-title">Admin</h2>
+      <button class="reindex-btn" (click)="reindexCurriculum()" [disabled]="reindexing">
+        <span class="material-symbols-outlined">{{ reindexing ? 'hourglass_empty' : 'sync' }}</span>
+        <span>{{ reindexing ? 'Reindexing…' : 'Reindex Peekay Curriculum' }}</span>
+      </button>
+      <p class="admin-hint">Re-embeds all curriculum posts into the AI knowledge base. Run after changing how posts are indexed.</p>
+    </section>
+
     <!-- Logout & Danger Zone -->
     <footer class="profile-footer">
       <button class="danger-btn logout" (click)="logout()">

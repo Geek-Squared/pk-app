@@ -86,6 +86,10 @@ const routes: Routes = [
         loadChildren: () => import('./pages/introduction/introduction.module').then( m => m.IntroductionPageModule)
       },
       {
+        path: 'how-to-use',
+        loadComponent: () => import('./pages/how-to-use/how-to-use.page').then( m => m.HowToUsePage)
+      },
+      {
         path: 'interventions',
         loadChildren: () => import('./pages/interventions/interventions.module').then( m => m.InterventionsPageModule)
       },
@@ -118,8 +122,20 @@ const routes: Routes = [
     loadChildren: () => import('./authentication/reset-password/reset-password.module').then( m => m.ResetPasswordPageModule)
   },
   {
+    path: 'verify-email',
+    loadChildren: () => import('./authentication/verify-email/verify-email.module').then( m => m.VerifyEmailPageModule)
+  },
+  {
     path: 'surveys',
     loadChildren: () => import('./pages/surveys/surveys.module').then( m => m.SurveysPageModule)
+  },
+  {
+    path: 'privacy-policy',
+    loadComponent: () => import('./pages/legal/privacy-policy.page').then( m => m.PrivacyPolicyPage)
+  },
+  {
+    path: 'terms-conditions',
+    loadComponent: () => import('./pages/legal/terms-conditions.page').then( m => m.TermsConditionsPage)
   }
 
 ];

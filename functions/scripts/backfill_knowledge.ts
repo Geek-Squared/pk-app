@@ -17,12 +17,10 @@ const ai = genkit({
 });
 
 async function backfillKnowledge() {
-  console.log('🚀 Starting Knowledge Backfill...');
   const firestore = admin.firestore();
   
   // 1. Fetch all workbooks
   const workbooksSnap = await firestore.collection('workbooks').get();
-  console.log(`Found ${workbooksSnap.size} workbooks to index.`);
 
   let count = 0;
   for (const doc of workbooksSnap.docs) {
@@ -56,13 +54,11 @@ async function backfillKnowledge() {
       });
 
       count++;
-      console.log(`[${count}/${workbooksSnap.size}] Indexed workbook: ${doc.id}`);
     } catch (e) {
       console.error(`Failed to index ${doc.id}:`, e);
     }
   }
 
-  console.log('✅ Backfill complete. Peekay is now an expert.');
 }
 
 backfillKnowledge();

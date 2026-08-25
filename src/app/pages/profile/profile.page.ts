@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { UsersService } from 'src/app/services/users.service';
 import { NavController, ToastController, AlertController } from '@ionic/angular';
 import { FileStorageService } from 'src/app/services/file-storage.service';
+import { AngularFireFunctions } from '@angular/fire/compat/functions';
 
 @Component({
   selector: 'app-profile',
@@ -15,6 +17,8 @@ export class ProfilePage implements OnInit {
   loading = true;
   uploading = false;
   editing = false;
+  reindexing = false;
+  private userSub?: Subscription;
   editData: any = {
     displayName: ''
   };
@@ -25,36 +29,55 @@ export class ProfilePage implements OnInit {
     private navCtrl: NavController,
     private fileStorage: FileStorageService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private fns: AngularFireFunctions
   ) {}
 
   ngOnInit() {
     this.loadUserProfile();
   }
 
+  // Re-load every time the page is shown — Ionic caches the page, so relying on
+  // ngOnInit alone left it showing a stale cached user after in-app navigation.
+  ionViewWillEnter() {
+    this.loadUserProfile();
+  }
+
+  ionViewWillLeave() {
+    this.userSub?.unsubscribe();
+  }
+
   loadUserProfile() {
     const localUserString = localStorage.getItem('user');
-    if (localUserString) {
-      const localUser = JSON.parse(localUserString);
-      if (localUser && localUser.uid) {
-        this.usersService.getUserById(localUser.uid).subscribe(res => {
-          this.user = res;
-          this.loading = false;
-        }, error => {
-          console.error('Error loading profile', error);
-          this.loading = false;
-          // Fallback to local data if firestore fails
-          this.user = {
-            displayName: localUser.displayName,
-            email: localUser.email,
-            photoURL: localUser.photoURL
-          };
-        });
-      } else {
-        this.loading = false;
-      }
-    } else {
+    if (!localUserString) {
       this.loading = false;
+      return;
+    }
+
+    const localUser = JSON.parse(localUserString);
+
+    // Seed immediately from the auth user (always has displayName/email) so the
+    // real name/email render right away, independent of the Firestore doc.
+    if (localUser) {
+      this.user = { ...(this.user || {}), ...localUser };
+      this.loading = false;
+    }
+
+    if (localUser?.uid) {
+      this.userSub?.unsubscribe();
+      this.userSub = this.usersService.getUserById(localUser.uid).subscribe(
+        (res: any) => {
+          // Firestore fields (role, updated name/photo) take precedence, while
+          // the auth user fills any gaps a stale/partial cached doc leaves.
+          this.user = { ...localUser, ...(res || {}) };
+          this.loading = false;
+        },
+        (error) => {
+          console.error('Error loading profile', error);
+          this.user = { ...localUser };
+          this.loading = false;
+        }
+      );
     }
   }
 
@@ -71,6 +94,39 @@ export class ProfilePage implements OnInit {
       return this.user.role;
     }
     return 'Wellness Member';
+  }
+
+  get isAdmin(): boolean {
+    return `${this.userRole ?? ''}`.toLowerCase() === 'administrator';
+  }
+
+  // Admin-only: re-embed every curriculum post into knowledge_index so the
+  // Peekay RAG retrieval picks up indexing changes (runs indexAllPosts).
+  async reindexCurriculum() {
+    if (this.reindexing) return;
+    this.reindexing = true;
+    const working = await this.toastCtrl.create({ message: 'Reindexing curriculum…' });
+    working.present();
+    try {
+      const res: any = await this.fns.httpsCallable('indexAllPosts')({}).toPromise();
+      await working.dismiss();
+      const done = await this.toastCtrl.create({
+        message: `Reindexed ${res?.indexed ?? 0} of ${res?.total ?? 0} posts (skipped ${res?.skipped ?? 0}, failed ${res?.failed ?? 0}).`,
+        duration: 5000,
+        color: 'success'
+      });
+      done.present();
+    } catch (error: any) {
+      await working.dismiss();
+      const fail = await this.toastCtrl.create({
+        message: error?.message || 'Reindex failed.',
+        duration: 5000,
+        color: 'danger'
+      });
+      fail.present();
+    } finally {
+      this.reindexing = false;
+    }
   }
 
   triggerFileInput() {

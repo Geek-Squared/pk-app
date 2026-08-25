@@ -63,8 +63,7 @@ export class AiValidationService {
     const words = response.trim().split(/\s+/);
     const questionLower = question ? question.toLowerCase() : '';
     
-    console.log('Enhanced validation - Response:', response);
-    console.log('Enhanced validation - Question:', question);
+
     
     // Check for very short responses
     if (words.length < 5) {
@@ -80,13 +79,10 @@ export class AiValidationService {
     // Check for completely irrelevant responses - be careful not to flag legitimate therapeutic content
     const irrelevantWords = ['ice cream', 'icecream', 'pizza', 'burger', 'sandwich', 'weather forecast', 'sunny day', 'video game', 'funny meme', 'lol', 'haha', 'driving license', 'shopping mall', 'vacation trip', 'holiday party'];
     const hasIrrelevantContent = irrelevantWords.some(word => cleanResponse.includes(word));
-    
-    console.log('Checking for irrelevant content in:', cleanResponse);
-    console.log('Found irrelevant content:', hasIrrelevantContent);
+
     
     if (hasIrrelevantContent) {
       const questionContext = this.getQuestionContext(questionLower);
-      console.log('REJECTING for irrelevant content');
       return {
         score: 2,
         is_valid: false,
@@ -101,7 +97,6 @@ export class AiValidationService {
     
     if (isVague) {
       const questionContext = this.getQuestionContext(questionLower);
-      console.log('REJECTING for vague response');
       return {
         score: 3,
         is_valid: false,
@@ -151,13 +146,6 @@ export class AiValidationService {
     // Cap at 10
     score = Math.min(score, 10);
     
-    console.log('Enhanced validation scoring:');
-    console.log('- Relevant keywords found:', relevantCount);
-    console.log('- Therapeutic words found:', therapeuticCount);
-    console.log('- Personal words found:', personalCount);
-    console.log('- Word count:', words.length);
-    console.log('- Final score:', score);
-    
     // Generate question-specific feedback
     const questionContext = this.getQuestionContext(questionLower);
     let feedback = '';
@@ -182,7 +170,6 @@ export class AiValidationService {
       suggestions: suggestions
     };
     
-    console.log('Enhanced validation result:', result);
     return result;
   }
 
@@ -361,7 +348,6 @@ Respond ONLY in this JSON format:
   // Parse OpenAI response
   parseOpenAIResponse(openaiResponse: any): ValidationResult {
     try {
-      console.log('Full OpenAI response:', openaiResponse);
       
       // Check if response has the expected structure
       if (!openaiResponse || !openaiResponse.choices || !Array.isArray(openaiResponse.choices) || openaiResponse.choices.length === 0) {
@@ -376,10 +362,8 @@ Respond ONLY in this JSON format:
       }
       
       const content = choice.message.content;
-      console.log('OpenAI content:', content);
       
       const parsed = JSON.parse(content);
-      console.log('Parsed JSON:', parsed);
       
       return {
         score: parsed.score || 5,

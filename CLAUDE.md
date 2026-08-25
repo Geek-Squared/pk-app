@@ -82,7 +82,8 @@ Firebase project ID: `positive-konnections-42d8a` (active). A legacy project (`p
 **Cloud Functions** (`functions/src/index.ts`):
 - `processSignUp` — sets `client: true` custom claim on new auth users
 - `peekayChat` — RAG-backed AI chat (calls `runPeekayChat` in `functions/src/ai.ts`)
-- `onWorkbookStoryCreated` — Firestore trigger that auto-indexes workbook responses into `knowledge_index`
+- `onPostWrite` — Firestore trigger on `posts/{postId}` (create/update/delete) that indexes the intervention **curriculum** into `knowledge_index`. Indexed text = post title + description + its reflection-question narratives (from the `questions` collection), embedded and stored as `knowledge_index/post_{postId}` with `metadata { postId, chapterId, source: 'post', updatedAt }`
+- `indexAllPosts` — admin-only callable that backfills all existing posts into `knowledge_index` (run once after deploy / when posts predate the trigger)
 - `validateAiResponse` — scores reflection quality (0–10) via OpenAI
 - `generateHeroAvatar` — generates hero avatar PNG via OpenAI `gpt-image-1`
 - Various workbook completion / admin notification functions
@@ -92,10 +93,12 @@ Firebase project ID: `positive-konnections-42d8a` (active). A legacy project (`p
 - Framework: **Genkit** with `@genkit-ai/compat-oai/openai`
 - Chat model: `gpt-4o-mini` (temperature 0.4, max 800 tokens)
 - Embedding model: `text-embedding-3-small`
-- Vector store: Firestore `knowledge_index` collection via `defineFirestoreRetriever` (COSINE distance)
-- The frontend sends only the conversation history to `peekayChat`. The backend retrieves up to 3 relevant documents from `knowledge_index` and injects them as `CONTEXT FROM CURRICULUM` into the system prompt
+- Vector store: Firestore `knowledge_index` collection via `defineFirestoreRetriever` (COSINE distance, `vectorField: 'embedding'`, `contentField: 'text'`). Requires the vector indexes in `firestore.indexes.json` (a flat index on `embedding`, plus a composite `metadata.source` + `embedding` index for the filtered query)
+- **What it retrieves:** the **intervention curriculum**, not the user's workbook answers. `runPeekayChat` builds a query from the last up to 3 user messages, then retrieves up to 3 curriculum docs filtered `where metadata.source == 'post'`, and injects them as `CONTEXT FROM INTERVENTION CURRICULUM` into the system prompt. So a message like "I want to commit suicide" surfaces the matching intervention's content
+- Crisis handling: `runPeekayChat` keyword-scans the last user message (`CRISIS_KEYWORDS`) and returns a `crisis` flag that the UI uses to show a "Talk to a Counsellor" button
+- Conversation history is persisted **client-side** at `users/{uid}/peekayChats` (written by `AiChatService.saveMessage`, read by `loadHistory`) — the cloud function is stateless
 - OpenAI API key is stored as a Firebase secret (`OPENAI_API_KEY`), never in the frontend
-- Current limitation: retrieval is not filtered by `userId`; all users share the same `knowledge_index` pool
+- Retrieval is intentionally **global** (not per-`userId`): the curriculum is shared content, so there is nothing personal to scope. `userId` is passed to `runPeekayChat` but currently unused
 
 ### Capacitor / Mobile
 
@@ -109,3 +112,8 @@ Push notifications differ by platform: native uses `FirebaseMessaging` from `@ca
 - After any correction, update `tasks/lessons.md` with the pattern learned
 - Never mark a task complete without verifying it works
 - Aim for minimal-impact changes — only touch what's necessary
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->

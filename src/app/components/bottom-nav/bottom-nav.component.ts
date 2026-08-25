@@ -13,7 +13,7 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./bottom-nav.component.scss'],
 })
 export class BottomNavComponent {
-  private readonly hiddenRoutes = ['/login', '/registration', '/reset-password'];
+  private readonly hiddenRoutes = ['/login', '/registration', '/reset-password', '/verify-email'];
   show = true;
 
   constructor(private router: Router) {

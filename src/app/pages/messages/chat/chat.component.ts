@@ -9,7 +9,12 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { IonicModule, GestureController, ActionSheetController, PopoverController } from '@ionic/angular';
+import {
+  IonicModule,
+  GestureController,
+  ActionSheetController,
+  PopoverController,
+} from '@ionic/angular';
 import { Subject, Subscription, take, takeUntil } from 'rxjs';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ChatService } from 'src/app/services/chat.service';
@@ -33,7 +38,15 @@ import { GroupDetailsComponent } from './group-details/group-details.component';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, BackButtonComponent, VoiceNoteComponent, EmojiPickerComponent, ReactionPickerComponent]
+  imports: [
+    CommonModule,
+    IonicModule,
+    FormsModule,
+    BackButtonComponent,
+    VoiceNoteComponent,
+    EmojiPickerComponent,
+    ReactionPickerComponent,
+  ],
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('content') private content: any;
@@ -52,6 +65,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   private recipientUid: string | null = null;
   private recipientProfileSub: Subscription | null = null;
   public isCounsellor = false;
+  // Only counsellors and administrators may add members to a group.
+  public canManageGroupMembers = false;
+  // Reliable chat doc id from the route (used for the group-details modal).
+  private activeChatId: string | null = null;
   public pendingForMe = false;
   public sessionBannerText: string | null = null;
 
@@ -72,11 +89,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   public async openGroupDetails(): Promise<void> {
     if (this.chat?.type !== 'group') return;
     const currentUid =
-      this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid || null;
+      this.currentUser?.uid ||
+      JSON.parse(localStorage.getItem('user'))?.uid ||
+      null;
 
     const modal = await this.modalController.create({
       component: GroupDetailsComponent,
-      componentProps: { chat: this.chat, chatId: this.chat?.id || null, currentUid },
+      componentProps: {
+        chat: this.chat,
+        chatId: this.activeChatId || this.chat?.id || null,
+        currentUid,
+      },
       breakpoints: [0, 0.6, 0.9],
       initialBreakpoint: 0.9,
       cssClass: 'group-details-modal',
@@ -94,7 +117,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       translucent: true,
       cssClass: 'reaction-popover',
       side: 'top',
-      alignment: 'center'
+      alignment: 'center',
     });
 
     await popover.present();
@@ -104,7 +127,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const { data } = await popover.onDidDismiss();
     if (data) {
-      await this.cs.reactToMessage(this.selectedChat.id, msg, data, this.currentUser.uid);
+      await this.cs.reactToMessage(
+        this.selectedChat.id,
+        msg,
+        data,
+        this.currentUser.uid
+      );
       // Haptic feedback for "reacting"
       await Haptics.impact({ style: ImpactStyle.Medium });
     }
@@ -112,15 +140,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getReactionGroups(reactions: any[]) {
     if (!reactions || !reactions.length) return [];
-    
+
     const groups: any = {};
-    reactions.forEach(r => {
+    reactions.forEach((r) => {
       groups[r.emoji] = (groups[r.emoji] || 0) + 1;
     });
-    
-    return Object.keys(groups).map(emoji => ({
+
+    return Object.keys(groups).map((emoji) => ({
       emoji,
-      count: groups[emoji]
+      count: groups[emoji],
     }));
   }
 
@@ -130,7 +158,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       breakpoints: [0, 0.4],
       initialBreakpoint: 0.4,
       cssClass: 'emoji-modal',
-      handle: true
+      handle: true,
     });
 
     await modal.present();
@@ -154,14 +182,14 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           icon: 'trash-outline',
           handler: () => {
             this.deleteOneMessage(msg);
-          }
+          },
         },
         {
           text: 'Cancel',
           role: 'cancel',
-          icon: 'close-outline'
-        }
-      ]
+          icon: 'close-outline',
+        },
+      ],
     });
 
     await actionSheet.present();
@@ -178,7 +206,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     const currentUid =
       this.currentUser?.uid || JSON.parse(localStorage.getItem('user'))?.uid;
 
-    if (isGroup) {
+    // Only counsellors/administrators can add members to a group.
+    if (isGroup && this.canManageGroupMembers) {
       buttons.push({
         text: 'Add members',
         icon: 'person-add-outline',
@@ -212,7 +241,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           handler: async () => {
             this.utilsService.presentLoading('Unblocking user...');
             try {
-              await this.usersService.unblockUser(currentUid, this.recipientUid!);
+              await this.usersService.unblockUser(
+                currentUid,
+                this.recipientUid!
+              );
               this.utilsService.dismissLoader();
               this.utilsService.presentToast('User unblocked');
             } catch (err) {
@@ -315,32 +347,36 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
             // Return false to keep sheet open while async runs
             setTimeout(() => this.takePhoto(), 100);
             return false;
-          }
+          },
         },
         {
           text: 'Photo / Video from Gallery',
           icon: 'image-outline',
           handler: () => {
-            const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
+            const fileInput = document.getElementById(
+              'chat-file-input'
+            ) as HTMLInputElement;
             fileInput.accept = 'image/*,video/*';
             fileInput.click();
-          }
+          },
         },
         {
           text: 'File',
           icon: 'document-outline',
           handler: () => {
-            const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
+            const fileInput = document.getElementById(
+              'chat-file-input'
+            ) as HTMLInputElement;
             fileInput.accept = 'application/pdf,.doc,.docx,.xls,.xlsx,.txt';
             fileInput.click();
-          }
+          },
         },
         {
           text: 'Cancel',
           role: 'cancel',
-          icon: 'close'
-        }
-      ]
+          icon: 'close',
+        },
+      ],
     });
 
     await actionSheet.present();
@@ -359,7 +395,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
       this.utilsService.presentLoading('Uploading photo...');
       const mimeType = `image/${photo.format || 'jpeg'}`;
-      const url = await this.fileStorageService.uploadBase64(photo.base64String, mimeType);
+      const url = await this.fileStorageService.uploadBase64(
+        photo.base64String,
+        mimeType
+      );
       await this.sendMediaMessage(url, 'image');
       this.utilsService.dismissLoader();
     } catch (err: any) {
@@ -371,13 +410,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private async sendMediaMessage(url: string, type: 'image' | 'video' | 'file') {
+  private async sendMediaMessage(
+    url: string,
+    type: 'image' | 'video' | 'file'
+  ) {
     const user = await this.auth.getUser();
     if (this.chat.type === 'group') {
       const groupMembers = this.filterGroupMembers([], this.chat);
-      await this.cs.sendMessage(this.chat.id, url, user.uid, groupMembers, type);
+      await this.cs.sendMessage(
+        this.chat.id,
+        url,
+        user.uid,
+        groupMembers,
+        type
+      );
     } else {
-      const recipient = this.chat.uids ? this.chat.uids.find((u) => u !== user.uid) : this.chat.uid;
+      const recipient = this.chat.uids
+        ? this.chat.uids.find((u) => u !== user.uid)
+        : this.chat.uid;
       await this.cs.sendMessage(this.chat.id, url, recipient, null, type);
     }
     this.scrollBottom();
@@ -397,9 +447,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async addMember() {
+    // Defense in depth: never allow non-counsellor/admin to add group members.
+    if (!this.canManageGroupMembers) {
+      this.utilsService.presentToast(
+        'Only counsellors and administrators can add members.'
+      );
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: UserSelectionComponent,
-      componentProps: { isGroup: false } // We use private mode to pick ONE person to add
+      componentProps: { isGroup: false }, // We use private mode to pick ONE person to add
     });
 
     await modal.present();
@@ -411,27 +469,31 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
         typeof newUser?.uid === 'string'
           ? newUser.uid
           : typeof newUser?.id === 'string'
-            ? newUser.id
-            : null;
+          ? newUser.id
+          : null;
 
       if (!newUid) {
-        this.utilsService.presentToast('Could not add member (missing user id)');
+        this.utilsService.presentToast(
+          'Could not add member (missing user id)'
+        );
         return;
       }
-      
+
       // Update the group in Firestore
       const chatId = this.chat.id;
       const memberObj = {
         uid: newUid,
         displayName: newUser.displayName || newUser.email || 'Member',
-        photoURL: newUser.photoURL || ''
+        photoURL: newUser.photoURL || '',
       };
 
       this.utilsService.presentLoading('Adding member...');
       try {
         await this.cs.updateGroupMembers(chatId, newUid, memberObj);
         this.utilsService.dismissLoader();
-        this.utilsService.presentToast(`${memberObj.displayName} added to group`);
+        this.utilsService.presentToast(
+          `${memberObj.displayName} added to group`
+        );
       } catch (err) {
         console.error('Add member failed:', err);
         this.utilsService.dismissLoader();
@@ -441,18 +503,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit() {
-    this.auth.user$.pipe(takeUntil(this.destroyed$)).subscribe(user => {
+    this.auth.user$.pipe(takeUntil(this.destroyed$)).subscribe((user) => {
       this.currentUser = user;
       const role =
         typeof user?.role === 'string'
           ? user.role
           : typeof user?.role?.name === 'string'
-            ? user.role.name
-            : '';
-      this.isCounsellor = `${role || ''}`.toLowerCase() === 'counsellor';
-      console.log('Current User Chat:', user);
+          ? user.role.name
+          : '';
+      const roleLower = `${role || ''}`.toLowerCase();
+      this.isCounsellor = roleLower === 'counsellor';
+      this.canManageGroupMembers =
+        roleLower === 'counsellor' || roleLower === 'administrator';
     });
     const chatId = this.route.snapshot.paramMap.get('chatId');
+    this.activeChatId = chatId;
     const source$ = this.cs.get(chatId);
     this.utilsService.presentLoading();
     this.cs
@@ -460,19 +525,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(takeUntil(this.destroyed$))
       .subscribe(
         (res) => {
-          console.log('DEBUG: Chat data received:', res);
-          if (res?.messages) {
-            console.log('DEBUG: Last message object:', res.messages[res.messages.length - 1]);
-          }
           this.chat = res;
           this.recipientUid = this.resolveRecipientUid(res);
           this.bindRecipientProfile(this.recipientUid, res);
           this.watchRecipientPresence(res);
-          this.titleService.setTitle(this.chat?.recipientName || this.chat?.displayName || 'Chat');
+          this.titleService.setTitle(
+            this.chat?.recipientName || this.chat?.displayName || 'Chat'
+          );
           this.pendingForMe =
             this.isCounsellor === true &&
-            `${res?.status || res?.request?.status || ''}`.toLowerCase() === 'pending' &&
-            (res?.request?.counsellorUid ? res.request.counsellorUid === this.currentUser?.uid : true);
+            `${res?.status || res?.request?.status || ''}`.toLowerCase() ===
+              'pending' &&
+            (res?.request?.counsellorUid
+              ? res.request.counsellorUid === this.currentUser?.uid
+              : true);
 
           this.sessionBannerText = this.buildSessionBannerText(res);
           this.utilsService.dismissLoader();
@@ -536,7 +602,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.chat?.id || !this.currentUser?.uid) return;
     this.utilsService.presentLoading('Declining...');
     try {
-      await this.cs.declineCounsellorRequest(this.chat.id, this.currentUser.uid);
+      await this.cs.declineCounsellorRequest(
+        this.chat.id,
+        this.currentUser.uid
+      );
       this.utilsService.dismissLoader();
       this.pendingForMe = false;
       window.history.back();
@@ -623,15 +692,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async handleGroupChatSubmit(chat: any, content: string) {
-    this.usersService.getUsers().pipe(take(1)).subscribe(async (res: any) => {
-      const users = this.mapUsers(res);
-      const groupMembers = this.filterGroupMembers(users, chat);
+    this.usersService
+      .getUsers()
+      .pipe(take(1))
+      .subscribe(async (res: any) => {
+        const users = this.mapUsers(res);
+        const groupMembers = this.filterGroupMembers(users, chat);
 
-      await this.sendMessageToGroup(chat, groupMembers, content);
-      this.resetMessage();
-      this.scrollBottom();
-      this.updateChat(chat);
-    });
+        await this.sendMessageToGroup(chat, groupMembers, content);
+        this.resetMessage();
+        this.scrollBottom();
+        this.updateChat(chat);
+      });
   }
 
   async handleDirectChatSubmit(chat: any, content: string) {
@@ -649,12 +721,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   filterGroupMembers(users: any[], chat: any) {
-    return users.filter((element) => chat?.hasRead?.hasOwnProperty(element?.uid));
+    return users.filter((element) =>
+      chat?.hasRead?.hasOwnProperty(element?.uid)
+    );
   }
 
   sendMessageToGroup(chat: any, groupMembers: any[], content: string) {
     if (this.newRecording) {
-      this.cs.sendMessage(chat.id, this.newRecording, chat?.uid, groupMembers, 'audio');
+      this.cs.sendMessage(
+        chat.id,
+        this.newRecording,
+        chat?.uid,
+        groupMembers,
+        'audio'
+      );
     } else {
       this.cs.sendMessage(chat.id, content, chat?.uid, groupMembers);
     }
@@ -662,20 +742,22 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async sendMessageToDirectChat(chat: any, content: string) {
     const user = await this.auth.getUser();
-    const recipient = chat.uids ? chat.uids.find((u) => u !== user.uid) : chat.uid;
-    
+    const recipient = chat.uids
+      ? chat.uids.find((u) => u !== user.uid)
+      : chat.uid;
+
     if (this.newRecording) {
       this.cs.sendMessage(chat.id, this.newRecording, recipient, null, 'audio');
     } else {
       this.cs.sendMessage(chat.id, content, recipient);
     }
   }
-  
+
   resetMessage() {
     this.newMsg = '';
     this.newRecording = null;
   }
-  
+
   updateChat(chat) {
     this.cs.updateChat(this.chat, this.chat.messages?.length + 1).then();
   }
@@ -767,7 +849,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!value) {
       const result = await VoiceRecorder.requestAudioRecordingPermission();
       if (!result.value) {
-        this.utilsService.presentToast('Microphone permission is required to record voice notes.');
+        this.utilsService.presentToast(
+          'Microphone permission is required to record voice notes.'
+        );
         return;
       }
     }
@@ -775,7 +859,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     this.recording = true;
     this.duration = 0;
     this.durationDisplay = '0:00';
-    
+
     Haptics.impact({ style: ImpactStyle.Medium });
 
     VoiceRecorder.startRecording()
@@ -784,7 +868,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           this.calculateDuration();
         }, 1000);
       })
-      .catch(err => {
+      .catch((err) => {
         this.recording = false;
         console.error('Recording error', err);
       });
@@ -795,7 +879,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.recording = false;
     clearInterval(this.recordingInterval);
-    
+
     Haptics.impact({ style: ImpactStyle.Light });
 
     try {
@@ -805,10 +889,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
           // Message too short
           return;
         }
-        
+
         this.utilsService.presentLoading('Sending voice note...');
         const downloadUrl = await this.fileStorageService.pushFileToStorage(
-          res.value.recordDataBase64, 
+          res.value.recordDataBase64,
           `voice_${new Date().getTime().toString()}`
         );
         this.newRecording = downloadUrl;
@@ -826,11 +910,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async cancelRecording() {
     if (!this.recording) return;
-    
+
     this.recording = false;
     clearInterval(this.recordingInterval);
     Haptics.notification({ type: ImpactStyle.Medium as any });
-    
+
     try {
       await VoiceRecorder.stopRecording();
       this.duration = 0;
@@ -856,7 +940,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   triggerFileSelect() {
-    const fileInput = document.getElementById('chat-file-input') as HTMLInputElement;
+    const fileInput = document.getElementById(
+      'chat-file-input'
+    ) as HTMLInputElement;
     fileInput.click();
   }
 
@@ -869,9 +955,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     if (file.type.startsWith('image/')) msgType = 'image';
     else if (file.type.startsWith('video/')) msgType = 'video';
 
-    const loadingMsg = msgType === 'video' ? 'Uploading video...'
-                     : msgType === 'image' ? 'Uploading image...'
-                     : 'Uploading file...';
+    const loadingMsg =
+      msgType === 'video'
+        ? 'Uploading video...'
+        : msgType === 'image'
+        ? 'Uploading image...'
+        : 'Uploading file...';
 
     this.utilsService.presentLoading(loadingMsg);
     try {
@@ -882,7 +971,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch (error: any) {
       console.error('Upload error:', error);
       this.utilsService.dismissLoader();
-      this.utilsService.presentToast(`Upload failed: ${error?.message || 'Check Firebase Storage rules'}`);
+      this.utilsService.presentToast(
+        `Upload failed: ${error?.message || 'Check Firebase Storage rules'}`
+      );
     }
   }
 }

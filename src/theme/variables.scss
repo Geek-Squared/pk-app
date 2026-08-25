@@ -4,12 +4,12 @@
 /** Ionic CSS Variables **/
 :root {
   /** primary **/
-  --ion-color-primary: #1a4f8b;
-  --ion-color-primary-rgb: 26, 79, 139;
+  --ion-color-primary: #285ba7;
+  --ion-color-primary-rgb: 40, 91, 167;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #164375;
-  --ion-color-primary-tint: #316197;
+  --ion-color-primary-shade: #224f93;
+  --ion-color-primary-tint: #3d6cb3;
 
   /** secondary **/
   --ion-color-secondary: #f04ecf;
@@ -77,21 +77,21 @@
 
   --bottom-nav-height: 0px;
 
-  /* Redesign Brand Colors */
-  --pk-surface: #f6f6fa;
+  /* Redesign Brand Colors — blue family (aligned to login) */
+  --pk-surface: #eff3f9;
   --pk-on-surface: #2d2f32;
   --pk-on-surface-variant: #5a5b5f;
-  --pk-primary: #0f4be0;
-  --pk-primary-container: #829bff;
-  --pk-on-primary-container: #001b62;
-  --pk-secondary-container: #79f6f5;
-  --pk-on-secondary-container: #005c5c;
-  --pk-tertiary-container: #fb82ff;
-  --pk-on-tertiary-container: #590061;
-  --pk-secondary-fixed: #79f6f5;
-  --pk-primary-fixed-dim: #6e8cff;
-  --pk-on-primary-fixed-variant: #002278;
-  --pk-tertiary-fixed: #fb82ff;
+  --pk-primary: #285ba7;
+  --pk-primary-container: #d8e6fa;
+  --pk-on-primary-container: #14386e;
+  --pk-secondary-container: #e3edfb;
+  --pk-on-secondary-container: #1e4784;
+  --pk-tertiary-container: #dfe9f7;
+  --pk-on-tertiary-container: #234f8c;
+  --pk-secondary-fixed: #e3edfb;
+  --pk-primary-fixed-dim: #679aca;
+  --pk-on-primary-fixed-variant: #14386e;
+  --pk-tertiary-fixed: #dfe9f7;
   --pk-surface-container-lowest: #ffffff;
   --pk-surface-container-highest: #dbdde2;
   --pk-outline-variant: #acadb1;

@@ -84,7 +84,12 @@ export class AppComponent {
     });
 
     this.titleService.title$.subscribe(title => {
-      this.currentPageTitle = title;
+      // Defer to the next microtask. A page can emit its title from ngOnInit,
+      // which runs inside the same change-detection tick as this shell header.
+      // Mutating currentPageTitle synchronously there triggers NG0100
+      // (ExpressionChangedAfterItHasBeenCheckedError); deferring lets the
+      // change render in a fresh tick instead.
+      Promise.resolve().then(() => (this.currentPageTitle = title));
     });
     CapacitorApp.addListener('backButton', ({ canGoBack }) => {
       if (!canGoBack) {
@@ -143,12 +148,24 @@ export class AppComponent {
       this.titleService.setTitle(this.routeTitleMap[trimmedUrl] || 'Dashboard');
     }
 
-    this.showBottomNav = this.authenticationService.isLoggedIn;
+    this.showBottomNav = this.authenticationService.isLoggedIn && !this.isImmersiveRoute();
   }
 
   public isDashboardRoute(): boolean {
     const url = this.router.url.split('?')[0].split('#')[0];
     return url === '/' || url === '/home' || url === '/dashboard' || url === '/profile' || url === '';
+  }
+
+  // Routes that take over the full screen (no app header / bottom nav).
+  public isImmersiveRoute(): boolean {
+    const url = this.router.url.split('?')[0].split('#')[0];
+    const trimmed = url !== '/' && url.endsWith('/') ? url.slice(0, -1) : url;
+    return (
+      trimmed === '/ai-assistant' ||
+      trimmed.startsWith('/ai-assistant/') ||
+      trimmed.startsWith('/messages/chat/') ||
+      trimmed === '/how-to-use'
+    );
   }
 
   private async configureStatusBar(): Promise<void> {

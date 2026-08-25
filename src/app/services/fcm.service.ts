@@ -57,12 +57,10 @@ export class FcmService {
     const permStatus = await FirebaseMessaging.checkPermissions().catch(() => ({
       receive: 'prompt',
     }));
-    console.log('[FirebaseMessaging] checkPermissions', permStatus);
     if (permStatus.receive !== 'granted') {
       const requested = await FirebaseMessaging.requestPermissions().catch(
         () => ({ receive: 'denied' })
       );
-      console.log('[FirebaseMessaging] requestPermissions', requested);
       if (requested.receive !== 'granted') {
         return;
       }
@@ -80,14 +78,11 @@ export class FcmService {
       vibration: true,
     }).catch(() => undefined);
     const channels = await FirebaseMessaging.listChannels().catch(() => null);
-    if (channels) {
-      console.log('[FirebaseMessaging] channels', channels);
-    }
+
 
     const tokenResult = await FirebaseMessaging.getToken().catch(() => null);
     if (tokenResult?.token) {
       await this.usersService.updateDeviceId(uid, tokenResult.token);
-      console.log('Native FCM token registered for user', uid);
     }
 
     await FirebaseMessaging.addListener('tokenReceived', async (event) => {
@@ -189,7 +184,6 @@ export class FcmService {
     const uid = JSON.parse(localStorage.getItem('user'))?.uid;
     if (token && uid) {
       await this.usersService.updateWebFcmToken(uid, token);
-      console.log('Web FCM token registered for user', uid);
     }
 
     this.attachServiceWorkerMessageListener();

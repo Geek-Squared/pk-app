@@ -1,0 +1,47 @@
+<ion-content class="reset-content">
+  <div class="auth-wrapper">
+    <div class="auth-hero">
+      <div class="hero-icon">
+        <ion-icon name="mail-unread-outline"></ion-icon>
+      </div>
+      <h1>Verify your email</h1>
+      <p>One quick step to secure your account</p>
+    </div>
+
+    <ion-card>
+      <ion-card-content>
+        <p class="card-hint">
+          We've sent a verification link to
+          <strong>{{ email || 'your email address' }}</strong>. Open it to
+          activate your account, then come back here.
+        </p>
+
+        <ion-button
+          expand="block"
+          class="btn-primary"
+          [disabled]="checking"
+          (click)="checkVerified()"
+        >
+          {{ checking ? 'Checking…' : "I've verified my email" }}
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          [disabled]="resendCooldown > 0"
+          (click)="resend()"
+        >
+          {{ resendCooldown > 0 ? 'Resend in ' + resendCooldown + 's' : 'Resend verification email' }}
+        </ion-button>
+
+        <p class="card-hint" style="margin-top: 12px">
+          Didn't get it? Check your spam folder.
+        </p>
+      </ion-card-content>
+    </ion-card>
+
+    <p class="alt-link">
+      <a (click)="backToLogin()">← Back to login</a>
+    </p>
+  </div>
+</ion-content>

@@ -255,8 +255,31 @@ export class MessagesPage implements OnInit {
       return;
     }
 
-    console.log('[CounsellorRequest] Assigned', { chatId, counsellorUid });
     this.router.navigateByUrl(`/messages/chat/${chatId}`);
+  }
+
+  // Show a friendly label for the last message instead of a raw media URL.
+  lastMessagePreview(chat: any, fallback: string): string {
+    const msgs = chat?.messages;
+    const last = Array.isArray(msgs) && msgs.length ? msgs[msgs.length - 1] : null;
+    if (!last) return fallback;
+
+    const type = `${last.type || ''}`.toLowerCase();
+    switch (type) {
+      case 'image': return '📷 Photo';
+      case 'video': return '🎥 Video';
+      case 'audio': return '🎙️ Voice note';
+      case 'file': return '📎 File';
+    }
+
+    // No usable type but the content is a storage/media URL — don't show the link.
+    const content = `${last.content || ''}`;
+    const looksLikeMedia =
+      /^https?:\/\/firebasestorage/i.test(content) ||
+      /\.(jpe?g|png|gif|webp|heic|mp4|mov|webm|mp3|wav|m4a|aac|ogg)(\?|$)/i.test(content);
+    if (looksLikeMedia) return '📎 Attachment';
+
+    return content || fallback;
   }
 
   getTotalUnread(chat: any) {
