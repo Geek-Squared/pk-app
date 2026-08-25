@@ -164,7 +164,12 @@ export class AppComponent {
       trimmed === '/ai-assistant' ||
       trimmed.startsWith('/ai-assistant/') ||
       trimmed.startsWith('/messages/chat/') ||
-      trimmed === '/how-to-use'
+      trimmed === '/how-to-use' ||
+      // Onboarding owns the whole screen. It runs before the member has an app
+      // to navigate, so a nav bar and a menu button would offer them exits to
+      // places that are not ready for them yet.
+      trimmed === '/onboarding' ||
+      trimmed.startsWith('/onboarding/')
     );
   }
 

@@ -43,8 +43,6 @@ export class OnboardingPage implements OnInit {
   selected = new Set<string>();
 
   errors: Record<string, string> = {};
-  /** Long-standing members get a way past intake — they are never trapped. */
-  canSkip = false;
 
   constructor(
     private intake: IntakeService,
@@ -72,13 +70,6 @@ export class OnboardingPage implements OnInit {
     this.loadConfig();
     this.intake.setOnboardingStatus(this.uid, 'in_progress');
 
-    // Someone with existing progress joined before onboarding existed. They are
-    // invited, not blocked. The guard now fails closed, so this is what keeps
-    // that promise.
-    this.care
-      .hasExistingProgress(this.uid)
-      .pipe(take(1))
-      .subscribe((has) => (this.canSkip = has));
   }
 
   /** Restore saved answers, then any draft on top for the in-flight step. */
@@ -219,11 +210,6 @@ export class OnboardingPage implements OnInit {
     } finally {
       this.saving = false;
     }
-  }
-
-  /** Existing member deferring intake. Nothing is written; they are re-invited. */
-  async skipForNow(): Promise<void> {
-    this.router.navigateByUrl('/home');
   }
 
   /**

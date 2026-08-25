@@ -1,12 +1,34 @@
-// Standard page offset — this page does not bleed.
+// Full-screen: onboarding runs before the app shell, so there is no fixed
+// header to clear and no bottom nav to sit above. app.component treats
+// /onboarding as an immersive route, which removes both.
+:host {
+  display: block;
+  height: 100%;
+}
+
 .onboarding-content {
   --background: var(--pk-surface);
+  --padding-top: 0;
+  --padding-bottom: 0;
+  // Override the global 104px header offset — there is no header here.
+  --offset-top: 0 !important;
 }
 
 .onboarding-wrap {
+  min-height: 100%;
   max-width: 560px;
   margin: 0 auto;
-  padding: 8px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  // Top padding clears the status bar / notch on device, since nothing else does.
+  padding: calc(24px + env(safe-area-inset-top)) 20px
+    calc(28px + env(safe-area-inset-bottom));
+}
+
+// Push the actions to the bottom of the viewport on short steps, so the page
+// reads as a screen rather than a form floating in space.
+.step {
+  flex: 1;
 }
 
 .progress-row {
@@ -198,19 +220,4 @@
   border-radius: 16px;
 
   .material-symbols-outlined { font-size: 20px; }
-}
-
-// Only shown to members who predate onboarding, so nobody is trapped by a
-// guard that now fails closed.
-.skip {
-  display: block;
-  width: 100%;
-  margin-top: 16px;
-  padding: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--pk-on-surface-variant);
-  background: transparent;
-  border: none;
-  text-decoration: underline;
 }
