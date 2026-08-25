@@ -3,8 +3,8 @@ import { Router, UrlTree } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { IntakeService } from 'src/app/services/intake.service';
-import { Observable, from, of } from 'rxjs';
-import { map, switchMap, take, catchError } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, switchMap, take, catchError, retry } from 'rxjs/operators';
 
 /**
  * Sends members who have not completed intake to /onboarding.
@@ -31,10 +31,13 @@ export class OnboardingGuard {
   ) {}
 
   canActivate(): Observable<boolean | UrlTree> {
-    // currentUser resolves once, deterministically. AuthGuard has already
-    // established there is a verified session by the time this runs, so we do
-    // not re-derive it from the authState stream.
-    return from(this.afAuth.currentUser).pipe(
+    // authState, not currentUser. On a cold load — a refresh, or entering at
+    // the root route — currentUser resolves immediately, before Firebase has
+    // attached the auth token to Firestore. The users/{uid} read then arrives
+    // unauthenticated, the rules deny it, and the guard decides on an error
+    // rather than on data. authState waits for the session to be restored,
+    // which is why AuthGuard has always used it.
+    return this.afAuth.authState.pipe(
       switchMap((user) => {
         if (!user) {
           console.log('[OnboardingGuard] no session; AuthGuard owns this');
@@ -47,6 +50,10 @@ export class OnboardingGuard {
             .valueChanges()
             .pipe(
               take(1),
+              // One retry absorbs the remaining window where the token is
+              // still settling; without it a single denied read decides the
+              // route.
+              retry(1),
               map((u) => {
                 const status = u?.onboardingStatus ?? 'none';
                 const deferred = this.intake.isDeferredThisSession(user.uid);
@@ -64,12 +71,15 @@ export class OnboardingGuard {
         );
       }),
       catchError((err) => {
-        // Send them to onboarding rather than into the app: a new member seeing
-        // intake twice is a small annoyance, whereas skipping it silently is
-        // the bug we have been chasing. The page itself offers a skip, so an
-        // existing member can still get past it.
-        console.error('[OnboardingGuard] lookup failed, routing to onboarding:', err);
-        return of(this.router.parseUrl('/onboarding'));
+        // Allow, and say so loudly.
+        //
+        // A failed read is not evidence that onboarding is incomplete — it is
+        // evidence that we could not find out. Routing to intake on an error
+        // sent members who had already finished back to the form on every
+        // refresh. The page itself bounces anyone whose intake is complete, so
+        // allowing here cannot let someone skip a genuinely unfinished intake.
+        console.error('[OnboardingGuard] lookup failed, allowing through:', err);
+        return of(true as boolean | UrlTree);
       })
     );
   }
