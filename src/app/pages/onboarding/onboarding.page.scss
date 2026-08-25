@@ -10,8 +10,16 @@
   --background: var(--pk-surface);
   --padding-top: 0;
   --padding-bottom: 0;
-  // Override the global 104px header offset — there is no header here.
-  --offset-top: 0 !important;
+  // fullscreen ion-content reserves room for a header/footer via --offset-*.
+  // There is neither here, so both are zeroed. The ::part(scroll) rule is the
+  // one that actually lands: Ionic applies the offset as padding inside the
+  // scroll container, where the custom properties above cannot reach it.
+  --offset-top: 0px !important;
+  --offset-bottom: 0px !important;
+
+  &::part(scroll) {
+    padding-top: 0 !important;
+  }
 }
 
 .onboarding-wrap {
@@ -20,21 +28,26 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  // Top padding clears the status bar / notch on device, since nothing else does.
-  padding: calc(24px + env(safe-area-inset-top)) 20px
+  // Only the notch needs clearing — nothing else sits above this page.
+  padding: calc(16px + env(safe-area-inset-top)) 20px
     calc(28px + env(safe-area-inset-bottom));
 }
 
-// Push the actions to the bottom of the viewport on short steps, so the page
-// reads as a screen rather than a form floating in space.
+// Content sits directly under the progress row. The actions follow it rather
+// than being pinned to the bottom of the viewport — stretching the step left a
+// short form floating in the middle of the screen with dead space around it.
 .step {
-  flex: 1;
+  flex: 0 0 auto;
+}
+
+.progress-row + .step {
+  margin-top: 0;
 }
 
 .progress-row {
   display: flex;
   gap: 6px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 
   .pip {
     flex: 1;
