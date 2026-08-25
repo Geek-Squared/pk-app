@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { AlertController, ToastController } from '@ionic/angular';
@@ -45,6 +45,12 @@ export class OnboardingPage implements OnInit {
   errors: Record<string, string> = {};
   /** Offered only to accounts that predate onboarding. */
   canDefer = false;
+  /**
+   * Reached from Interventions to revise selections, rather than as first-run
+   * intake. Same picker, so the two can never drift apart — only the framing
+   * and the exit differ.
+   */
+  editMode = false;
 
   constructor(
     private intake: IntakeService,
@@ -53,6 +59,7 @@ export class OnboardingPage implements OnInit {
     private afAuth: AngularFireAuth,
     private fns: AngularFireFunctions,
     private router: Router,
+    private route: ActivatedRoute,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController
   ) {}
@@ -69,11 +76,19 @@ export class OnboardingPage implements OnInit {
     // Auth's own creationTime — the only signal present on every account.
     this.canDefer = this.intake.predatesOnboarding(user.metadata?.creationTime);
 
+    this.editMode = this.route.snapshot.queryParamMap.get('mode') === 'edit';
+
     const existing = await this.intake.getIntake(this.uid).pipe(take(1)).toPromise();
     this.hydrate(existing ?? null);
-    this.step = this.intake.resumeStep(existing ?? null);
+    // Editing jumps straight to the picker; resumeStep would send a member who
+    // has already finished intake to the confirmation screen.
+    this.step = this.editMode ? 'selection' : this.intake.resumeStep(existing ?? null);
     this.loadConfig();
-    this.intake.setOnboardingStatus(this.uid, 'in_progress');
+    if (!this.editMode) {
+      // Never in edit mode: a member who has already finished would be knocked
+      // back to 'in_progress' and the guard would then trap them here.
+      this.intake.setOnboardingStatus(this.uid, 'in_progress');
+    }
 
   }
 
@@ -219,6 +234,33 @@ export class OnboardingPage implements OnInit {
     } finally {
       this.saving = false;
     }
+  }
+
+  /** Save revised selections and return to where they came from. */
+  async saveSelections(): Promise<void> {
+    if (this.saving) return;
+    this.saving = true;
+    try {
+      await this.intake.saveStep(
+        this.uid,
+        'selection',
+        { selectedInterventionIds: Array.from(this.selected) },
+        { keepStatus: true }
+      );
+      // Recompose so the package reflects the change immediately. The previous
+      // assignment is archived to history by the service.
+      await this.care.composeFromSelections(this.uid, Array.from(this.selected));
+      this.router.navigateByUrl('/interventions');
+    } catch (e) {
+      console.error('[Onboarding] saveSelections failed', e);
+      await this.toast('Could not save that just now — please try again.');
+    } finally {
+      this.saving = false;
+    }
+  }
+
+  cancelEdit(): void {
+    this.router.navigateByUrl('/interventions');
   }
 
   /**

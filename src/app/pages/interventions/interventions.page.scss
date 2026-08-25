@@ -157,3 +157,24 @@
     }
   }
 }
+
+// Reopens the onboarding picker so a member can widen or narrow what they see.
+.explore-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pk-primary);
+  background: var(--pk-surface-container-lowest);
+  border: 1px solid var(--pk-outline-variant);
+  border-radius: 18px;
+
+  .material-symbols-outlined { font-size: 19px; }
+
+  &:active { transform: scale(0.99); }
+}

@@ -67,14 +67,22 @@ export class IntakeService {
    * Persist one completed step. Merge-writes so an interrupted intake resumes
    * without re-answering, and so a step is durable as soon as it is answered.
    */
-  async saveStep(uid: string, step: IntakeStep, data: Partial<Intake>): Promise<void> {
+  async saveStep(
+    uid: string,
+    step: IntakeStep,
+    data: Partial<Intake>,
+    opts: { keepStatus?: boolean } = {}
+  ): Promise<void> {
     const now = firebase.firestore.FieldValue.serverTimestamp();
+    // keepStatus is for edits after completion: writing 'in_progress' there
+    // would un-complete a finished intake and trap the member in the guard.
+    const statusPatch = opts.keepStatus ? {} : { status: 'in_progress' as IntakeStatus };
     await runInInjectionContext(this.injector, () =>
       this.afs.doc(`intakes/${uid}`).set(
         {
           ...data,
           uid,
-          status: 'in_progress' as IntakeStatus,
+          ...statusPatch,
           completedSteps: firebase.firestore.FieldValue.arrayUnion(step),
           updatedAt: now,
           createdAt: now,

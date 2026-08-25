@@ -2,7 +2,7 @@
   <div class="onboarding-wrap">
 
     <!-- Progress -->
-    <div class="progress-row">
+    <div class="progress-row" *ngIf="!editMode">
       <div class="pip" *ngFor="let s of steps; let i = index" [class.done]="i <= stepIndex()"></div>
     </div>
 
@@ -77,8 +77,12 @@
 
     <!-- Step 3 — the pills -->
     <section *ngIf="step === 'selection'" class="step">
-      <h1>What would you like support with?</h1>
-      <p class="lede">Choose as many as you like. You can change this later.</p>
+      <h1>{{ editMode ? 'Curated categories' : 'What would you like support with?' }}</h1>
+      <p class="lede">
+        {{ editMode
+          ? 'Add or remove areas. What you choose is what you will see in Interventions.'
+          : 'Choose as many as you like. You can change this later.' }}
+      </p>
 
       <div class="pills">
         <button
@@ -127,7 +131,7 @@
     </section>
 
     <!-- Actions -->
-    <div class="actions">
+    <div class="actions" *ngIf="!editMode">
       <button type="button" class="ghost" *ngIf="stepIndex() > 0" (click)="back()" [disabled]="saving">
         Back
       </button>
@@ -139,8 +143,15 @@
       </button>
     </div>
 
+    <div class="actions" *ngIf="editMode">
+      <button type="button" class="ghost" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
+      <button type="button" class="primary" (click)="saveSelections()" [disabled]="saving">
+        {{ saving ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+
     <!-- Existing members only: they joined before this existed. -->
-    <button type="button" class="defer" *ngIf="canDefer" (click)="deferForNow()">
+    <button type="button" class="defer" *ngIf="canDefer && !editMode" (click)="deferForNow()">
       I'll do this later
     </button>
 
