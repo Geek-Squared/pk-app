@@ -234,3 +234,18 @@
 
   .material-symbols-outlined { font-size: 20px; }
 }
+
+// Shown only to members who predate onboarding. Understated on purpose: it is
+// an escape hatch for people already using the app, not a competing action.
+.defer {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pk-on-surface-variant);
+  background: transparent;
+  border: none;
+  text-decoration: underline;
+}

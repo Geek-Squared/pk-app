@@ -135,6 +135,11 @@
       </button>
     </div>
 
+    <!-- Existing members only: they joined before this existed. -->
+    <button type="button" class="defer" *ngIf="canDefer" (click)="deferForNow()">
+      I'll do this later
+    </button>
+
     <!-- Always available, on every step. Never content-triggered. -->
     <button type="button" class="crisis" (click)="talkToSomeone()">
       <span class="material-symbols-outlined">support_agent</span>

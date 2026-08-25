@@ -2,6 +2,7 @@ import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { IntakeService } from 'src/app/services/intake.service';
 import { Observable, from, of } from 'rxjs';
 import { map, switchMap, take, catchError } from 'rxjs/operators';
 
@@ -25,6 +26,7 @@ export class OnboardingGuard {
     private router: Router,
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore,
+    private intake: IntakeService,
     private injector: Injector
   ) {}
 
@@ -47,11 +49,13 @@ export class OnboardingGuard {
               take(1),
               map((u) => {
                 const status = u?.onboardingStatus ?? 'none';
-                const allow = status === 'complete';
+                const deferred = this.intake.isDeferredThisSession(user.uid);
+                const allow = status === 'complete' || deferred;
                 console.log('[OnboardingGuard]', {
                   uid: user.uid,
                   userDocExists: !!u,
                   status,
+                  deferredThisSession: deferred,
                   decision: allow ? 'allow' : 'redirect -> /onboarding',
                 });
                 return allow ? true : this.router.parseUrl('/onboarding');

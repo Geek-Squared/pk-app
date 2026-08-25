@@ -43,6 +43,8 @@ export class OnboardingPage implements OnInit {
   selected = new Set<string>();
 
   errors: Record<string, string> = {};
+  /** Offered only to accounts that predate onboarding. */
+  canDefer = false;
 
   constructor(
     private intake: IntakeService,
@@ -63,6 +65,8 @@ export class OnboardingPage implements OnInit {
     }
     this.uid = user.uid;
     this.email = user.email ?? '';
+    // Auth's own creationTime — the only signal present on every account.
+    this.canDefer = this.intake.predatesOnboarding(user.metadata?.creationTime);
 
     const existing = await this.intake.getIntake(this.uid).pipe(take(1)).toPromise();
     this.hydrate(existing ?? null);
@@ -210,6 +214,15 @@ export class OnboardingPage implements OnInit {
     } finally {
       this.saving = false;
     }
+  }
+
+  /**
+   * Existing members only. Defers for this session and asks again next launch;
+   * nothing is written, so it never becomes a permanent opt-out.
+   */
+  deferForNow(): void {
+    this.intake.deferForSession(this.uid);
+    this.router.navigateByUrl('/home');
   }
 
   /**

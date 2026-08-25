@@ -10,6 +10,17 @@ export const INTAKE_STEPS = ['identity', 'demographics', 'selection', 'confirm']
 export type IntakeStep = (typeof INTAKE_STEPS)[number];
 
 /**
+ * When onboarding shipped. Accounts created before this predate the feature,
+ * so their owners are offered a deferral rather than being walled — 270 of the
+ * 271 existing members would otherwise meet a four-step form on next open.
+ *
+ * Read from the Firebase Auth account's own creationTime, not a Firestore
+ * field: only 3 of 200 user documents carry `createdAt`, so it cannot classify
+ * anybody.
+ */
+export const ONBOARDING_ROLLOUT_MS = Date.parse('2026-08-25T00:00:00Z');
+
+/**
  * Reads and writes `intakes/{uid}` — the member's onboarding answers.
  *
  * Deliberately NOT stored on `users/{uid}`: that document is read by other
@@ -117,6 +128,40 @@ export class IntakeService {
   resumeStep(intake: Intake | null): IntakeStep {
     const done = intake?.completedSteps ?? [];
     return (INTAKE_STEPS.find((s) => !done.includes(s)) ?? 'confirm') as IntakeStep;
+  }
+
+  // --- deferral -----------------------------------------------------------
+  // Session-scoped on purpose: an existing member can get on with what they
+  // opened the app to do, and is asked again next time they launch it. Nothing
+  // is written to their record, so the deferral never hardens into an opt-out.
+
+  private deferKey(uid: string): string {
+    return `pk.intake.deferred.${uid}`;
+  }
+
+  deferForSession(uid: string): void {
+    try {
+      sessionStorage.setItem(this.deferKey(uid), '1');
+    } catch {}
+  }
+
+  isDeferredThisSession(uid: string): boolean {
+    try {
+      return sessionStorage.getItem(this.deferKey(uid)) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  /** True when the account predates onboarding, so a deferral is offered. */
+  predatesOnboarding(creationTime?: string | null): boolean {
+    if (!creationTime) {
+      // Unknown age: treat as existing. Wrongly offering a deferral is a far
+      // smaller harm than wrongly walling a long-standing member.
+      return true;
+    }
+    const created = Date.parse(creationTime);
+    return Number.isNaN(created) ? true : created < ONBOARDING_ROLLOUT_MS;
   }
 
   // --- draft mirror -------------------------------------------------------
