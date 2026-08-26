@@ -10,7 +10,7 @@
 .question-shell {
   max-width: 700px;
   margin: 0 auto;
-  padding: 22px 24px 24px;
+  padding: 22px 24px 8px;
 }
 
 /* ---- progress ---- */
@@ -75,27 +75,11 @@
   margin-top: 16px;
 }
 
+/* Sizing only — fill, border, focus and font come from .pk-textarea. */
 .answer-input {
-  width: 100%;
   min-height: 150px;
-  border-radius: 16px;
-  background: #f6fafe;
-  border: 1px solid rgba(196, 197, 213, 0.4);
-  padding: 13px 14px;
-  font-family: inherit;
   font-size: 0.93rem;
   line-height: 1.55;
-  color: #171c1f;
-  resize: vertical;
-
-  &::placeholder { color: #acadb1; }
-
-  &:focus {
-    outline: none;
-    background: #ffffff;
-    border-color: #285ba7;
-    border-width: 1.5px;
-  }
 }
 
 .answer-meta {
@@ -258,18 +242,23 @@
 }
 
 /* ---- navigation ---- */
-/* Inline, not an ion-footer: the app's bottom nav is position:fixed at
-   z-index 100 and paints over a page-level footer. ion-content already
-   reserves 92px for it (global.scss, .has-bottom-nav), so nothing else is
-   needed to clear it. */
-.question-actions {
+/* A real pinned footer. /questions is registered as an immersive route in
+   app.component.ts, so the fixed bottom nav is not drawn on this screen and
+   cannot paint over it. */
+.question-footer {
+  --background: #f6fafe;
+  background: #f6fafe;
+
+  &::before { display: none; }
+}
+
+.footer-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 14px 24px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  border-top: 1px solid rgba(0, 40, 142, 0.06);
   display: flex;
   gap: 10px;
-  margin-top: 22px;
-  padding-top: 18px;
-  /* The hairline the design puts above the action bar. It cannot be a real
-     footer here, so it separates the actions in the flow instead. */
-  border-top: 1px solid rgba(0, 40, 142, 0.06);
 }
 
 .nav-back {
@@ -288,23 +277,7 @@
   &:active { transform: scale(0.98); }
 }
 
+/* Layout only — colour, height and radius come from .pk-submit. */
 .nav-next {
   flex: 1;
-  height: 52px;
-  border: none;
-  border-radius: 999px;
-  background: #00288e;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 10px 24px rgba(0, 40, 142, 0.22);
-
-  &:active { transform: scale(0.99); }
-
-  ion-icon { font-size: 1.05rem; }
 }

@@ -19,12 +19,12 @@
     </div>
 
     <div class="done-actions">
-      <button type="button" class="nav-next" *ngIf="completion.nextPost" (click)="goToNextPost()">
+      <button type="button" class="pk-submit nav-next" *ngIf="completion.nextPost" (click)="goToNextPost()">
         Next story
         <ion-icon name="chevron-forward"></ion-icon>
       </button>
 
-      <button type="button" class="nav-next" *ngIf="completion.nextChapter" (click)="goToNextChapter()">
+      <button type="button" class="pk-submit nav-next" *ngIf="completion.nextChapter" (click)="goToNextChapter()">
         Start {{ completion.nextChapter.title }}
         <ion-icon name="chevron-forward"></ion-icon>
       </button>
@@ -57,7 +57,7 @@
 
     <div class="answer-card">
       <textarea
-        class="answer-input"
+        class="pk-textarea answer-input"
         rows="7"
         placeholder="Take your time — there is no wrong answer."
         [(ngModel)]="questionResponse"
@@ -93,10 +93,20 @@
       <span class="feedback-text">{{ validationFeedback }}</span>
     </div>
 
-    <!-- Actions live inside the content, not in an ion-footer: the app's bottom
-         nav is position:fixed at z-index 100 and draws straight over a page
-         footer. ion-content already carries 92px of bottom padding for it. -->
-    <div class="question-actions">
+
+  </div>
+
+  <div class="question-empty" *ngIf="questions?.length === 0">
+    <ion-icon name="document-text-outline"></ion-icon>
+    <h2>Nothing to reflect on yet</h2>
+    <p>This story has no questions attached.</p>
+  </div>
+</ion-content>
+
+<!-- A real pinned footer. /questions is an immersive route, so the bottom nav
+     is not drawn over it. -->
+<ion-footer class="question-footer" *ngIf="filteredQuestions?.length && !completion">
+  <div class="footer-inner" *ngFor="let question of filteredQuestions">
       <button
         type="button"
         class="nav-back"
@@ -109,7 +119,7 @@
 
       <button
         type="button"
-        class="nav-next"
+        class="pk-submit nav-next"
         *ngIf="!checkPosition()"
         (click)="goTo(pager.index + 1, question)"
       >
@@ -119,20 +129,12 @@
 
       <button
         type="button"
-        class="nav-next"
+        class="pk-submit nav-next"
         *ngIf="checkPosition()"
         (click)="saveQuestionResponses(question)"
       >
         Finish
         <ion-icon name="checkmark"></ion-icon>
       </button>
-    </div>
-
   </div>
-
-  <div class="question-empty" *ngIf="questions?.length === 0">
-    <ion-icon name="document-text-outline"></ion-icon>
-    <h2>Nothing to reflect on yet</h2>
-    <p>This story has no questions attached.</p>
-  </div>
-</ion-content>
+</ion-footer>

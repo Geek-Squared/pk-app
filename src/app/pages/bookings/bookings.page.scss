@@ -42,68 +42,9 @@
   }
 }
 
-.booking-card {
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 1.25rem;
-  border: 1px solid rgba(196, 197, 213, 0.15);
-  box-shadow: 0 10px 30px rgba(0, 40, 142, 0.06);
+/* Spacing only — the card itself is .pk-form-card in global.scss. */
+.booking-shell .pk-form-card {
   margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-
-  label {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #5a5b5f;
-    margin-bottom: 6px;
-  }
-
-  .optional {
-    font-weight: 500;
-    color: #8a8b90;
-  }
-
-  .hint {
-    margin: 6px 0 0;
-    font-size: 0.72rem;
-    color: #8a8b90;
-  }
-}
-
-/* Plain inputs rather than ion-input: the fields previously carried no labels
-   at all, only placeholders, which vanish on focus and are not announced. */
-.pk-input {
-  width: 100%;
-  min-height: 48px;
-  border-radius: 16px;
-  background: #f6fafe;
-  border: 1px solid rgba(196, 197, 213, 0.4);
-  padding: 12px 14px;
-  font-family: inherit;
-  font-size: 0.92rem;
-  color: #171c1f;
-
-  &::placeholder { color: #acadb1; }
-
-  &:focus {
-    outline: none;
-    background: #ffffff;
-    border-color: #285ba7;
-    border-width: 1.5px;
-  }
-}
-
-.pk-textarea {
-  min-height: 84px;
-  line-height: 1.45;
-  resize: vertical;
 }
 
 /* Crisis affordance. Coral is reserved for urgency across the app. */
@@ -152,26 +93,6 @@
   max-width: 700px;
   margin: 0 auto;
   padding: 14px 24px 26px;
-}
-
-.submit {
-  width: 100%;
-  height: 52px;
-  border: none;
-  border-radius: 999px;
-  background: #00288e;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 700;
-  box-shadow: 0 10px 24px rgba(0, 40, 142, 0.22);
-
-  &:active { transform: scale(0.99); }
-
-  &:disabled {
-    background: #c4c5d5;
-    box-shadow: none;
-  }
 }
 
 .foot-note {

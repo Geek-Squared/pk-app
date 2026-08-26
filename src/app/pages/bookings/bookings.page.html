@@ -10,35 +10,35 @@
       <p>Tell us how to reach you and a counsellor will confirm a time.</p>
     </header>
 
-    <form [formGroup]="bookingsForm" class="booking-card">
+    <form [formGroup]="bookingsForm" class="pk-form-card pk-form">
 
-      <div class="field">
+      <div class="pk-field">
         <label for="bk-name">Full name</label>
         <input id="bk-name" class="pk-input" type="text" formControlName="fullName"
                autocomplete="name" placeholder="Your name" />
       </div>
 
-      <div class="field">
+      <div class="pk-field">
         <label for="bk-phone">Phone number</label>
         <input id="bk-phone" class="pk-input" type="tel" formControlName="phoneNumber"
                autocomplete="tel" inputmode="tel" placeholder="077 123 4567" />
-        <p class="hint">We will call or message this number.</p>
+        <p class="pk-hint">We will call or message this number.</p>
       </div>
 
-      <div class="field">
+      <div class="pk-field">
         <label for="bk-email">Email address</label>
         <input id="bk-email" class="pk-input" type="email" formControlName="email"
                autocomplete="email" inputmode="email" placeholder="you@example.com" />
       </div>
 
-      <div class="field">
+      <div class="pk-field">
         <label for="bk-date">Preferred date</label>
         <input id="bk-date" class="pk-input" type="date" formControlName="bookingDate" />
       </div>
 
-      <div class="field">
-        <label for="bk-message">Anything we should know? <span class="optional">Optional</span></label>
-        <textarea id="bk-message" class="pk-input pk-textarea" rows="3" formControlName="message"
+      <div class="pk-field">
+        <label for="bk-message">Anything we should know? <span class="pk-optional">Optional</span></label>
+        <textarea id="bk-message" class="pk-textarea" rows="3" formControlName="message"
                   placeholder="You do not have to explain anything you would rather say in person."></textarea>
       </div>
 
@@ -61,7 +61,7 @@
   </div>
 
   <div class="booking-foot">
-    <button type="button" class="submit" (click)="onSubmit()" [disabled]="bookingsForm.invalid">
+    <button type="button" class="pk-submit" (click)="onSubmit()" [disabled]="bookingsForm.invalid">
       Request this session
     </button>
     <p class="foot-note">We usually confirm within one working day.</p>
