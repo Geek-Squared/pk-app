@@ -27,8 +27,18 @@ exports.processSignUp = functions.auth.user().onCreate(async (user) => {
   // 1) Custom claim so the account is recognised as a client. Previously this
   //    was gated on `user.emailVerified`, which is always false at onCreate for
   //    email/password sign-ups, so the claim was never actually set.
+  //    setCustomUserClaims REPLACES the whole claim set, so an account already
+  //    provisioned by createStaffUser (which carries a `role` claim) would be
+  //    demoted to a plain client by this trigger. Read first, and leave those
+  //    alone.
   try {
-    await admin.auth().setCustomUserClaims(user.uid, { client: true });
+    const existingClaims = (await admin.auth().getUser(user.uid)).customClaims || {};
+    if (!existingClaims.role) {
+      await admin.auth().setCustomUserClaims(user.uid, {
+        ...existingClaims,
+        client: true,
+      });
+    }
   } catch (error: any) {
     console.warn('Unable to set custom claims for new user', error);
   }
@@ -41,20 +51,35 @@ exports.processSignUp = functions.auth.user().onCreate(async (user) => {
   //    guarantees every account is complete. Deterministic doc ids keep this
   //    idempotent if the platform retries the trigger. displayName + consent
   //    stay client-owned (SetUserData), so we deliberately don't touch them.
-  const batch = db.batch();
+  //    The profile goes through a TRANSACTION rather than the batch, because
+  //    createStaffUser may have written 'Counsellor' or 'Administrator' to this
+  //    same document moments earlier. A blind `role: 'client'` merge would
+  //    silently demote a staff account — that race is how a counsellor created
+  //    from the admin could come back as a client.
+  const userRef = db.collection('users').doc(user.uid);
+  try {
+    await db.runTransaction(async (tx: any) => {
+      const snap = await tx.get(userRef);
+      const assignedRole = snap.exists ? snap.data()?.role : null;
+      tx.set(
+        userRef,
+        {
+          uid: user.uid,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          photoURL: user.photoURL || null,
+          role: assignedRole || 'client',
+          createdAt: now,
+        },
+        { merge: true }
+      );
+    });
+  } catch (error: any) {
+    console.error('Failed to provision user profile', error);
+    throw error;
+  }
 
-  batch.set(
-    db.collection('users').doc(user.uid),
-    {
-      uid: user.uid,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      photoURL: user.photoURL || null,
-      role: 'client',
-      createdAt: now,
-    },
-    { merge: true }
-  );
+  const batch = db.batch();
 
   batch.set(db.collection('workbooks').doc(user.uid), {
     uid: user.uid,
@@ -337,6 +362,125 @@ async function assertAdmin(context: functions.https.CallableContext) {
     );
   }
 }
+
+/** Roles an administrator may assign, and the canonical spelling of each. */
+const ASSIGNABLE_ROLES = ['Administrator', 'Counsellor', 'Client'];
+
+/**
+ * Creates an account on behalf of an administrator.
+ *
+ * The admin portal used to do this with the CLIENT SDK's
+ * createUserWithEmailAndPassword, which has two defects that cannot be worked
+ * around on the client: it switches the signed-in user to the account it just
+ * created (so an admin creating a counsellor was logged in as them), and it
+ * leaves the new account's role to a race between the caller's write and
+ * processSignUp's `role: 'client'` default.
+ *
+ * Doing it here fixes both, and puts the "who may create whom" decision on the
+ * server where it cannot be skipped.
+ */
+exports.createStaffUser = functions.https.onCall(async (data: any, context: any) => {
+  await assertAdmin(context);
+
+  const email = `${data?.email ?? ''}`.trim().toLowerCase();
+  const password = `${data?.password ?? ''}`;
+  const displayName = `${data?.displayName ?? ''}`.trim();
+  const requestedRole = `${data?.role ?? ''}`.trim();
+
+  if (!email || !password || !displayName || !requestedRole) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Email, password, display name and role are all required.'
+    );
+  }
+
+  if (password.length < 8) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Password must be at least 8 characters.'
+    );
+  }
+
+  // Canonicalise rather than trust the string: the role is what firestore.rules
+  // keys staff access off, so 'administrator' and 'Administrator' must not end
+  // up as two different things in the data.
+  const role = ASSIGNABLE_ROLES.find(
+    (r) => r.toLowerCase() === requestedRole.toLowerCase()
+  );
+  if (!role) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      `Role must be one of: ${ASSIGNABLE_ROLES.join(', ')}.`
+    );
+  }
+
+  let user: { uid: string };
+  try {
+    user = await admin.auth().createUser({ email, password, displayName });
+  } catch (error: any) {
+    if (error?.code === 'auth/email-already-exists') {
+      throw new functions.https.HttpsError(
+        'already-exists',
+        'An account with that email already exists.'
+      );
+    }
+    if (error?.code === 'auth/invalid-password') {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'That password is not strong enough.'
+      );
+    }
+    console.error('createStaffUser: could not create the auth account', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      'Could not create the account.'
+    );
+  }
+
+  // Profile first, claims last: processSignUp fires on account creation and
+  // defaults an unassigned account to 'client'. Its transaction keeps whatever
+  // role it finds, and setting the claim afterwards means the role claim wins
+  // whichever order the two finish in.
+  try {
+    await admin
+      .firestore()
+      .collection('users')
+      .doc(user.uid)
+      .set(
+        {
+          uid: user.uid,
+          email,
+          displayName,
+          role,
+          emailVerified: false,
+          createdAt: Date.now(),
+          createdBy: context.auth?.uid ?? null,
+        },
+        { merge: true }
+      );
+
+    await admin.auth().setCustomUserClaims(user.uid, {
+      role: role.toLowerCase(),
+      client: role === 'Client',
+    });
+  } catch (error: any) {
+    // The auth account exists but is unusable without its role. Remove it
+    // rather than leave a half-provisioned account nobody can see or fix.
+    console.error('createStaffUser: provisioning failed, rolling back', error);
+    await admin
+      .auth()
+      .deleteUser(user.uid)
+      .catch((cleanupError: any) =>
+        console.error('createStaffUser: rollback failed', cleanupError)
+      );
+    throw new functions.https.HttpsError(
+      'internal',
+      'Could not finish setting up the account. Nothing was created.'
+    );
+  }
+
+  return { uid: user.uid, role };
+});
 
 // One-off repair for accounts created before provisioning moved into
 // processSignUp. The old client-side flow wrote workbooks with `uid: undefined`
