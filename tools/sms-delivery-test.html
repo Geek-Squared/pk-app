@@ -201,15 +201,19 @@ $('send').addEventListener('click', async () => {
 
   $('send').disabled = true;
   try {
-    // A reCAPTCHA token is single-use. Reusing the verifier after ANY previous
-    // attempt — successful or failed — sends a spent token, and Firebase
-    // reports that as auth/invalid-app-credential, which reads like a config
-    // problem rather than a stale token. Fresh verifier every time.
+    // A reCAPTCHA token is single-use, so every attempt needs a new verifier.
+    // It also needs a new ELEMENT: grecaptcha binds to the node and refuses a
+    // second render into it — clear() and emptying innerHTML are both
+    // insufficient, and the retry fails with "reCAPTCHA has already been
+    // rendered in this element" instead of whatever the real problem was.
     if (verifier) {
       try { verifier.clear(); } catch (_) { /* already gone */ }
-      $('recaptcha').innerHTML = '';
     }
-    verifier = new RecaptchaVerifier(auth, 'recaptcha', { size: 'invisible' });
+    const host = document.createElement('div');
+    host.id = `recaptcha-${Date.now()}`;
+    $('recaptcha').replaceChildren(host);
+
+    verifier = new RecaptchaVerifier(auth, host.id, { size: 'invisible' });
     await verifier.render();
 
     log(`Requesting passcode for ${e164} (${carrierOf(e164)})…`);
@@ -228,7 +232,7 @@ $('send').addEventListener('click', async () => {
   } catch (err) {
     log(`FAILED to send: ${err?.code || ''} ${err?.message || err}`, 'bad');
     if (err?.code === 'auth/invalid-app-credential') {
-      log('→ reCAPTCHA was rejected. Check Authentication → Settings → Authorized domains includes "localhost", and Fraud prevention → reCAPTCHA is not enforcing a key this page has no access to.', 'bad');
+      log('→ reCAPTCHA token rejected. On 2026-08-26 this was chased to a dead end: Phone provider enabled, localhost authorised, reCAPTCHA SMS defense not configured, API key unrestricted, and the /__/auth/ helper endpoints healthy. Do not repeat that hunt — use the Android path, which uses Play Integrity and never touches reCAPTCHA.', 'bad');
     }
     if (err?.code === 'auth/operation-not-allowed') {
       log('→ The Phone provider is not enabled for this project.', 'bad');

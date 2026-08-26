@@ -78,6 +78,40 @@ Everything downstream of the passcode screen assumes the passcode arrives. That 
 
 ---
 
+## R3a — The web flow could not be made to send (2026-08-26)
+
+Attempted, and abandoned deliberately. Recorded so nobody repeats the hunt.
+
+`signInWithPhoneNumber` from a local page fails with `auth/invalid-app-credential`
+— a rejected reCAPTCHA token. Every candidate cause was checked and found clean:
+
+| Checked | Result |
+|---|---|
+| Phone provider enabled | Yes (the error moved on from `OPERATION_NOT_ALLOWED`) |
+| SMS region policy | Allow → Zimbabwe, saved |
+| Authorized domains | `localhost` present, type Default |
+| reCAPTCHA SMS defense | Not configured at all, so not enforcing |
+| API key application restrictions | None |
+| `/__/auth/iframe`, `/__/auth/handler` | Both healthy, real helper pages |
+| `/__/firebase/init.json` | Matches the config used, exactly |
+| Browser extensions | Ruled out — same failure in incognito |
+
+**The conclusion is not "phone auth is broken".** It is that the *web* reCAPTCHA
+path has a problem we could not identify from outside the project, and that
+chasing it further spends time on a path this feature does not ship. R1 chose
+the native plugin, which verifies via Play Integrity and never uses reCAPTCHA:
+this whole class of failure does not exist there.
+
+**T005 therefore moves to the Android build**, which brings T023 forward. That is
+not wasted work — it is Phase 4 work needed regardless, and it tests the real
+path rather than a proxy for it.
+
+One thing this did establish, which is worth having: the project's server-side
+configuration for phone auth is correct and verified. Whatever the Android
+build hits, it will not be any of the above.
+
+---
+
 ## R4 — Testing without spending money
 
 Firebase supports **fictional phone numbers with fixed passcodes**, configured per project. A number registered this way never sends an SMS, never costs anything, and always accepts its assigned code.
