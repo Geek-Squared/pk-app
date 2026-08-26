@@ -175,6 +175,8 @@ A phone-only account has no password. If the number is lost, changed or stops re
 - **FR-011**: A member MUST be able to add a second contact method to an existing account without creating a new one or losing history.
 - **FR-012**: An attempt to attach a contact method already in use MUST fail clearly, and MUST NOT merge or discard any data.
 - **FR-013**: There MUST be a documented, staff-executed procedure to restore access for a member who has lost their number, and to change the number on an account.
+- **FR-013a**: Executing a recovery or a number change MUST be restricted to administrators. Counsellors MUST be able to raise the request — they are who a member reaches — but MUST NOT be able to complete it themselves.
+- **FR-013b**: An account dormant for **twelve months or more** MUST require one identity check, drawn from data the member supplied at onboarding, before counselling history is exposed. A repeat passcode MUST NOT be treated as satisfying this: if the number has been recycled, the new holder passes it, so it confirms control of exactly the thing that changed hands.
 - **FR-014**: Any staff-executed identity change MUST be recorded — who acted, on whose account, and when.
 
 #### Cost and abuse
@@ -184,6 +186,7 @@ A phone-only account has no password. If the number is lost, changed or stops re
 - **FR-016a**: A member roaming or holding a non-Zimbabwean number MUST be given a clear reason and a route to human help, not a silent failure. This is a known and accepted consequence of FR-016.
 - **FR-017**: The platform's abuse protections for phone sign-in MUST be enabled before the feature is exposed to the public, not after.
 - **FR-018**: Verification volume and spend MUST be observable, with a threshold that raises an alert rather than being discovered on an invoice.
+- **FR-018a**: The threshold MUST be derived from the cohort rather than guessed — cohort size × expected verifications per member per month × the current Zimbabwe rate — with alerts at 50% and 100% of it. Alerts go to the Firebase project owner until the programme names a recipient. The figure MUST be recalculated before general availability, when the cohort ceases to be the ceiling.
 - **FR-019**: The per-verification cost for the programme's actual destination countries MUST be established and accepted before launch. It MUST be taken from current published pricing at the time of the decision, not assumed.
 
 #### Verification
@@ -269,8 +272,16 @@ A phone-only account has no password. If the number is lost, changed or stops re
 - **2026-08-26 — Zimbabwe only.** SMS is permitted to +263 and nowhere else (FR-016). Accepted consequence: a member roaming or on a foreign number cannot use phone sign-in (FR-016a).
 - **2026-08-26 — Cohort first.** Phone registration opens to a staff-managed list before general availability (User Story 6, FR-026 to FR-030), which also bounds the SMS spend on day one.
 
+- **2026-08-26 — Recovery is an administrator action; counsellors request it.** (FR-013a.) A counsellor is who a member actually reaches, so they raise the request; an administrator executes it. Recovery hands someone access to a counselling record, and it is the single action most exposed to social engineering — "I lost my phone, that's my account" is exactly what an attacker says. Keeping execution with the smaller group is proportionate, and it is the first genuine administrator-versus-counsellor distinction in the system, which FR-014a of feature 003 was written to keep cheap.
+- **2026-08-26 — Verification budget is derived from the cohort, alerting at 50% and 100%.** (FR-018a.) With a closed list the ceiling is knowable rather than open-ended: cohort size × expected verifications per member per month × the current Zimbabwe rate. Alerts go to the Firebase project owner until the programme names someone else.
+- **2026-08-26 — Twelve months dormant triggers an identity check, not just another passcode.** (FR-013b.) See the correction below: a second passcode proves nothing about recycling.
+
+## A correction worth recording
+
+An earlier framing of this feature suggested "re-verify dormant accounts by SMS". **That does not work, and it is worth writing down so nobody implements it.** If a number has been recycled, the new holder receives the passcode and passes the check — re-verification by OTP confirms control of the *number*, which is precisely the thing that changed hands. It would produce the appearance of a control while providing none.
+
+What actually distinguishes the original member from a stranger holding their old number is something the stranger cannot know. Hence FR-013b: after a long dormancy, one question drawn from data the member gave at onboarding, before counselling history is opened.
+
 ## Open questions for the programme
 
-1. **What is the acceptable monthly verification spend**, and who is alerted when it is approached? (FR-018, FR-019.) Less pressing now that the cohort is closed — a known list caps the exposure — but still needed before general availability.
-2. **Who may execute a recovery** under FR-013 — any administrator, or a named person? This gates User Story 5, which is P1.
-3. **How long must an account be dormant** before re-verification is required, given the number-recycling risk? (FR-013, Risks.)
+None blocking. The three above are recommended defaults, taken so implementation can proceed; each is recorded as a decision and any of them can be revisited without reopening the specification.
