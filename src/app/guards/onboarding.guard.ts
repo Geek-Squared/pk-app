@@ -2,23 +2,28 @@ import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { Observable, from, of } from 'rxjs';
+import { map, switchMap, take, catchError } from 'rxjs/operators';
 import { IntakeService } from 'src/app/services/intake.service';
-import { Observable, of } from 'rxjs';
-import { map, switchMap, take, catchError, retry } from 'rxjs/operators';
 
 /**
  * Sends members who have not completed intake to /onboarding.
  *
- * Deliberately simple: one identity lookup, one Firestore read, one decision.
+ * Reads intakes/{uid} from the SERVER, and nothing else.
  *
- * An earlier version re-subscribed to `authState` and also queried `workbooks`
- * to detect long-standing members. Two reads in a guard meant two ways to fail,
- * and because it fell open on error a failure was indistinguishable from
- * "no onboarding needed" — the guard appeared to do nothing at all.
+ * Earlier versions read users/{uid}.onboardingStatus. That was a mirror added
+ * purely for the guard's convenience, and it sat on the one document the app
+ * writes to at startup — updateOnlineStatus() fires on every launch. A local
+ * write with no server copy yet makes Firestore serve a latency-compensated
+ * document containing only the fields just written, so the guard saw no status,
+ * decided "not onboarded", and redirected. The onboarding page then read the
+ * real intake, found it complete, and bounced to /home — the flash of the
+ * onboarding screen on refresh.
  *
- * Existing members are now handled on the onboarding page itself, which offers
- * them a skip. That keeps the "never lock anyone out" guarantee while making
- * the guard's behaviour observable rather than silent.
+ * intakes/{uid} has no such race: nothing writes it at boot, and it is the
+ * authoritative record rather than a copy. Reading it here is also no privacy
+ * concern — the member is reading their own document, which the rules already
+ * permit.
  */
 @Injectable({ providedIn: 'root' })
 export class OnboardingGuard {
@@ -31,69 +36,52 @@ export class OnboardingGuard {
   ) {}
 
   canActivate(): Observable<boolean | UrlTree> {
-    // authState, not currentUser. On a cold load — a refresh, or entering at
-    // the root route — currentUser resolves immediately, before Firebase has
-    // attached the auth token to Firestore. The users/{uid} read then arrives
-    // unauthenticated, the rules deny it, and the guard decides on an error
-    // rather than on data. authState waits for the session to be restored,
-    // which is why AuthGuard has always used it.
+    // authState, not currentUser: it waits for the session to be restored,
+    // so the read below carries a real auth token.
     return this.afAuth.authState.pipe(
+      take(1),
       switchMap((user) => {
         if (!user) {
-          console.log('[OnboardingGuard] no session; AuthGuard owns this');
           return of(true as boolean | UrlTree);
         }
 
-        // get(), not valueChanges().take(1).
-        //
-        // At startup the app writes isOnline to users/{uid}. If the server copy
-        // has not arrived yet, Firestore serves a latency-compensated LOCAL
-        // document containing only the fields just written — so the doc appears
-        // to exist while onboardingStatus is missing, and a member who had
-        // finished intake was read as 'none' and sent back to the form. That is
-        // exactly what happens on a cold load, which is why only refresh and
-        // the root route were affected.
-        //
-        // get() waits for a real snapshot rather than taking whatever the cache
-        // can answer with immediately.
-        return runInInjectionContext(this.injector, () =>
-          this.afs
-            .doc<any>(`users/${user.uid}`)
-            .get()
-            .pipe(
-              take(1),
-              // One retry absorbs the window where the auth token is still
-              // settling; without it a single denied read decides the route.
-              retry(1),
-              map((snap) => {
-                const u: any = snap?.data();
-                const status = u?.onboardingStatus ?? 'none';
-                const deferred = this.intake.isDeferredThisSession(user.uid);
-                const allow = status === 'complete' || deferred;
-                console.log('[OnboardingGuard]', {
-                  uid: user.uid,
-                  userDocExists: !!snap?.exists,
-                  fromCache: snap?.metadata?.fromCache,
-                  status,
-                  deferredThisSession: deferred,
-                  decision: allow ? 'allow' : 'redirect -> /onboarding',
-                });
-                return allow ? true : this.router.parseUrl('/onboarding');
-              })
-            )
+        return this.readIntakeStatus(user.uid).pipe(
+          map((status) => {
+            const deferred = this.intake.isDeferredThisSession(user.uid);
+            const allow = status === 'complete' || deferred;
+            console.log('[OnboardingGuard]', {
+              uid: user.uid,
+              intakeStatus: status,
+              deferredThisSession: deferred,
+              decision: allow ? 'allow' : 'redirect -> /onboarding',
+            });
+            return allow ? true : this.router.parseUrl('/onboarding');
+          })
         );
       }),
       catchError((err) => {
-        // Allow, and say so loudly.
-        //
-        // A failed read is not evidence that onboarding is incomplete — it is
-        // evidence that we could not find out. Routing to intake on an error
-        // sent members who had already finished back to the form on every
-        // refresh. The page itself bounces anyone whose intake is complete, so
-        // allowing here cannot let someone skip a genuinely unfinished intake.
+        // Allow. A failed read means we could not find out, not that intake is
+        // incomplete — and the onboarding page bounces anyone already finished,
+        // so nothing can be skipped by allowing here.
         console.error('[OnboardingGuard] lookup failed, allowing through:', err);
         return of(true as boolean | UrlTree);
       })
+    );
+  }
+
+  /**
+   * Server-first, cache as a fallback. `source: 'server'` throws when offline,
+   * which must not strand a member outside the app, so the cached copy is
+   * accepted rather than failing the navigation.
+   */
+  private readIntakeStatus(uid: string): Observable<string> {
+    const ref = () =>
+      runInInjectionContext(this.injector, () => this.afs.doc<any>(`intakes/${uid}`).ref);
+
+    return from(ref().get({ source: 'server' })).pipe(
+      catchError(() => from(ref().get({ source: 'cache' }))),
+      map((snap: any) => (snap?.exists ? snap.data()?.status ?? 'none' : 'none')),
+      take(1)
     );
   }
 }
