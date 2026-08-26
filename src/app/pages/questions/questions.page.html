@@ -1,5 +1,45 @@
 <ion-content [fullscreen]="true" class="page-content question-content">
-  <div class="question-shell" *ngFor="let question of filteredQuestions">
+
+  <!-- Saved. Offer the next step rather than dropping into the workbook. -->
+  <div class="question-shell done" *ngIf="completion">
+    <div class="done-mark">
+      <ion-icon name="checkmark"></ion-icon>
+    </div>
+    <h1>{{ completion.chapterFinished ? 'Chapter complete' : 'Answers saved' }}</h1>
+    <p class="done-note" *ngIf="completion.chapterFinished">
+      That is every story in this chapter finished. Well done.
+    </p>
+    <p class="done-note" *ngIf="!completion.chapterFinished">
+      Your reflection is saved. There is more in this chapter when you are ready.
+    </p>
+
+    <div class="done-coins" *ngIf="completion.coins > 0">
+      <ion-icon name="sparkles"></ion-icon>
+      <span>{{ completion.coins }} Peekay coins earned</span>
+    </div>
+
+    <div class="done-actions">
+      <button type="button" class="nav-next" *ngIf="completion.nextPost" (click)="goToNextPost()">
+        Next story
+        <ion-icon name="chevron-forward"></ion-icon>
+      </button>
+
+      <button type="button" class="nav-next" *ngIf="completion.nextChapter" (click)="goToNextChapter()">
+        Start {{ completion.nextChapter.title }}
+        <ion-icon name="chevron-forward"></ion-icon>
+      </button>
+
+      <button type="button" class="nav-quiet" (click)="goToWorkbook()">
+        {{ completion.nextPost || completion.nextChapter ? 'Not now — my workbook' : 'Go to my workbook' }}
+      </button>
+    </div>
+
+    <p class="done-last" *ngIf="completion.chapterFinished && !completion.nextChapter">
+      That was the last chapter here. Everything you have written is in your workbook.
+    </p>
+  </div>
+
+  <div class="question-shell" *ngFor="let question of filteredQuestions" [hidden]="completion">
 
     <!-- Where you are in the set. The page gave no sense of this before. -->
     <div class="question-progress">
@@ -62,7 +102,7 @@
   </div>
 </ion-content>
 
-<ion-footer class="question-footer" *ngIf="filteredQuestions?.length">
+<ion-footer class="question-footer" *ngIf="filteredQuestions?.length && !completion">
   <div class="footer-inner" *ngFor="let question of filteredQuestions">
     <button
       type="button"
