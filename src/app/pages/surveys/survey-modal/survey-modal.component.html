@@ -1,0 +1,49 @@
+<ion-content class="sm-content">
+  <!-- Close only. The survey is named once, in the editorial header below. -->
+  <div class="sm-bar">
+    <button type="button" class="sm-close" (click)="doLater()" [disabled]="isSaving" aria-label="Close">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="sm-body">
+    <header class="sm-head">
+      <span class="overline">{{ overline }}</span>
+      <h1>{{ heading }}</h1>
+      <p>{{ blurb }}</p>
+    </header>
+
+    <div class="sm-progress" *ngIf="!isLoading && !loadFailed">
+      <div class="sm-progress-row">
+        <span>{{ progressLabel }}</span>
+        <span class="accent">{{ progressValue }}</span>
+      </div>
+      <div class="sm-progress-track">
+        <div class="sm-progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+    </div>
+
+    <div class="sm-loading" *ngIf="isLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <div class="sm-error" *ngIf="loadFailed">
+      <p>This survey could not be loaded right now.</p>
+      <button type="button" class="sm-later" (click)="doLater()">Close</button>
+    </div>
+
+    <div class="sm-survey" *ngIf="surveyModel && !loadFailed">
+      <survey [model]="surveyModel"></survey>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="sm-footer" *ngIf="!isLoading && !loadFailed">
+  <div class="sm-footer-inner">
+    <button type="button" class="sm-submit" [disabled]="isSaving" (click)="submitNow()">
+      {{ isSaving ? 'Saving…' : 'Submit' }}
+    </button>
+    <button type="button" class="sm-later" [disabled]="isSaving" (click)="doLater()">Do it later</button>
+    <p class="sm-note">This never blocks your chapters.</p>
+  </div>
+</ion-footer>

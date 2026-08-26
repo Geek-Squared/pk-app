@@ -8,6 +8,8 @@ import { WorkbookResponse } from 'src/app/models/workbook.interface';
 import { InterventionsService } from 'src/app/services/interventions.service';
 import { InterventionSurveysService } from 'src/app/services/intervention-surveys.service';
 import { DueSurvey } from 'src/app/services/intervention-surveys.service';
+import { ModalController } from '@ionic/angular';
+import { SurveyModalComponent } from 'src/app/pages/surveys/survey-modal/survey-modal.component';
 
 @Component({
   selector: 'app-chapters',
@@ -40,11 +42,16 @@ export class ChaptersPage implements OnInit {
     private utilsService: UtilitiesService,
     private route: ActivatedRoute,
     private workbookService: WorkbookService,
+    private modalCtrl: ModalController,
     private router: Router
   ) {}
 
   /** Measurement surveys owed at this intervention's current timepoint. */
   dueSurveys: DueSurvey[] = [];
+  /** Guards against presenting twice while the modal is already up. */
+  private surveyModalOpen = false;
+  /** Set once the member closes the survey without finishing it. */
+  private surveyDeferred = false;
 
   ngOnInit() {
     this.getChapters();
@@ -58,9 +65,15 @@ export class ChaptersPage implements OnInit {
     if (!interventionId || !uid) {
       return;
     }
-    this.interventionSurveys
-      .dueSurveys(uid, interventionId)
-      .subscribe((due) => (this.dueSurveys = due));
+    this.interventionSurveys.dueSurveys(uid, interventionId).subscribe((due) => {
+      this.dueSurveys = due;
+      // Open it in front of the member rather than waiting to be noticed. Once
+      // they have put it off, this visit stays quiet — the banner below is the
+      // way back in, so it never reopens itself under them.
+      if (due.length && !this.surveyModalOpen && !this.surveyDeferred) {
+        this.openSurvey(due[0]);
+      }
+    });
   }
 
   /**
@@ -72,10 +85,33 @@ export class ChaptersPage implements OnInit {
     this.dueSurveys = [];
   }
 
-  openSurvey(due: DueSurvey): void {
-    this.router.navigate(['/surveys/take-survey', due.surveyId], {
-      queryParams: { interventionId: due.interventionId, timepoint: due.timepoint },
+  async openSurvey(due: DueSurvey): Promise<void> {
+    if (this.surveyModalOpen) {
+      return;
+    }
+    this.surveyModalOpen = true;
+
+    const modal = await this.modalCtrl.create({
+      component: SurveyModalComponent,
+      componentProps: {
+        surveyId: due.surveyId,
+        interventionId: due.interventionId,
+        timepoint: due.timepoint,
+      },
+      // No backdrop dismiss: it is a full page, and a stray tap losing part-
+      // finished answers would be worse than an explicit "Do it later".
+      backdropDismiss: false,
     });
+
+    await modal.present();
+    const { role } = await modal.onWillDismiss();
+    this.surveyModalOpen = false;
+
+    if (role !== 'completed') {
+      // Deferred: stop auto-opening for this visit, but leave the banner up so
+      // they can start it again whenever they want.
+      this.surveyDeferred = true;
+    }
   }
 
   surveyPromptLabel(): string {
