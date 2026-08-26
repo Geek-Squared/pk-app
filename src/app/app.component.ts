@@ -180,7 +180,11 @@ export class AppComponent {
       // to navigate, so a nav bar and a menu button would offer them exits to
       // places that are not ready for them yet.
       trimmed === '/onboarding' ||
-      trimmed.startsWith('/onboarding/')
+      trimmed.startsWith('/onboarding/') ||
+      // Answering a reflection is one focused task, with its own Back and Next.
+      // The bottom nav both invited people away mid-answer and, being fixed at
+      // z-index 100, painted straight over the page's own action bar.
+      trimmed.startsWith('/questions/')
     );
   }
 

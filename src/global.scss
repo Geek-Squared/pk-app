@@ -386,3 +386,155 @@ ion-router-outlet:not(.has-header) {
     --padding-bottom: 92px !important;
   }
 }
+
+/* ============================================================
+   FORMS — one definition for the whole app
+   ------------------------------------------------------------
+   Every form was styled separately: bookings used ion-card and
+   ion-item, feedback mixed ion-input with labels, the auth pages
+   carried their own slate greys (#e2e8f0, #9aa5b5, #1f2937), and
+   the hero profile had ion-items with no labels at all. Six
+   different treatments of the same control.
+
+   Use these classes rather than restyling ion-input per page.
+   Values match the chapters-page vocabulary: 16px radius, #f6fafe
+   resting fill, #285ba7 focus, 48px minimum target.
+   ============================================================ */
+
+.pk-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pk-field {
+  display: flex;
+  flex-direction: column;
+
+  > label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #5a5b5f;
+    margin-bottom: 6px;
+  }
+
+  .pk-optional {
+    font-weight: 500;
+    color: #8a8b90;
+  }
+
+  .pk-hint {
+    margin: 6px 0 0;
+    font-size: 0.72rem;
+    color: #8a8b90;
+  }
+
+  .pk-error {
+    margin: 6px 0 0;
+    font-size: 0.72rem;
+    color: #901e1f;
+  }
+}
+
+/* Native controls, not ion-input: every form that used ion-input relied on a
+   placeholder for its label, so nothing was announced to a screen reader and
+   the prompt disappeared the moment someone typed. */
+.pk-input,
+.pk-textarea,
+.pk-select {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 16px;
+  background: #f6fafe;
+  border: 1px solid rgba(196, 197, 213, 0.4);
+  padding: 12px 14px;
+  font-family: var(--ion-font-family);
+  font-size: 0.92rem;
+  color: #171c1f;
+  appearance: none;
+
+  &::placeholder { color: #acadb1; }
+
+  &:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #285ba7;
+    border-width: 1.5px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    background: #eef2f8;
+  }
+
+  &.is-invalid { border-color: #901e1f; }
+}
+
+.pk-textarea {
+  min-height: 84px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+/* A field with a leading icon, as the auth screens use. */
+.pk-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  > ion-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 1.05rem;
+    color: #8a8b90;
+    pointer-events: none;
+  }
+
+  .pk-input { padding-left: 42px; }
+}
+
+/* Primary action. Navy, full width, 52px — the same pill on every form. */
+.pk-submit {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 999px;
+  background: #00288e;
+  color: #ffffff;
+  font-family: var(--ion-font-family);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(0, 40, 142, 0.22);
+
+  &:active { transform: scale(0.99); }
+
+  &:disabled {
+    background: #c4c5d5;
+    box-shadow: none;
+  }
+}
+
+/* Secondary, for a second choice on the same form. */
+.pk-submit-quiet {
+  width: 100%;
+  height: 48px;
+  border: none;
+  background: transparent;
+  color: #5a5b5f;
+  font-family: var(--ion-font-family);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+/* The card a form sits in. */
+.pk-form-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 1.25rem;
+  border: 1px solid rgba(196, 197, 213, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 40, 142, 0.06);
+}

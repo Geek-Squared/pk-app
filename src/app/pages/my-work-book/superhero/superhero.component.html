@@ -78,37 +78,39 @@
       </ion-button>
     </div>
 
-    <form [formGroup]="heroForm">
+    <form [formGroup]="heroForm" class="pk-form">
       <div class="form-grid">
-        <ion-item lines="none">
-          <ion-label position="stacked">Hero Name</ion-label>
-          <ion-input formControlName="heroName"></ion-input>
-        </ion-item>
+        <div class="pk-field">
+          <label for="hero-name">Hero name</label>
+          <input id="hero-name" class="pk-input" type="text" formControlName="heroName"
+                 placeholder="What are they called?" />
+        </div>
 
-        <ion-item lines="none">
-          <ion-label position="stacked">Everyday Alias</ion-label>
-          <ion-input formControlName="alias"></ion-input>
-        </ion-item>
+        <div class="pk-field">
+          <label for="hero-alias">Everyday alias</label>
+          <input id="hero-alias" class="pk-input" type="text" formControlName="alias"
+                 placeholder="Who are they the rest of the time?" />
+        </div>
 
-        <ion-item lines="none">
-          <ion-label position="stacked">Signature Power</ion-label>
-          <ion-input formControlName="signaturePower"></ion-input>
-        </ion-item>
+        <div class="pk-field">
+          <label for="hero-power">Signature power</label>
+          <input id="hero-power" class="pk-input" type="text" formControlName="signaturePower"
+                 placeholder="What are they strongest at?" />
+        </div>
 
-        <ion-item lines="none">
-          <ion-label position="stacked">Hero Motto</ion-label>
-          <ion-input formControlName="motto"></ion-input>
-        </ion-item>
+        <div class="pk-field">
+          <label for="hero-motto">Hero motto</label>
+          <input id="hero-motto" class="pk-input" type="text" formControlName="motto"
+                 placeholder="Something they live by" />
+        </div>
       </div>
 
-      <ion-item lines="none">
-        <ion-label position="stacked">Origin Story</ion-label>
-        <ion-textarea
-          formControlName="originStory"
-          rows="6"
-          placeholder="Describe how your hero was formed, who stood beside them, and the challenges they’ve overcome."
-        ></ion-textarea>
-      </ion-item>
+      <div class="pk-field">
+        <label for="hero-origin">Origin story</label>
+        <textarea id="hero-origin" class="pk-textarea hero-origin" rows="6"
+                  formControlName="originStory"
+                  placeholder="Describe how your hero was formed, who stood beside them, and the challenges they have overcome."></textarea>
+      </div>
     </form>
 
     <div class="aura-picker">

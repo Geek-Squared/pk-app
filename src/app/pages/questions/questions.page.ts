@@ -8,9 +8,11 @@ import {
   ValidationResult,
 } from 'src/app/services/ai-validation.service';
 import { PostsService } from 'src/app/services/posts.service';
+import { ChaptersService } from 'src/app/services/chapters.service';
 import { UPost } from 'src/app/models/post.interface';
+import { Chapter } from 'src/app/models/chapter.interface';
 import { WorkbookResponseOptions } from 'src/app/models/workbook.interface';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-questions',
@@ -32,6 +34,19 @@ export class QuestionsPage implements OnInit, OnDestroy {
   public validationFeedback: string = '';
   public lastValidationResult: ValidationResult | null = null;
   public currentPost: UPost | null = null;
+
+  /**
+   * Shown once the answers are saved, instead of navigating away. Finishing a
+   * reflection used to drop straight into My Workbook, which ended the session
+   * for most people — there was nothing offering the next step.
+   */
+  public completion: {
+    coins: number;
+    nextPost: UPost | null;
+    nextChapter: Chapter | null;
+    chapterFinished: boolean;
+  } | null = null;
+
   private chapterPosts: UPost[] = [];
   private readonly MIN_MEANINGFUL_SCORE = 5;
   private readonly CHAPTER_COMPLETION_REWARD = 60;
@@ -44,7 +59,8 @@ export class QuestionsPage implements OnInit, OnDestroy {
     private router: Router,
     private utilsService: UtilitiesService,
     private aiValidationService: AiValidationService,
-    private postsService: PostsService
+    private postsService: PostsService,
+    private chaptersService: ChaptersService
   ) {}
 
   ngOnInit() {
@@ -264,14 +280,14 @@ export class QuestionsPage implements OnInit, OnDestroy {
         postId,
         metadata
       )
-      .then(() => {
+      .then(async () => {
         this.utilsService.dismissLoader();
         if (reward.coins > 0) {
           this.utilsService.presentToast(
             `Chapter milestone unlocked! ${reward.coins} Peekay coins earned.`
           );
         }
-        this.router.navigate(['/my-work-book']);
+        await this.showCompletion(postId, reward.coins);
       })
       .catch((err) => {
         this.utilsService.dismissLoader();
@@ -419,6 +435,97 @@ export class QuestionsPage implements OnInit, OnDestroy {
 
       return true; // Accept if basic validation passes and AI is unavailable
     }
+  }
+
+  /**
+   * Works out what to offer once the answers are in: the next story in this
+   * chapter, or — if that was the last one — the next chapter.
+   *
+   * Everything needed is already loaded except the chapter list, which is only
+   * fetched when the chapter has actually been finished.
+   */
+  private async showCompletion(postId: string, coins: number): Promise<void> {
+    const nextPost = this.findNextPost(postId);
+    const chapterFinished = !nextPost;
+
+    let nextChapter: Chapter | null = null;
+    if (chapterFinished) {
+      nextChapter = await this.findNextChapter();
+    }
+
+    this.completion = { coins, nextPost, nextChapter, chapterFinished };
+  }
+
+  /** The next story in this chapter by order, or null if this was the last. */
+  private findNextPost(postId: string): UPost | null {
+    if (!this.chapterPosts?.length) {
+      return null;
+    }
+    const index = this.chapterPosts.findIndex((p) => p.postId === postId);
+    if (index < 0 || index >= this.chapterPosts.length - 1) {
+      return null;
+    }
+    return this.chapterPosts[index + 1];
+  }
+
+  /**
+   * The next chapter in the same intervention. Null when this was the last one,
+   * or when the chapter carries no interventionId — in which case the member is
+   * offered their workbook instead of a broken link.
+   */
+  private async findNextChapter(): Promise<Chapter | null> {
+    const chapterId = this.currentPost?.chapterId;
+    if (!chapterId) {
+      return null;
+    }
+
+    try {
+      const current: any = await firstValueFrom(
+        this.chaptersService.getChapterById(chapterId)
+      );
+      const interventionId = current?.interventionId;
+      if (!interventionId) {
+        return null;
+      }
+
+      const docs: any[] = await firstValueFrom(
+        this.chaptersService.getChaptersByInterventionId(interventionId)
+      );
+      const chapters: Chapter[] = docs
+        .map((e: any) => ({ id: e.payload.doc.id, ...e.payload.doc.data() }))
+        // Sorted client-side: chapters missing `order` would be dropped
+        // entirely by an orderBy query, which is how they went missing from
+        // the admin.
+        .sort((a: any, b: any) => (a?.order ?? 0) - (b?.order ?? 0));
+
+      const index = chapters.findIndex((c) => c.id === chapterId);
+      if (index < 0 || index >= chapters.length - 1) {
+        return null;
+      }
+      return chapters[index + 1];
+    } catch (error) {
+      console.error('Could not work out the next chapter', error);
+      return null;
+    }
+  }
+
+  goToNextPost(): void {
+    const next = this.completion?.nextPost;
+    if (!next?.postId) return;
+    this.completion = null;
+    this.router.navigate(['/questions', next.postId]);
+  }
+
+  goToNextChapter(): void {
+    const next = this.completion?.nextChapter;
+    if (!next?.id) return;
+    this.completion = null;
+    this.router.navigate(['/posts', next.id]);
+  }
+
+  goToWorkbook(): void {
+    this.completion = null;
+    this.router.navigate(['/my-work-book']);
   }
 
   private calculateChapterReward(postId?: string): {

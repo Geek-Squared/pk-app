@@ -1,69 +1,290 @@
-// Validation feedback styles
-.validation-status {
+/* The feedback on this page was styled in Bootstrap's alert palette — #007bff,
+   #28a745, #ffc107, #f8d7da — none of which appear anywhere else in the app.
+   These are the logo hues from theme/variables.scss: cyan for a good answer,
+   amber for one that needs more, coral for one too short to count. */
+
+.question-content {
+  --background: #f6fafe;
+}
+
+.question-shell {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 22px 24px 8px;
+}
+
+/* ---- progress ---- */
+.question-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .progress-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .overline {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #0060ac;
+  }
+
+  .count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #5a5b5f;
+  }
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 40, 142, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #679aca, #285ba7);
+  transition: width 0.3s ease;
+}
+
+/* ---- the question ---- */
+.question-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #00288e;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 20px 0 0;
+  text-wrap: pretty;
+}
+
+/* ---- the answer ---- */
+.answer-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 1.1rem;
+  border: 1px solid rgba(196, 197, 213, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 40, 142, 0.06);
+  margin-top: 16px;
+}
+
+/* Sizing only — fill, border, focus and font come from .pk-textarea. */
+.answer-input {
+  min-height: 150px;
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+.answer-meta {
   display: flex;
   align-items: center;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #f0f8ff;
-  border-left: 4px solid #007bff;
-  border-radius: 4px;
-  
-  ion-spinner {
-    margin-right: 10px;
-  }
-  
-  span {
-    font-size: 14px;
-    color: #007bff;
+  justify-content: space-between;
+  margin-top: 9px;
+  font-size: 0.72rem;
+  color: #8a8b90;
+
+  .count { font-variant-numeric: tabular-nums; }
+}
+
+/* ---- feedback ---- */
+.feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 14px;
+  border-radius: 18px;
+  padding: 13px 15px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+
+  .feedback-icon {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+
+    ion-icon { font-size: 0.9rem; color: #ffffff; }
   }
 }
 
-.validation-feedback {
+.feedback.checking {
+  background: #e3edfb;
+  color: #1e4784;
+  align-items: center;
+
+  ion-spinner { width: 20px; height: 20px; flex: none; }
+}
+
+.feedback.is-good {
+  background: #dcf2f6;
+  color: #045766;
+  .feedback-icon { background: #045766; }
+}
+
+.feedback.is-partial {
+  background: #fdf3dc;
+  color: #694c05;
+  .feedback-icon { background: #694c05; }
+}
+
+.feedback.is-short {
+  background: #fbe3e3;
+  color: #901e1f;
+  .feedback-icon { background: #901e1f; }
+}
+
+/* ---- completion ---- */
+.question-shell.done {
+  /* /questions is immersive, so this owns the whole screen. Centred, because
+     it is a moment rather than a page of content — top-aligned it read as
+     three stranded lines above half a screen of nothing. */
+  min-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  h1 {
+    font-size: 2.05rem;
+    font-weight: 800;
+    color: #00288e;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin: 1.5rem 0 0;
+  }
+}
+
+.done-mark {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: #dcf2f6;
   display: flex;
   align-items: center;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  
-  ion-icon {
-    margin-right: 8px;
-    font-size: 18px;
+  justify-content: center;
+
+  ion-icon { font-size: 2.6rem; color: #045766; }
+}
+
+.done-note {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #444653;
+  margin: 0.6rem auto 0;
+  max-width: 34ch;
+}
+
+.done-coins {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1.1rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fdf3dc;
+  color: #694c05;
+  font-size: 0.84rem;
+  font-weight: 700;
+
+  ion-icon { font-size: 1rem; }
+}
+
+.done-actions {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2.25rem;
+
+  /* Full width in the column, and keep the pill's own 52px height. */
+  .nav-next {
+    flex: none;
+    width: 100%;
   }
 }
 
-.success-feedback {
-  background-color: #d4edda;
-  color: #155724;
-  border-left: 4px solid #28a745;
-  
-  ion-icon {
-    color: #28a745;
-  }
+.done-last {
+  margin: 1.25rem auto 0;
+  max-width: 34ch;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #8a8b90;
 }
 
-.warning-feedback {
-  background-color: #fff3cd;
-  color: #856404;
-  border-left: 4px solid #ffc107;
-  
-  ion-icon {
-    color: #ffc107;
+/* ---- empty ---- */
+.question-empty {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 4rem 24px;
+  text-align: center;
+  color: #5a5b5f;
+
+  ion-icon { font-size: 2.6rem; color: #acadb1; }
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #00288e;
+    margin: 0.75rem 0 0.25rem;
   }
+
+  p { font-size: 0.9rem; margin: 0; }
 }
 
-.error-feedback {
-  background-color: #f8d7da;
-  color: #721c24;
-  border-left: 4px solid #dc3545;
-  
-  ion-icon {
-    color: #dc3545;
-  }
+/* ---- navigation ---- */
+/* A real pinned footer. /questions is registered as an immersive route in
+   app.component.ts, so the fixed bottom nav is not drawn on this screen and
+   cannot paint over it. */
+.question-footer {
+  --background: #f6fafe;
+  background: #f6fafe;
+
+  &::before { display: none; }
 }
 
-// Button styling when disabled
-ion-button[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
+.footer-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 14px 24px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  border-top: 1px solid rgba(0, 40, 142, 0.06);
+  display: flex;
+  gap: 10px;
+}
+
+.nav-back {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #acadb1;
+  color: #5a5b5f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+
+  &:active { transform: scale(0.98); }
+}
+
+/* Layout only — colour, height and radius come from .pk-submit.
+   Scoped to the footer: in the completion screen these sit in a COLUMN, and
+   flex:1 there resolves flex-basis to 0 and collapses the 52px pill to a
+   sliver. */
+.footer-inner .nav-next {
+  flex: 1;
 }

@@ -10,29 +10,29 @@
 
     <ion-card>
       <ion-card-content>
-        <form>
-          <div class="field">
-            <p class="field-label">Display Name</p>
-            <ion-item lines="none">
-              <ion-icon name="person-outline" slot="start" aria-hidden="true"></ion-icon>
-              <ion-input type="text" #name required placeholder="Jane Doe"></ion-input>
-            </ion-item>
+        <form class="pk-form">
+          <div class="pk-field">
+            <label for="reg-name">Display Name</label>
+            <div class="pk-input-group">
+              <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+              <input id="reg-name" class="pk-input" type="text" #name required autocomplete="name" placeholder="Jane Doe" />
+            </div>
           </div>
 
-          <div class="field">
-            <p class="field-label">Email</p>
-            <ion-item lines="none">
-              <ion-icon name="mail-outline" slot="start" aria-hidden="true"></ion-icon>
-              <ion-input type="email" #email required placeholder="your@email.com"></ion-input>
-            </ion-item>
+          <div class="pk-field">
+            <label for="reg-email">Email</label>
+            <div class="pk-input-group">
+              <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+              <input id="reg-email" class="pk-input" type="email" #email required autocomplete="email" placeholder="your@email.com" />
+            </div>
           </div>
 
-          <div class="field">
-            <p class="field-label">Password</p>
-            <ion-item lines="none">
-              <ion-icon name="lock-closed-outline" slot="start" aria-hidden="true"></ion-icon>
-              <ion-input type="password" #password required placeholder="password"></ion-input>
-            </ion-item>
+          <div class="pk-field">
+            <label for="reg-password">Password</label>
+            <div class="pk-input-group">
+              <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+              <input id="reg-password" class="pk-input" type="password" #password required autocomplete="new-password" placeholder="At least 8 characters" />
+            </div>
           </div>
 
           <div class="consent-row">

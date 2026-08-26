@@ -303,3 +303,10 @@ ion-item {
     margin-top: 1rem;
   }
 }
+
+/* Sizing only — the field itself comes from the form system in global.scss. */
+.hero-origin { min-height: 150px; }
+
+/* The grid keeps two columns where there is room; the fields inside are
+   .pk-field, shared with every other form in the app. */
+.form-grid { gap: 14px; }
