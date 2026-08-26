@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SurveyService } from 'src/app/services/survey.service';
 import { Model } from 'survey-core';
 @Component({
@@ -13,6 +13,7 @@ export class TakeSurveyComponent implements OnInit {
   survey: any;
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private surveysService: SurveyService
   ) {}
 
@@ -33,13 +34,30 @@ export class TakeSurveyComponent implements OnInit {
 
   submit(context) {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const response = {
+
+    // Scope, when the survey was opened as an intervention measurement.
+    // Without these the response cannot be matched to its timepoint, the
+    // due-survey check never finds it, and the prompt reappears forever.
+    const interventionId = this.route.snapshot.queryParamMap.get('interventionId');
+    const timepoint = this.route.snapshot.queryParamMap.get('timepoint');
+
+    const response: any = {
       ...context.data,
       uid: user?.uid || null,
       userId: user?.uid || null,
       userName: user?.displayName || user?.email || null,
       submittedAt: Date.now(),
     };
-    this.surveysService.saveSurveyResponse(this.survey.id, response).then();
+    if (interventionId && timepoint) {
+      response.interventionId = interventionId;
+      response.timepoint = timepoint;
+    }
+
+    this.surveysService.saveSurveyResponse(this.survey.id, response).then(() => {
+      // Return to the intervention they came from, not the generic list.
+      if (interventionId) {
+        this.router.navigateByUrl(`/chapters/${interventionId}`);
+      }
+    });
   }
 }

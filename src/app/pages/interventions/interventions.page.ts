@@ -31,6 +31,7 @@ export class InterventionsPage implements OnInit {
   private allChapters: any[] = [];
   /** null means "not narrowed" — see inPackage(). */
   private visibleIds: string[] | null = null;
+  private currentUid: string | undefined;
 
   constructor(
     private interventionsService: InterventionsService,
@@ -42,6 +43,7 @@ export class InterventionsPage implements OnInit {
 
   ngOnInit(): void {
     const currentUid = JSON.parse(localStorage.getItem('user') || 'null')?.uid;
+    this.currentUid = currentUid;
 
     // 1. Fetch interventions list (respecting per-user visibility)
     this.interventions$ = this.interventionsService.getInterventions().pipe(
@@ -91,6 +93,13 @@ export class InterventionsPage implements OnInit {
    * filled in a form.
    */
   private inPackage(intervention: any): boolean {
+    // An explicit staff assignment always shows, whatever the member chose.
+    // Restricted interventions are handed out deliberately — for testers, or
+    // for a specific person — so requiring them to also have picked it during
+    // onboarding would hide the very thing staff just assigned them.
+    if (this.interventionsService.isExplicitlyAssigned(intervention, this.currentUid)) {
+      return true;
+    }
     if (this.visibleIds === null) {
       return true;
     }
@@ -98,15 +107,9 @@ export class InterventionsPage implements OnInit {
   }
 
   private canView(intervention: any, uid: string | undefined): boolean {
-    // Restricted interventions are only visible to the selected testers.
-    // Anything without a visibility field stays visible to everyone (legacy).
-    if (intervention?.visibility !== 'restricted') {
-      return true;
-    }
-    const allowed = Array.isArray(intervention?.allowedUserIds)
-      ? intervention.allowedUserIds
-      : [];
-    return !!uid && allowed.includes(uid);
+    // One rule, owned by the service, so every surface that lists interventions
+    // applies the same one.
+    return this.interventionsService.canView(intervention, uid);
   }
 
   calculateProgress() {
