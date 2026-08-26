@@ -96,6 +96,49 @@ describe('cross-member isolation (FR-008, SC-001)', () => {
     await assertFails(getDoc(doc(asB(), 'workbooks', 'wb-a')));
   });
 
+  // Privilege escalation: `role` decides isStaff(), and it lives on a document
+  // the account itself may write. Without the touchesRole() guard a member
+  // could promote themselves and take the whole curriculum with them.
+  it('DENIES A granting itself a staff role', async () => {
+    await assertFails(updateDoc(doc(asA(), 'users', MEMBER_A), { role: 'Administrator' }));
+  });
+
+  it('DENIES A setting any role on itself, even a harmless one', async () => {
+    await assertFails(updateDoc(doc(asA(), 'users', MEMBER_A), { role: 'client' }));
+  });
+
+  it('DENIES A smuggling a role alongside a legitimate field', async () => {
+    await assertFails(
+      updateDoc(doc(asA(), 'users', MEMBER_A), { displayName: 'ok', role: 'Counsellor' })
+    );
+  });
+
+  it('DENIES a member creating a user document that carries a role', async () => {
+    await assertFails(
+      setDoc(doc(asA(), 'users', MEMBER_A), { uid: MEMBER_A, role: 'Administrator' })
+    );
+  });
+
+  it('ALLOWS A editing the rest of its profile while holding a role', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users', MEMBER_A), {
+        uid: MEMBER_A,
+        displayName: 'A',
+        role: 'client',
+      });
+    });
+    // Unchanged role in the payload is not a change, so this must still pass.
+    await assertSucceeds(
+      updateDoc(doc(asA(), 'users', MEMBER_A), { displayName: 'renamed' })
+    );
+  });
+
+  it('ALLOWS staff to set a role', async () => {
+    await assertSucceeds(
+      updateDoc(doc(asStaff(), 'users', MEMBER_B), { role: 'Counsellor' })
+    );
+  });
+
   it('ALLOWS A reading own workbook', async () => {
     await assertSucceeds(getDoc(doc(asA(), 'workbooks', 'wb-a')));
   });
@@ -250,8 +293,20 @@ describe('staff capability (FR-011, FR-012, US4)', () => {
     await assertSucceeds(getDoc(doc(asStaff(), 'users', MEMBER_A)));
   });
 
-  it('DENIES staff reading a member workbook (access without a use case)', async () => {
-    await assertFails(getDoc(doc(asStaff(), 'workbooks', 'wb-a')));
+  // Reversed deliberately. The admin portal's Workbooks feature, its
+  // intervention completion stats, and the onWorkbookCompletion deep-link all
+  // read other members' workbooks, so the previous "access without a use case"
+  // reasoning did not hold once the admin was in scope.
+  it('ALLOWS staff reading a member workbook (admin Workbooks feature)', async () => {
+    await assertSucceeds(getDoc(doc(asStaff(), 'workbooks', 'wb-a')));
+  });
+
+  it('ALLOWS staff listing every workbook (rules are not filters)', async () => {
+    await assertSucceeds(getDocs(collection(asStaff(), 'workbooks')));
+  });
+
+  it('DENIES a member listing every workbook', async () => {
+    await assertFails(getDocs(collection(asA(), 'workbooks')));
   });
 
   it('FR-012: a user document with no role field is NOT staff', async () => {
@@ -305,8 +360,19 @@ describe('backend-only collections are closed to all clients (FR-025)', () => {
     await assertFails(getDoc(doc(asA(), c, c === 'adminNotifications' ? 'an1' : 'k1')));
   });
 
-  it.each(['adminNotifications', 'knowledge_index'])('DENIES even staff read of %s', async (c) => {
-    await assertFails(getDoc(doc(asStaff(), c, c === 'adminNotifications' ? 'an1' : 'k1')));
+  // knowledge_index stays closed to everyone — only Cloud Functions touch it.
+  it('DENIES even staff read of knowledge_index', async () => {
+    await assertFails(getDoc(doc(asStaff(), 'knowledge_index', 'k1')));
+  });
+
+  // adminNotifications is still function-written, but the admin portal's
+  // Notifications page reads it, so staff read is required.
+  it('ALLOWS staff read of adminNotifications', async () => {
+    await assertSucceeds(getDoc(doc(asStaff(), 'adminNotifications', 'an1')));
+  });
+
+  it('DENIES staff writing adminNotifications', async () => {
+    await assertFails(setDoc(doc(asStaff(), 'adminNotifications', 'an2'), { x: 1 }));
   });
 });
 

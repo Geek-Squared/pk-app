@@ -25,6 +25,18 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    // True when this write would create or change a `role` field.
+    //
+    // Two shapes, because `resource` is null on a create: there the whole
+    // payload is new, so any `role` key at all counts; on an update only an
+    // actually-changed key does, which lets a member save the rest of their
+    // profile without having to strip a role they already carry.
+    function touchesRole() {
+      return resource == null
+        ? request.resource.data.keys().hasAny(['role'])
+        : request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']);
+    }
+
     // Counsellors and administrators share one staff capability (FR-014).
     // Referenced by name everywhere so splitting it later is a one-line change
     // rather than a rewrite (FR-014a).
@@ -67,7 +79,16 @@ service cloud.firestore {
       // Writes are now restricted, which they were not before: any signed-in
       // account could previously overwrite any member's profile.
       allow read: if isSignedIn();
-      allow create, update: if isSelf(uid) || isStaff();
+      // PRIVILEGE ESCALATION GUARD. `role` is what isStaff() reads, and it sits
+      // on a document the account itself may edit — so the check and the thing
+      // being checked were the same writable record. A client could set
+      // role: "Administrator" on their own document and gain write access to
+      // the whole curriculum plus read access to every chat.
+      //
+      // Members keep full control of the rest of their profile; only staff may
+      // write a role, and new accounts get theirs from createStaffUser.
+      allow create, update: if isStaff()
+        || (isSelf(uid) && !touchesRole());
       // Self-delete is required: AuthenticationService.DeleteAccount() removes
       // the member's own user document before deleting their auth account. A
       // blanket `if false` here would break account deletion — found by tracing
@@ -134,11 +155,34 @@ service cloud.firestore {
     // ---------- workbooks ----------
 
     match /workbooks/{workbookId} {
-      // A member's own reflections. Deliberately NOT readable by staff: nothing
-      // in the app reads another member's workbook, so granting it would be
-      // access without a use case.
-      allow read, update, delete: if isSignedIn() && request.auth.uid == resource.data.uid;
-      allow create: if isSignedIn() && request.auth.uid == request.resource.data.uid;
+      // A member's own reflections, plus programme staff.
+      //
+      // The earlier "deliberately not readable by staff" note held only for the
+      // mobile app. The ADMIN PORTAL is built around reading these: its
+      // Workbooks feature lists every member's workbook and opens individual
+      // ones, the interventions list derives client counts and average
+      // completion from them, and onWorkbookCompletion deep-links staff
+      // straight into a named client's workbook. The product decision was
+      // already made; these rules simply had not caught up.
+      //
+      // Staff need an UNCONDITIONAL read because rules are not filters: the
+      // admin queries the whole collection, and a rule satisfiable only through
+      // resource.data.uid rejects any unfiltered query outright. The member
+      // clause still serves the app, which always queries
+      // where('uid', '==', <self>).
+      //
+      // Note this grants every counsellor and administrator sight of every
+      // member's reflections. Narrowing it to a member's assigned counsellor
+      // via careAssignments is the obvious next step if that becomes too broad.
+      allow read: if isStaff()
+        || (isSignedIn() && request.auth.uid == resource.data.uid);
+      allow update, delete: if isStaff()
+        || (isSignedIn() && request.auth.uid == resource.data.uid);
+      // Staff create is required too: registering a client from the admin
+      // provisions that client's workbook, so the uid on the new document is
+      // not the acting user's.
+      allow create: if isStaff()
+        || (isSignedIn() && request.auth.uid == request.resource.data.uid);
     }
 
     // ---------- curriculum: readable by members, writable by staff ----------
@@ -214,7 +258,11 @@ service cloud.firestore {
     // No client touches either, so clients get nothing (FR-025).
 
     match /adminNotifications/{id} {
-      allow read, write: if false;
+      // Written only by Cloud Functions, which bypass rules — but READ by the
+      // admin portal's Notifications page, which queries this collection
+      // ordered by createdAt. `if false` made that page fail outright.
+      allow read: if isStaff();
+      allow write: if false;
     }
 
     match /knowledge_index/{id} {
