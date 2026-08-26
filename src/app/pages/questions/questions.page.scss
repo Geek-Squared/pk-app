@@ -1,69 +1,237 @@
-// Validation feedback styles
-.validation-status {
+/* The feedback on this page was styled in Bootstrap's alert palette — #007bff,
+   #28a745, #ffc107, #f8d7da — none of which appear anywhere else in the app.
+   These are the logo hues from theme/variables.scss: cyan for a good answer,
+   amber for one that needs more, coral for one too short to count. */
+
+.question-content {
+  --background: #f6fafe;
+}
+
+.question-shell {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 22px 24px 24px;
+}
+
+/* ---- progress ---- */
+.question-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .progress-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .overline {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #0060ac;
+  }
+
+  .count {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #5a5b5f;
+  }
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 40, 142, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #679aca, #285ba7);
+  transition: width 0.3s ease;
+}
+
+/* ---- the question ---- */
+.question-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #00288e;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 20px 0 0;
+  text-wrap: pretty;
+}
+
+/* ---- the answer ---- */
+.answer-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 1.1rem;
+  border: 1px solid rgba(196, 197, 213, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 40, 142, 0.06);
+  margin-top: 16px;
+}
+
+.answer-input {
+  width: 100%;
+  min-height: 150px;
+  border-radius: 16px;
+  background: #f6fafe;
+  border: 1px solid rgba(196, 197, 213, 0.4);
+  padding: 13px 14px;
+  font-family: inherit;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: #171c1f;
+  resize: vertical;
+
+  &::placeholder { color: #acadb1; }
+
+  &:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #285ba7;
+    border-width: 1.5px;
+  }
+}
+
+.answer-meta {
   display: flex;
   align-items: center;
-  padding: 10px;
-  margin-top: 10px;
-  background-color: #f0f8ff;
-  border-left: 4px solid #007bff;
-  border-radius: 4px;
-  
-  ion-spinner {
-    margin-right: 10px;
-  }
-  
-  span {
-    font-size: 14px;
-    color: #007bff;
+  justify-content: space-between;
+  margin-top: 9px;
+  font-size: 0.72rem;
+  color: #8a8b90;
+
+  .count { font-variant-numeric: tabular-nums; }
+}
+
+/* ---- feedback ---- */
+.feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 14px;
+  border-radius: 18px;
+  padding: 13px 15px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+
+  .feedback-icon {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+
+    ion-icon { font-size: 0.9rem; color: #ffffff; }
   }
 }
 
-.validation-feedback {
+.feedback.checking {
+  background: #e3edfb;
+  color: #1e4784;
+  align-items: center;
+
+  ion-spinner { width: 20px; height: 20px; flex: none; }
+}
+
+.feedback.is-good {
+  background: #dcf2f6;
+  color: #045766;
+  .feedback-icon { background: #045766; }
+}
+
+.feedback.is-partial {
+  background: #fdf3dc;
+  color: #694c05;
+  .feedback-icon { background: #694c05; }
+}
+
+.feedback.is-short {
+  background: #fbe3e3;
+  color: #901e1f;
+  .feedback-icon { background: #901e1f; }
+}
+
+/* ---- empty ---- */
+.question-empty {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 4rem 24px;
+  text-align: center;
+  color: #5a5b5f;
+
+  ion-icon { font-size: 2.6rem; color: #acadb1; }
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #00288e;
+    margin: 0.75rem 0 0.25rem;
+  }
+
+  p { font-size: 0.9rem; margin: 0; }
+}
+
+/* ---- navigation ---- */
+.question-footer {
+  --background: #f6fafe;
+  background: #f6fafe;
+
+  &::before { display: none; }
+}
+
+.footer-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 14px 24px 22px;
+  border-top: 1px solid rgba(0, 40, 142, 0.06);
+  display: flex;
+  gap: 10px;
+}
+
+.nav-back {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #acadb1;
+  color: #5a5b5f;
   display: flex;
   align-items: center;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 4px;
-  font-size: 14px;
-  
-  ion-icon {
-    margin-right: 8px;
-    font-size: 18px;
-  }
+  justify-content: center;
+  font-size: 1.2rem;
+
+  &:active { transform: scale(0.98); }
 }
 
-.success-feedback {
-  background-color: #d4edda;
-  color: #155724;
-  border-left: 4px solid #28a745;
-  
-  ion-icon {
-    color: #28a745;
-  }
-}
+.nav-next {
+  flex: 1;
+  height: 52px;
+  border: none;
+  border-radius: 999px;
+  background: #00288e;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(0, 40, 142, 0.22);
 
-.warning-feedback {
-  background-color: #fff3cd;
-  color: #856404;
-  border-left: 4px solid #ffc107;
-  
-  ion-icon {
-    color: #ffc107;
-  }
-}
+  &:active { transform: scale(0.99); }
 
-.error-feedback {
-  background-color: #f8d7da;
-  color: #721c24;
-  border-left: 4px solid #dc3545;
-  
-  ion-icon {
-    color: #dc3545;
-  }
-}
+  &.is-final { background: #045766; box-shadow: 0 10px 24px rgba(4, 87, 102, 0.22); }
 
-// Button styling when disabled
-ion-button[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
+  ion-icon { font-size: 1.05rem; }
 }

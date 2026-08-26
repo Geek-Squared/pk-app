@@ -1,193 +1,182 @@
-// Section accent — see --pk-card-* in theme/variables.scss.
-// The hue rides on this page's icon chip only; buttons, links and focus
-// states stay on --pk-primary so blue remains the action colour.
-:host {
-  --pk-section-tint: var(--pk-card-teal-tint);
-  --pk-section-ink: var(--pk-card-teal-ink);
-  --pk-section-soft: var(--pk-card-teal-soft);
+/* Values taken from the chapters page and variables.scss, so this reads as the
+   same app: #f6fafe ground, #00288e display heading, 24px cards, 48px targets. */
+
+.booking-content {
+  --background: #f6fafe;
 }
 
-ion-content {
-    --ion-background-color: rgb(40, 91, 167, 1);
-    --ion-background-color: linear-gradient(
-      90deg,
-      rgb(103, 154, 202) 0%,
-      rgb(40, 91, 167) 100%
-    );
+.booking-shell {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 26px 24px 8px;
+}
+
+/* Editorial header — overline + display, the chapters-page pairing. */
+.booking-header {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  .overline {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #0060ac;
   }
-  
-  img {
-    max-width: 100px;
-    border: 0;
-    margin: 0 auto;
+
+  h1 {
+    font-size: 2.05rem;
+    font-weight: 800;
+    color: #00288e;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin: 0;
   }
 
   p {
-    font-size: 15px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #444653;
+    margin: 6px 0 0;
   }
-  
-  ion-card {
+}
+
+.booking-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 1.25rem;
+  border: 1px solid rgba(196, 197, 213, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 40, 142, 0.06);
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #5a5b5f;
+    margin-bottom: 6px;
+  }
+
+  .optional {
+    font-weight: 500;
+    color: #8a8b90;
+  }
+
+  .hint {
+    margin: 6px 0 0;
+    font-size: 0.72rem;
+    color: #8a8b90;
+  }
+}
+
+/* Plain inputs rather than ion-input: the fields previously carried no labels
+   at all, only placeholders, which vanish on focus and are not announced. */
+.pk-input {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 16px;
+  background: #f6fafe;
+  border: 1px solid rgba(196, 197, 213, 0.4);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: #171c1f;
+
+  &::placeholder { color: #acadb1; }
+
+  &:focus {
+    outline: none;
     background: #ffffff;
-    border-top-left-radius: 0px;
-    // border-bottom-left-radius: 25px;
-    // border-top-right-radius: 25px;
-    border-bottom-right-radius: 0px;
-    padding-bottom: 50px;
-    padding-left: 10px;
-    padding-right: 10px;
-    width: 100% !important;
-    max-width: 400px;
-  }
-  ion-card-header {
-    display: block;
-    h5 {
-      ion-icon {
-        position: relative;
-        top: 3px;
-      }
-    }
-  }
-  ion-label {
-    font-size: 0.9em !important;
-    color: #666 !important;
-  }
-  
-  .item-label {
-    font-size: 13px;
-  }
-  
-  .ioninput {
-    input {
-      height: 30px;
-    }
-  }
-  
-  ion-item {
-    --ion-background-color: #f5f5f5;
-    --border-width: 0 0 0 0;
-    --min-height: 35px;
-    margin: 0 0 8px 0;
-    border-radius: 5px;
-  }
-  
-  ion-item:focus {
-    --highlight-color-focused: #cccccc;
-  }
-
-// Desktop-only styles
-@media (min-width: 768px) {
-  ion-content {
-    --ion-background-color: #f8fafc;
-  }
-
-  // Hide mobile content on desktop
-  ion-grid {
-    display: none !important;
-  }
-
-  .booking-content {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
-
-    .booking-card {
-      background: white;
-      border-radius: 16px;
-      padding: 3rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-
-      .card-header {
-        text-align: center;
-        margin-bottom: 3rem;
-
-        ion-icon {
-          font-size: 4rem;
-          color: var(--pk-section-ink);
-          margin-bottom: 1rem;
-        }
-
-        h2 {
-          font-size: 2.25rem;
-          font-weight: 700;
-          color: var(--heading-color);
-          margin: 0 0 1rem 0;
-        }
-
-        p {
-          color: #64748b;
-          font-size: 1.1rem;
-          line-height: 1.6;
-          margin: 0;
-        }
-      }
-
-      .booking-form {
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1.5rem;
-          margin-bottom: 1.5rem;
-
-          @media (max-width: 900px) {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .form-group {
-          &.full-width {
-            grid-column: 1 / -1;
-          }
-
-          label {
-            display: block;
-            color: #374151;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-          }
-
-          ion-input {
-            --background: #f9fafb;
-            --border-color: #d1d5db;
-            --border-radius: 8px;
-            --border-width: 1px;
-            --color: #1f2937;
-            --placeholder-color: #9ca3af;
-            --padding-start: 1rem;
-            --padding-end: 1rem;
-            --padding-top: 0.75rem;
-            --padding-bottom: 0.75rem;
-
-            &:focus-within {
-              --border-color: #2d72ad;
-            }
-          }
-        }
-
-        .submit-btn {
-          --border-radius: 12px;
-          --padding-start: 2rem;
-          --padding-end: 2rem;
-          --padding-top: 1rem;
-          --padding-bottom: 1rem;
-          width: 100%;
-          margin-top: 1rem;
-          font-weight: 600;
-          font-size: 1rem;
-        }
-      }
-    }
+    border-color: #285ba7;
+    border-width: 1.5px;
   }
 }
 
-// Hide desktop content on mobile
-@media (max-width: 767px) {
-  .desktop-nav,
-  .desktop-content {
-    display: none !important;
+.pk-textarea {
+  min-height: 84px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+/* Crisis affordance. Coral is reserved for urgency across the app. */
+.crisis {
+  width: 100%;
+  margin-top: 16px;
+  background: #fbe3e3;
+  border: none;
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:active { transform: scale(0.99); }
+
+  .crisis-icon {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: #901e1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon { font-size: 1.05rem; color: #ffffff; }
+  }
+
+  .crisis-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    b { font-size: 0.86rem; font-weight: 700; color: #901e1f; }
+    span { font-size: 0.76rem; color: #901e1f; opacity: 0.85; }
+  }
+
+  .crisis-caret { margin-left: auto; flex: none; color: #901e1f; font-size: 1.05rem; }
+}
+
+.booking-foot {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 14px 24px 26px;
+}
+
+.submit {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 999px;
+  background: #00288e;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(0, 40, 142, 0.22);
+
+  &:active { transform: scale(0.99); }
+
+  &:disabled {
+    background: #c4c5d5;
+    box-shadow: none;
   }
 }
-  
+
+.foot-note {
+  margin: 9px 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #8a8b90;
+}

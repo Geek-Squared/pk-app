@@ -1,55 +1,97 @@
-<ion-content [fullscreen]="true" class="page-content ion-padding">
-  <div class="dashboard-wrapper">
-    <div *ngFor="let question of filteredQuestions">
-    <h3>{{question?.narrative}}</h3>
+<ion-content [fullscreen]="true" class="page-content question-content">
+  <div class="question-shell" *ngFor="let question of filteredQuestions">
 
-    <ion-item>
-      <ion-textarea
+    <!-- Where you are in the set. The page gave no sense of this before. -->
+    <div class="question-progress">
+      <div class="progress-row">
+        <span class="overline">Reflection</span>
+        <span class="count">Question {{ pager.index + 1 }} of {{ pager.count }}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="((pager.index + 1) / (pager.count || 1)) * 100"></div>
+      </div>
+    </div>
+
+    <!-- The question is the heading, not a bare h3 in the body copy. -->
+    <h1 class="question-title">{{ question?.narrative }}</h1>
+
+    <div class="answer-card">
+      <textarea
+        class="answer-input"
         rows="7"
-        placeholder="Enter your response here..."
+        placeholder="Take your time — there is no wrong answer."
         [(ngModel)]="questionResponse"
-      ></ion-textarea>
-    </ion-item>
-    
-    <!-- Validation feedback -->
-    <div *ngIf="isValidating" class="validation-status">
+      ></textarea>
+      <div class="answer-meta">
+        <span>Take your time — there is no wrong answer.</span>
+        <span class="count">{{ questionResponse?.length || 0 }}</span>
+      </div>
+    </div>
+
+    <!-- Checking -->
+    <div class="feedback checking" *ngIf="isValidating">
       <ion-spinner name="dots"></ion-spinner>
       <span>{{ validationFeedback }}</span>
     </div>
-    
-    <div *ngIf="validationFeedback && !isValidating" class="validation-feedback" 
-         [ngClass]="{'success-feedback': lastValidationResult?.score >= 8, 
-                     'warning-feedback': lastValidationResult?.score >= 5 && lastValidationResult?.score < 8,
-                     'error-feedback': lastValidationResult?.score < 5}">
-      <ion-icon [name]="lastValidationResult?.score >= 8 ? 'checkmark-circle' : 
-                        lastValidationResult?.score >= 5 ? 'information-circle' : 'alert-circle'">
-      </ion-icon>
-      {{ validationFeedback }}
+
+    <!-- Result. Three states, on the logo palette: cyan, amber, coral. -->
+    <div
+      class="feedback"
+      *ngIf="validationFeedback && !isValidating"
+      [ngClass]="{
+        'is-good': lastValidationResult?.score >= 8,
+        'is-partial': lastValidationResult?.score >= 5 && lastValidationResult?.score < 8,
+        'is-short': lastValidationResult?.score < 5
+      }"
+    >
+      <span class="feedback-icon">
+        <ion-icon
+          [name]="lastValidationResult?.score >= 8 ? 'checkmark' :
+                  lastValidationResult?.score >= 5 ? 'information' : 'alert'"
+        ></ion-icon>
+      </span>
+      <span class="feedback-text">{{ validationFeedback }}</span>
     </div>
-    
-    <br />
-    <ion-button
-      color="light"
-      *ngIf="pager.index > 0"
-      (click)="goTo(pager.index - 1, question)"
-      >Prev</ion-button
-    >
-    <ion-button
-      *ngIf="!checkPosition()"
-      (click)="goTo(pager.index + 1,question)"
-      >Next</ion-button
-    >
-    <ion-button
-      color="success"
-      *ngIf="checkPosition()"
-      (click)="saveQuestionResponses(question)"
-      >Complete</ion-button
-    >
+
   </div>
 
-  <div class="ion-text-center" *ngIf=" questions?.length === 0">
-    <ion-icon name="search-outline" style="font-size: 3.2em"></ion-icon><br />
-    <p>No Questions Available!</p>
-  </div>
+  <div class="question-empty" *ngIf="questions?.length === 0">
+    <ion-icon name="document-text-outline"></ion-icon>
+    <h2>Nothing to reflect on yet</h2>
+    <p>This story has no questions attached.</p>
   </div>
 </ion-content>
+
+<ion-footer class="question-footer" *ngIf="filteredQuestions?.length">
+  <div class="footer-inner" *ngFor="let question of filteredQuestions">
+    <button
+      type="button"
+      class="nav-back"
+      *ngIf="pager.index > 0"
+      (click)="goTo(pager.index - 1, question)"
+      aria-label="Previous question"
+    >
+      <ion-icon name="chevron-back"></ion-icon>
+    </button>
+
+    <button
+      type="button"
+      class="nav-next"
+      *ngIf="!checkPosition()"
+      (click)="goTo(pager.index + 1, question)"
+    >
+      Next question
+      <ion-icon name="chevron-forward"></ion-icon>
+    </button>
+
+    <button
+      type="button"
+      class="nav-next is-final"
+      *ngIf="checkPosition()"
+      (click)="saveQuestionResponses(question)"
+    >
+      Finish
+      <ion-icon name="checkmark"></ion-icon>
+    </button>
+  </div>
+</ion-footer>

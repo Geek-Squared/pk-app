@@ -1,152 +1,69 @@
-<ion-content [fullscreen]="true" class="page-content">
-  <div class="dashboard-wrapper">
-    <!-- Mobile Content -->
-    <ion-grid style="height: 100%">
-      <ion-row
-        class="ion-align-items-center ion-justify-content-center"
-        style="height: 100%"
-      >
-        <ion-card>
-          <ion-card-header style="font-size: 2em">
-            <h5><ion-icon name="file-tray-full"></ion-icon> Submit Booking</h5>
-            <p>All fields are required</p>
-          </ion-card-header>
-          <ion-card-content>
-            <form [formGroup]="bookingsForm">
-              <ion-item>
-                <!-- <ion-label position="fixed">Name</ion-label> -->
-                <ion-input
-                  type="text"
-                  formControlName="fullName"
-                  placeholder="Enter Full Name"
-                ></ion-input>
-              </ion-item>
+<ion-content [fullscreen]="true" class="page-content booking-content">
+  <!-- One responsive layout. This page previously carried two complete copies of
+       the same form — a mobile ion-card block and a separate .desktop-content
+       block — both bound to the same FormGroup. -->
+  <div class="booking-shell">
 
-              <ion-item>
-                <ion-input
-                  type="text"
-                  formControlName="phoneNumber"
-                  placeholder="Phone"
-                ></ion-input>
-              </ion-item>
+    <header class="booking-header">
+      <span class="overline">Support</span>
+      <h1>Book a session</h1>
+      <p>Tell us how to reach you and a counsellor will confirm a time.</p>
+    </header>
 
-              <ion-item>
-                <ion-input
-                  type="email"
-                  formControlName="email"
-                  placeholder="Email Address"
-                ></ion-input>
-              </ion-item>
+    <form [formGroup]="bookingsForm" class="booking-card">
 
-              <ion-item>
-                <ion-input
-                  type="date"
-                  formControlName="bookingDate"
-                  placeholder="Booking Date"
-                ></ion-input>
-              </ion-item>
-
-              <ion-item>
-                <ion-input
-                  name="message"
-                  formControlName="message"
-                  placeholder="Message"
-                ></ion-input>
-              </ion-item>
-
-              <ion-button
-                color="primary"
-                expand="block"
-                (click)="onSubmit()"
-                [disabled]="bookingsForm.invalid"
-                >Submit</ion-button
-              >
-            </form>
-          </ion-card-content>
-        </ion-card>
-      </ion-row>
-    </ion-grid>
-
-  <div class="desktop-content">
-    <div class="booking-content">
-      <div class="page-title desktop-only-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-        <ion-icon name="calendar-outline" style="font-size: 1.5rem; color: var(--pk-blue);"></ion-icon>
-        <h1 style="margin: 0;">Bookings</h1>
+      <div class="field">
+        <label for="bk-name">Full name</label>
+        <input id="bk-name" class="pk-input" type="text" formControlName="fullName"
+               autocomplete="name" placeholder="Your name" />
       </div>
-      <div class="booking-card">
-        <div class="card-header">
-          <ion-icon name="calendar-outline"></ion-icon>
-          <h2>Schedule an Appointment</h2>
-          <p>Fill in your details to book a consultation session</p>
-        </div>
-        
-        <form [formGroup]="bookingsForm" class="booking-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="fullName">Full Name *</label>
-              <ion-input
-                type="text"
-                formControlName="fullName"
-                placeholder="Enter your full name"
-                fill="outline"
-              ></ion-input>
-            </div>
 
-            <div class="form-group">
-              <label for="phoneNumber">Phone Number *</label>
-              <ion-input
-                type="text"
-                formControlName="phoneNumber"
-                placeholder="Enter your phone number"
-                fill="outline"
-              ></ion-input>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="email">Email Address *</label>
-              <ion-input
-                type="email"
-                formControlName="email"
-                placeholder="Enter your email address"
-                fill="outline"
-              ></ion-input>
-            </div>
-
-            <div class="form-group">
-              <label for="bookingDate">Preferred Date *</label>
-              <ion-input
-                type="date"
-                formControlName="bookingDate"
-                fill="outline"
-              ></ion-input>
-            </div>
-          </div>
-
-          <div class="form-group full-width">
-            <label for="message">Additional Message</label>
-            <ion-input
-              name="message"
-              formControlName="message"
-              placeholder="Any additional information or special requests"
-              fill="outline"
-            ></ion-input>
-          </div>
-
-          <ion-button
-            color="primary"
-            size="large"
-            (click)="onSubmit()"
-            [disabled]="bookingsForm.invalid"
-            class="submit-btn"
-          >
-            <ion-icon name="calendar-outline" slot="start"></ion-icon>
-            Submit Booking
-          </ion-button>
-        </form>
+      <div class="field">
+        <label for="bk-phone">Phone number</label>
+        <input id="bk-phone" class="pk-input" type="tel" formControlName="phoneNumber"
+               autocomplete="tel" inputmode="tel" placeholder="077 123 4567" />
+        <p class="hint">We will call or message this number.</p>
       </div>
-    </div>
-    </div>
+
+      <div class="field">
+        <label for="bk-email">Email address</label>
+        <input id="bk-email" class="pk-input" type="email" formControlName="email"
+               autocomplete="email" inputmode="email" placeholder="you@example.com" />
+      </div>
+
+      <div class="field">
+        <label for="bk-date">Preferred date</label>
+        <input id="bk-date" class="pk-input" type="date" formControlName="bookingDate" />
+      </div>
+
+      <div class="field">
+        <label for="bk-message">Anything we should know? <span class="optional">Optional</span></label>
+        <textarea id="bk-message" class="pk-input pk-textarea" rows="3" formControlName="message"
+                  placeholder="You do not have to explain anything you would rather say in person."></textarea>
+      </div>
+
+    </form>
+
+    <!-- Someone booking a counselling session is a plausible person to be in
+         distress. Every other support surface offers a route to a human; this
+         one did not. -->
+    <button type="button" class="crisis" (click)="talkToSomeone()">
+      <span class="crisis-icon">
+        <ion-icon name="call"></ion-icon>
+      </span>
+      <span class="crisis-text">
+        <b>Need to talk now?</b>
+        <span>Reach a counsellor straight away</span>
+      </span>
+      <ion-icon class="crisis-caret" name="chevron-forward"></ion-icon>
+    </button>
+
+  </div>
+
+  <div class="booking-foot">
+    <button type="button" class="submit" (click)="onSubmit()" [disabled]="bookingsForm.invalid">
+      Request this session
+    </button>
+    <p class="foot-note">We usually confirm within one working day.</p>
   </div>
 </ion-content>
