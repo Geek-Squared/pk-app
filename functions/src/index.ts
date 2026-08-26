@@ -16,8 +16,13 @@ async function sendMulticastCompat(message: any) {
 }
 
 exports.processSignUp = functions.auth.user().onCreate(async (user) => {
-  // Only provision real (email-bearing) client accounts.
-  if (!user.email) {
+  // Provision any account with a real contact method. This used to require an
+  // email, which meant a phone-only account was created in Auth and then given
+  // nothing — no user document, no workbook, no chat, no claim — and with no
+  // user document isStaff() could not even evaluate for it (feature 004,
+  // FR-002). The check still excludes accounts with neither, which is what the
+  // original guard was actually protecting against.
+  if (!user.email && !user.phoneNumber) {
     return;
   }
 
@@ -61,18 +66,27 @@ exports.processSignUp = functions.auth.user().onCreate(async (user) => {
     await db.runTransaction(async (tx: any) => {
       const snap = await tx.get(userRef);
       const assignedRole = snap.exists ? snap.data()?.role : null;
-      tx.set(
-        userRef,
-        {
-          uid: user.uid,
-          email: user.email,
-          emailVerified: user.emailVerified,
-          photoURL: user.photoURL || null,
-          role: assignedRole || 'client',
-          createdAt: now,
-        },
-        { merge: true }
-      );
+
+      // Only write the contact fields the account actually has. Firestore
+      // rejects undefined, and FR-003 forbids writing an empty string or a
+      // placeholder to satisfy a field that expects one — a blank email is
+      // indistinguishable from a real one that failed to save.
+      const profile: Record<string, unknown> = {
+        uid: user.uid,
+        photoURL: user.photoURL || null,
+        role: assignedRole || 'client',
+        createdAt: now,
+      };
+      if (user.email) {
+        profile.email = user.email;
+        profile.emailVerified = user.emailVerified;
+      }
+      if (user.phoneNumber) {
+        // Already canonical: Firebase stores what it verified, in E.164.
+        profile.phoneNumber = user.phoneNumber;
+      }
+
+      tx.set(userRef, profile, { merge: true });
     });
   } catch (error: any) {
     console.error('Failed to provision user profile', error);

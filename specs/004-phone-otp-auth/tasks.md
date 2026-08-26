@@ -22,9 +22,9 @@ Phases ship in order. Each phase is independently verifiable and leaves the app 
 
 ## Phase 1 — Design
 
-- [ ] **T006** `data-model.md`: `phoneCohort/{e164}` and `identityChanges/{id}` — fields, ownership, who writes, retention. Include the E.164 canonicalisation rule (FR-004) as the document id, so the same number entered as `07…` or `+263…` cannot become two entries.
-- [ ] **T007** `contracts/callables.md`: request/response and error codes for `checkPhoneEligibility` (unauthenticated) and `recoverPhoneAccount` (administrator only). Error codes matter — FR-029 needs "not eligible" to be distinguishable from "something failed".
-- [ ] **T008** Write the exact guard predicate for all four states (verified email / verified phone / unverified / signed out), as a table, before touching code.
+- [x] **T006** `data-model.md`: `phoneCohort/{e164}` and `identityChanges/{id}` — fields, ownership, who writes, retention. Include the E.164 canonicalisation rule (FR-004) as the document id, so the same number entered as `07…` or `+263…` cannot become two entries.
+- [x] **T007** `contracts/callables.md`: request/response and error codes for `checkPhoneEligibility` (unauthenticated) and `recoverPhoneAccount` (administrator only). Error codes matter — FR-029 needs "not eligible" to be distinguishable from "something failed".
+- [x] **T008** Write the exact guard predicate for all four states (verified email / verified phone / unverified / signed out), as a table, before touching code.
 
 ---
 
@@ -32,12 +32,12 @@ Phases ship in order. Each phase is independently verifiable and leaves the app 
 
 *No user-visible change. Everything here is testable on its own.*
 
-- [ ] **T009** Add a **test runner for Cloud Functions**. This is the verification gap the Constitution Check flagged. The eligibility callable decides whether money is spent and whether a member list stays private; it is not acceptable for it to be the only untested code in the feature.
-- [ ] **T010** `processSignUp`: remove `if (!user.email) return;`. Provision from the uid. Store `phoneNumber` when present, and **do not write an empty or placeholder email** (FR-003). The existing transaction already preserves an assigned role — leave it exactly as it is.
-- [ ] **T011 [P]** Rules for `phoneCohort`: **no client access at all**, read or write (FR-028). Only Functions touch it.
-- [ ] **T012 [P]** Rules for `identityChanges`: staff read, no client write. An audit record must not be editable by the people it describes.
-- [ ] **T013** Rules tests for T011 and T012 — allow *and* deny, per the established FR-015 discipline. Also assert a phone-only account gets exactly a client's access and no more (FR-023).
-- [ ] **T014** Reserve and document fictional test numbers in the console; note them in `quickstart.md`. Flag that they are live in production, since there is only one project.
+- [x] **T009** Add a **test runner for Cloud Functions**. This is the verification gap the Constitution Check flagged. The eligibility callable decides whether money is spent and whether a member list stays private; it is not acceptable for it to be the only untested code in the feature.
+- [x] **T010** `processSignUp`: remove `if (!user.email) return;`. Provision from the uid. Store `phoneNumber` when present, and **do not write an empty or placeholder email** (FR-003). The existing transaction already preserves an assigned role — leave it exactly as it is.
+- [x] **T011 [P]** Rules for `phoneCohort`: **no client access at all**, read or write (FR-028). Only Functions touch it.
+- [x] **T012 [P]** Rules for `identityChanges`: staff read, no client write. An audit record must not be editable by the people it describes.
+- [x] **T013** Rules tests for T011 and T012 — allow *and* deny, per the established FR-015 discipline. Also assert a phone-only account gets exactly a client's access and no more (FR-023).
+- [ ] **T014** Reserve fictional test numbers **in the console** *(not done — needs console access)*. The table to record them in, and the warning that they are live in production because there is only one project, are in `quickstart.md`.
 
 **Verify**: `npm run test:rules` green; a phone-only account created by hand in the console receives its `users` document, workbook and chat.
 

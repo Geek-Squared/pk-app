@@ -268,5 +268,29 @@ service cloud.firestore {
     match /knowledge_index/{id} {
       allow read, write: if false;
     }
+
+    // ---------- phone sign-in (feature 004) ----------
+
+    // Who may register by phone during the cohort launch.
+    //
+    // Closed to clients entirely, read and write (FR-028). The eligibility
+    // check runs in an unauthenticated Cloud Function, which bypasses these
+    // rules, so nothing is lost by denying every client — and a great deal is
+    // protected: this is a list of the phone numbers of people in an HIV
+    // programme. Opening it to make a pre-auth check convenient is the failure
+    // mode this rule exists to prevent.
+    match /phoneCohort/{e164} {
+      allow read, write: if false;
+    }
+
+    // The record of every staff-executed identity action (FR-014).
+    //
+    // Staff read it; nobody writes it from a client. It is a separate
+    // collection rather than a subcollection of users/{uid} precisely so the
+    // member it describes cannot edit it.
+    match /identityChanges/{id} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
   }
 }

@@ -10,7 +10,8 @@
     "serve:ssr:pk-app": "node dist/pk-app/server/server.mjs",
     "test:rules": "firebase emulators:exec --only firestore \"vitest run --config vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --only firestore",
-    "test:contracts": "vitest run --config vitest.contracts.config.ts"
+    "test:contracts": "vitest run --config vitest.contracts.config.ts",
+    "test:functions": "vitest run --config vitest.functions.config.ts"
   },
   "private": true,
   "engines": {

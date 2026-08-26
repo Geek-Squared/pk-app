@@ -43,6 +43,8 @@ async function seed() {
     await setDoc(doc(db, 'feedback', 'f1'), { uid: MEMBER_A });
     await setDoc(doc(db, 'adminNotifications', 'an1'), { x: 1 });
     await setDoc(doc(db, 'knowledge_index', 'k1'), { text: 'x' });
+    await setDoc(doc(db, 'phoneCohort', '+263771234567'), { addedBy: STAFF });
+    await setDoc(doc(db, 'identityChanges', 'ic1'), { type: 'recovery', actorUid: STAFF });
   });
 }
 
@@ -369,6 +371,42 @@ describe('backend-only collections are closed to all clients (FR-025)', () => {
   // Notifications page reads it, so staff read is required.
   it('ALLOWS staff read of adminNotifications', async () => {
     await assertSucceeds(getDoc(doc(asStaff(), 'adminNotifications', 'an1')));
+  });
+
+  // feature 004 — the cohort list is a list of phone numbers of people in an
+  // HIV programme. Closed to every client, staff included: the eligibility
+  // check runs in a Function, which bypasses rules, so nothing needs it.
+  it('DENIES member read of phoneCohort', async () => {
+    await assertFails(getDoc(doc(asA(), 'phoneCohort', '+263771234567')));
+  });
+
+  it('DENIES even staff read of phoneCohort', async () => {
+    await assertFails(getDoc(doc(asStaff(), 'phoneCohort', '+263771234567')));
+  });
+
+  it('DENIES listing phoneCohort — no enumerating the cohort', async () => {
+    await assertFails(getDocs(collection(asA(), 'phoneCohort')));
+  });
+
+  it('DENIES writing phoneCohort from a client', async () => {
+    await assertFails(setDoc(doc(asStaff(), 'phoneCohort', '+263779999999'), { addedBy: STAFF }));
+  });
+
+  // feature 004 — audit records: staff may read, nobody writes from a client.
+  it('ALLOWS staff read of identityChanges', async () => {
+    await assertSucceeds(getDoc(doc(asStaff(), 'identityChanges', 'ic1')));
+  });
+
+  it('DENIES member read of identityChanges', async () => {
+    await assertFails(getDoc(doc(asA(), 'identityChanges', 'ic1')));
+  });
+
+  it('DENIES staff writing identityChanges — an audit record is not editable', async () => {
+    await assertFails(setDoc(doc(asStaff(), 'identityChanges', 'ic2'), { type: 'recovery' }));
+  });
+
+  it('DENIES a member editing an audit record about themselves', async () => {
+    await assertFails(updateDoc(doc(asA(), 'identityChanges', 'ic1'), { type: 'cohort_add' }));
   });
 
   it('DENIES staff writing adminNotifications', async () => {
