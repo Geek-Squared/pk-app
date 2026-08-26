@@ -146,22 +146,29 @@
 
 /* ---- completion ---- */
 .question-shell.done {
-  padding-top: 3rem;
+  /* /questions is immersive, so this owns the whole screen. Centred, because
+     it is a moment rather than a page of content — top-aligned it read as
+     three stranded lines above half a screen of nothing. */
+  min-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 
   h1 {
-    font-size: 1.9rem;
+    font-size: 2.05rem;
     font-weight: 800;
     color: #00288e;
     line-height: 1.15;
     letter-spacing: -0.03em;
-    margin: 1.25rem 0 0;
+    margin: 1.5rem 0 0;
   }
 }
 
 .done-mark {
-  width: 64px;
-  height: 64px;
+  width: 84px;
+  height: 84px;
   margin: 0 auto;
   border-radius: 999px;
   background: #dcf2f6;
@@ -169,7 +176,7 @@
   align-items: center;
   justify-content: center;
 
-  ion-icon { font-size: 2rem; color: #045766; }
+  ion-icon { font-size: 2.6rem; color: #045766; }
 }
 
 .done-note {
@@ -196,21 +203,18 @@
 }
 
 .done-actions {
+  width: 100%;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 2rem;
-}
+  gap: 8px;
+  margin-top: 2.25rem;
 
-.nav-quiet {
-  width: 100%;
-  height: 48px;
-  border: none;
-  background: transparent;
-  color: #5a5b5f;
-  font-family: inherit;
-  font-size: 0.92rem;
-  font-weight: 700;
+  /* Full width in the column, and keep the pill's own 52px height. */
+  .nav-next {
+    flex: none;
+    width: 100%;
+  }
 }
 
 .done-last {
@@ -277,7 +281,10 @@
   &:active { transform: scale(0.98); }
 }
 
-/* Layout only — colour, height and radius come from .pk-submit. */
-.nav-next {
+/* Layout only — colour, height and radius come from .pk-submit.
+   Scoped to the footer: in the completion screen these sit in a COLUMN, and
+   flex:1 there resolves flex-basis to 0 and collapses the 52px pill to a
+   sliver. */
+.footer-inner .nav-next {
   flex: 1;
 }
