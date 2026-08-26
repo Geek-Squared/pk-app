@@ -13,7 +13,14 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./bottom-nav.component.scss'],
 })
 export class BottomNavComponent {
-  private readonly hiddenRoutes = ['/login', '/registration', '/reset-password', '/verify-email'];
+  private readonly hiddenRoutes = [
+    '/login',
+    '/registration',
+    '/reset-password',
+    '/verify-email',
+    // Onboarding is full-screen: it precedes the app, so it offers no tabs out.
+    '/onboarding',
+  ];
   show = true;
 
   constructor(private router: Router) {

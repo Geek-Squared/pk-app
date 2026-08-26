@@ -1,3 +1,12 @@
+// Section accent — see --pk-card-* in theme/variables.scss.
+// Cyan, matching the Messages tile on Home and the conversation list, so the
+// hue carries through from list into thread. Buttons stay on brand blue.
+:host {
+  --pk-section-tint: var(--pk-card-cyan-tint);
+  --pk-section-ink: var(--pk-card-cyan-ink);
+  --pk-section-soft: var(--pk-card-cyan-soft);
+}
+
 .chat-canvas {
   --background: #f6fafe;
   font-family: 'Manrope', sans-serif;
@@ -153,8 +162,8 @@
       .initial-avatar {
         width: 100%;
         height: 100%;
-        background: #dde1ff;
-        color: #001453;
+        background: var(--pk-section-tint);
+        color: var(--pk-section-ink);
         border-radius: 14px;
         display: flex;
         align-items: center;

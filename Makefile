@@ -3,8 +3,13 @@
 # Web build (Angular) -> Capacitor sync -> Android AAB -> Play Store (fastlane).
 # Run `make help` to list targets.
 
-# Path to the Play service-account JSON, relative to the android/ dir.
-SUPPLY_JSON_KEY ?= fastlane/keys/play.json
+# Absolute path to the Play service-account JSON.
+#
+# Absolute on purpose. The Fastfile runs File.expand_path on this value, and a
+# relative path was being resolved against the fastlane directory rather than
+# android/ — producing android/fastlane/fastlane/keys/play.json. An absolute
+# path passes through expand_path untouched, so the repo can live anywhere.
+SUPPLY_JSON_KEY ?= $(CURDIR)/android/fastlane/keys/play.json
 export SUPPLY_JSON_KEY
 
 .DEFAULT_GOAL := help

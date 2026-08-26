@@ -1,3 +1,12 @@
+// Section accent — see --pk-card-* in theme/variables.scss.
+// The hue rides on this page's icon chip only; buttons, links and focus
+// states stay on --pk-primary so blue remains the action colour.
+:host {
+  --pk-section-tint: var(--pk-card-purple-tint);
+  --pk-section-ink: var(--pk-card-purple-ink);
+  --pk-section-soft: var(--pk-card-purple-soft);
+}
+
 h2 {
     display: block;
     border-left: 5px solid rgb(59, 156, 194);
@@ -58,14 +67,14 @@ strong {
         &:hover {
           transform: translateY(-4px);
           box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-          border-color: var(--pk-blue);
+          border-color: var(--pk-section-ink);
         }
 
         .referral-avatar {
           width: 60px;
           height: 60px;
           border-radius: 50%;
-          background: var(--pk-blue);
+          background: var(--pk-section-ink);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -99,7 +108,7 @@ strong {
             font-size: 0.9rem;
 
             ion-icon {
-              color: var(--pk-blue);
+              color: var(--pk-section-ink);
               font-size: 1rem;
             }
           }

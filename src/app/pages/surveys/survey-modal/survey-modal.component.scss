@@ -1,0 +1,323 @@
+/* Values lifted from chapters.page.scss and global.scss so the modal reads as
+   the same app: Cabin, #00288e headings, 24px cards on the #f6fafe ground. */
+
+.sm-content {
+  --background: #f6fafe;
+}
+
+.sm-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px 0;
+}
+
+.sm-close {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  color: #5a5b5f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active { background: rgba(0, 40, 142, 0.06); }
+}
+
+.sm-body {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 4px 24px 24px;
+}
+
+/* Editorial header — the chapters page's overline + display pairing. */
+.sm-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .overline {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #0060ac;
+  }
+
+  h1 {
+    font-size: 2.05rem;
+    font-weight: 800;
+    color: #00288e;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #444653;
+    margin: 6px 0 0;
+  }
+}
+
+.sm-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+
+  .sm-progress-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #5a5b5f;
+
+    .accent { color: #0060ac; }
+  }
+}
+
+.sm-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 40, 142, 0.08);
+  overflow: hidden;
+}
+
+.sm-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #679aca, #285ba7);
+  transition: width 0.3s ease;
+}
+
+.sm-survey {
+  margin-top: 20px;
+}
+
+.sm-loading,
+.sm-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 3rem 0;
+  color: #5a5b5f;
+  font-size: 0.95rem;
+}
+
+/* ---- Footer ---------------------------------------------------------- */
+/* Plain buttons, not ion-button: global.scss restyles ion-button into a solid
+   blue pill, which turned the quiet "Do it later" into blue-on-blue. */
+
+.sm-footer {
+  --background: #f6fafe;
+  background: #f6fafe;
+
+  &::before { display: none; }
+}
+
+.sm-footer-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 14px 24px 22px;
+  border-top: 1px solid rgba(0, 40, 142, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sm-submit {
+  height: 52px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  background: #00288e;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(0, 40, 142, 0.22);
+
+  &:active { transform: scale(0.99); }
+  &:disabled { opacity: 0.6; box-shadow: none; }
+}
+
+.sm-later {
+  height: 44px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #5a5b5f;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+
+  &:disabled { opacity: 0.5; }
+}
+
+.sm-note {
+  margin: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: #8a8b90;
+}
+
+/* ---- SurveyJS, restyled as the app's cards ---------------------------- */
+
+:host ::ng-deep {
+  .sd-root-modern,
+  .sd-container-modern,
+  .sd-body,
+  .sd-page {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .sd-body__page,
+  .sd-page__row { margin: 0; }
+
+  /* The app supplies its own Submit in the footer. */
+  .sd-footer,
+  .sd-body__navigation,
+  .sd-title,
+  .sd-description,
+  .sd-page__title,
+  .sd-page__description { display: none !important; }
+
+  .sd-row { margin-top: 0 !important; }
+  .sd-row + .sd-row { margin-top: 14px !important; }
+
+  .sd-question,
+  .sd-element--with-frame {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 1.25rem;
+    border: 1px solid rgba(196, 197, 213, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 40, 142, 0.06);
+  }
+
+  .sd-question__title {
+    font-family: inherit;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #171c1f;
+    line-height: 1.35;
+    padding: 0;
+  }
+
+  .sd-question__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: rgba(0, 96, 172, 0.08);
+    color: #0060ac;
+    font-size: 0.78rem;
+    font-weight: 800;
+    margin-right: 10px;
+    float: none;
+  }
+
+  .sd-question__content { margin-top: 12px; }
+
+  .sd-input,
+  .sd-text,
+  .sd-comment {
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #171c1f;
+    background: #f6fafe;
+    border: 1px solid rgba(196, 197, 213, 0.35);
+    border-radius: 16px;
+    box-shadow: none;
+    padding: 12px 14px;
+    min-height: 48px;
+
+    &::placeholder { color: #acadb1; }
+    &:focus { border-color: #285ba7; outline: none; }
+  }
+
+  .sd-comment { min-height: 92px; }
+
+  /* Choices as tappable rows — 48px, matching the app's hit targets. */
+  .sd-selectbase__item,
+  .sd-radio,
+  .sd-checkbox {
+    min-height: 48px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    background: #f6fafe;
+    border: 1px solid rgba(196, 197, 213, 0.4);
+    margin: 0;
+  }
+
+  .sd-selectbase { display: flex; flex-direction: column; gap: 8px; }
+
+  .sd-item--checked {
+    background: rgba(0, 96, 172, 0.06);
+    border: 1.5px solid #285ba7;
+  }
+
+  .sd-item__control-label {
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #444653;
+  }
+
+  .sd-item--checked .sd-item__control-label {
+    font-weight: 600;
+    color: #171c1f;
+  }
+
+  /* Rating as a row of pills. */
+  .sd-rating__item {
+    min-width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid #acadb1;
+    box-shadow: none;
+  }
+
+  .sd-rating__item-text {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #5a5b5f;
+  }
+
+  .sd-rating__item--selected {
+    background: #00288e;
+    border-color: #00288e;
+
+    .sd-rating__item-text { color: #ffffff; }
+  }
+
+  .sd-boolean {
+    border-radius: 999px;
+    background: #f6fafe;
+    border: 1px solid rgba(196, 197, 213, 0.4);
+  }
+
+  .sd-boolean__thumb { border-radius: 999px; background: #00288e; }
+  .sd-boolean__thumb-text { color: #ffffff; font-weight: 700; }
+  .sd-boolean__label { font-family: inherit; font-weight: 700; color: #5a5b5f; }
+
+  .sd-question__erbox {
+    font-family: inherit;
+    font-size: 0.82rem;
+    border-radius: 12px;
+    background: #fbe3e3;
+    color: #901e1f;
+  }
+}

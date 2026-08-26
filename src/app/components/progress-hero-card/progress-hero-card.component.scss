@@ -7,6 +7,10 @@
   position: relative;
   overflow: hidden;
   border-radius: 32px;
+  // Stays brand navy in every section it appears in (Interventions, its
+  // chapters, and Workbook). It briefly inherited --pk-section-*, but that
+  // only ever recoloured the Workbook instance and made the same component
+  // look like two different things; the logo hues stay on icon chips.
   background: linear-gradient(135deg, #00288e 0%, #1e40af 100%);
   padding: 2rem;
   color: #ffffff;

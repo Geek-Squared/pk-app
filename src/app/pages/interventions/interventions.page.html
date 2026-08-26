@@ -41,21 +41,18 @@
             <p>{{ getInterventionDescription(intervention.name) }}</p>
           </div>
         </div>
-
-        <!-- Static Fallback if no interventions yet (Mocking the design's vision if list is short) -->
-        <div class="category-card" *ngIf="interventions.length < 2">
-          <div class="category-icon-box skills">
-            <span class="material-symbols-outlined">school</span>
-          </div>
-          <div class="category-content">
-            <div class="card-title-row">
-              <h5>Skill Building</h5>
-              <span class="material-symbols-outlined chevron">chevron_right</span>
-            </div>
-            <p>Practical cognitive tools to help manage anxiety and build mental resilience.</p>
-          </div>
-        </div>
       </div>
+
+      <!-- Reopens the onboarding picker in edit mode rather than duplicating
+           it, so the two lists can never drift apart. -->
+      <button
+        type="button"
+        class="explore-more"
+        [routerLink]="['/onboarding']"
+        [queryParams]="{ mode: 'edit' }">
+        <span class="material-symbols-outlined">tune</span>
+        Explore more curated categories
+      </button>
     </section>
 
     <!-- Editorial Image Section -->

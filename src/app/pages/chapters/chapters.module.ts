@@ -9,6 +9,7 @@ import { ChaptersPageRoutingModule } from './chapters-routing.module';
 
 import { ChaptersPage } from './chapters.page';
 import { ProgressHeroCardComponent } from 'src/app/components/progress-hero-card/progress-hero-card.component';
+import { SurveyModalComponent } from 'src/app/pages/surveys/survey-modal/survey-modal.component';
 
 @NgModule({
   imports: [
@@ -17,6 +18,7 @@ import { ProgressHeroCardComponent } from 'src/app/components/progress-hero-card
     IonicModule,
     BackButtonComponent,
     ProgressHeroCardComponent,
+    SurveyModalComponent,
     ChaptersPageRoutingModule
   ],
   declarations: [ChaptersPage]

@@ -167,16 +167,33 @@
 
     // Variations
     &.urgent-variant {
-      // Bold blue gradient card (matches the mockup's "Urgent" hero card)
-      background: linear-gradient(145deg, #2f66b6 0%, #234f8c 100%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 12px 28px rgba(40, 91, 167, 0.28);
+      // Primary card, coral — the logo's dominant hue (39% of its coloured
+      // pixels, and the "POSITIVE" wordmark).
+      //
+      // Deliberately LIGHT rather than a filled red panel. Every hue in the
+      // logo sits at 54-61% lightness; a saturated fill dragged this card
+      // down to 34%, which read as an error state rather than an invitation —
+      // the wrong register for the screen a distressed person taps first.
+      // Hierarchy is carried by size, tint and elevation instead, and the
+      // saturated coral appears only on the chip and the button, where a
+      // small area of strong colour means "act" rather than "alarm".
+      background: var(--pk-card-coral-tint);
+      border: 1px solid rgba(144, 30, 31, 0.12);
+      box-shadow: 0 16px 32px rgba(144, 30, 31, 0.14);
 
-      .icon-box { background: rgba(255, 255, 255, 0.18); color: #ffffff; }
-      .urgent-badge { background: #ffd6d6; color: #c0392b; }
-      .card-text h3, .card-text p { color: #ffffff !important; }
-      .card-text p { opacity: 0.88; }
-      .card-action-btn { background: rgba(255, 255, 255, 0.16); color: #ffffff; }
+      .icon-box { background: var(--pk-card-coral-ink); color: #ffffff; }
+      .urgent-badge {
+        background: var(--pk-card-coral-ink);
+        color: #ffffff;
+      }
+      .card-text h3 { color: var(--pk-card-coral-ink) !important; }
+      .card-text p { color: var(--pk-on-surface-variant) !important; }
+      // The one solid element: a real primary button rather than the old
+      // translucent wash, which measured 4.15:1 over the filled card.
+      .card-action-btn {
+        background: var(--pk-card-coral-ink);
+        color: #ffffff;
+      }
     }
 
     &.standard-variant {
@@ -187,8 +204,14 @@
       .icon-box { background: var(--card-inner-bg); color: var(--card-inner-text); }
       .card-text h3 { color: var(--pk-on-surface) !important; }
       .card-text p { color: var(--pk-on-surface-variant) !important; }
-      // Soft-blue action pill with brand-blue text (matches mockup)
-      .card-action-btn { background: #eef3fd; color: var(--pk-primary); }
+      // The pill picks up its own tile's hue so the card reads as one object
+      // rather than a white card with a stray blue button. Home is the only
+      // place this happens — the tiles are a fixed set. Elsewhere the hue
+      // stays on the icon chip and buttons stay blue.
+      .card-action-btn {
+        background: var(--card-inner-bg);
+        color: var(--card-inner-text);
+      }
     }
   }
 }

@@ -10,6 +10,7 @@ import { WorkbookService } from 'src/app/services/workbook.service';
 import { ChaptersService } from 'src/app/services/chapters.service';
 import { PostsService } from 'src/app/services/posts.service';
 import { Router } from '@angular/router';
+import { CareAssignmentService } from 'src/app/services/care-assignment.service';
 
 @Component({
   selector: 'app-interventions',
@@ -28,16 +29,21 @@ export class InterventionsPage implements OnInit {
   userWorkbook: any = null;
   private interventionsArr: any[] = [];
   private allChapters: any[] = [];
+  /** null means "not narrowed" — see inPackage(). */
+  private visibleIds: string[] | null = null;
+  private currentUid: string | undefined;
 
   constructor(
     private interventionsService: InterventionsService,
     private workbookService: WorkbookService,
     private chaptersService: ChaptersService,
+    private careAssignment: CareAssignmentService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     const currentUid = JSON.parse(localStorage.getItem('user') || 'null')?.uid;
+    this.currentUid = currentUid;
 
     // 1. Fetch interventions list (respecting per-user visibility)
     this.interventions$ = this.interventionsService.getInterventions().pipe(
@@ -49,12 +55,21 @@ export class InterventionsPage implements OnInit {
             return { id, ...data };
           })
           .filter((intervention: any) => this.canView(intervention, currentUid))
+          .filter((intervention: any) => this.inPackage(intervention))
       ),
       tap((list) => {
         this.interventionsArr = list;
         this.calculateProgress();
       })
     );
+
+    // Narrow to the member's package once it is known. Absent assignment
+    // leaves visibleIds null, so the list behaves exactly as it did before.
+    if (currentUid) {
+      this.careAssignment.visibleInterventionIds(currentUid).subscribe((ids) => {
+        this.visibleIds = ids.length ? ids : null;
+      });
+    }
 
     // 2. Fetch all chapters (used to group by intervention)
     this.chaptersService.getChapters().subscribe(chapters => {
@@ -71,16 +86,30 @@ export class InterventionsPage implements OnInit {
     });
   }
 
-  private canView(intervention: any, uid: string | undefined): boolean {
-    // Restricted interventions are only visible to the selected testers.
-    // Anything without a visibility field stays visible to everyone (legacy).
-    if (intervention?.visibility !== 'restricted') {
+  /**
+   * Narrow the catalogue to the member's package of care. Before onboarding
+   * exists for a member, `visibleIds` stays null and nothing is filtered — an
+   * existing member must never lose access to the app because they have not
+   * filled in a form.
+   */
+  private inPackage(intervention: any): boolean {
+    // An explicit staff assignment always shows, whatever the member chose.
+    // Restricted interventions are handed out deliberately — for testers, or
+    // for a specific person — so requiring them to also have picked it during
+    // onboarding would hide the very thing staff just assigned them.
+    if (this.interventionsService.isExplicitlyAssigned(intervention, this.currentUid)) {
       return true;
     }
-    const allowed = Array.isArray(intervention?.allowedUserIds)
-      ? intervention.allowedUserIds
-      : [];
-    return !!uid && allowed.includes(uid);
+    if (this.visibleIds === null) {
+      return true;
+    }
+    return this.visibleIds.includes(intervention.id);
+  }
+
+  private canView(intervention: any, uid: string | undefined): boolean {
+    // One rule, owned by the service, so every surface that lists interventions
+    // applies the same one.
+    return this.interventionsService.canView(intervention, uid);
   }
 
   calculateProgress() {

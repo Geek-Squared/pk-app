@@ -16,6 +16,41 @@ export class ReferralsPage implements OnInit {
 
   constructor(private referralsService: ReferralsService) { }
 
+  /**
+   * Firestore documents disagree with the model on the field name, so read
+   * whichever is actually populated. Returns '' when there is no number,
+   * which is what the call affordance keys off.
+   */
+  phoneOf(referral: Referral): string {
+    return (referral?.phoneNumber || referral?.phone || '').trim();
+  }
+
+  /**
+   * Dial via a `tel:` URI. Capacitor's WebView turns non-http schemes into an
+   * Android intent, so this opens the dialer natively and hands off to the OS
+   * on the web — no plugin needed.
+   */
+  call(referral: Referral): void {
+    const dialable = this.toDialable(this.phoneOf(referral));
+    if (!dialable) {
+      return;
+    }
+    window.location.href = `tel:${dialable}`;
+  }
+
+  /**
+   * Keep digits, and a leading + for international numbers. Spaces, dashes and
+   * brackets are common in the stored values and confuse some dialers.
+   */
+  private toDialable(raw: string): string {
+    if (!raw) {
+      return '';
+    }
+    const plus = raw.trim().startsWith('+') ? '+' : '';
+    const digits = raw.replace(/\D/g, '');
+    return digits ? `${plus}${digits}` : '';
+  }
+
   ngOnInit() {
     this.isLoading = true;
     this.referralsService.getReferrals().subscribe(

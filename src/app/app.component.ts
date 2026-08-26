@@ -28,6 +28,12 @@ export class AppComponent {
   public user$: Observable<any>;
   public hasUnreadNotifications$ = this.inAppNotifications.hasUnread$;
   private readonly bottomNavHiddenRoutes = ['/home'];
+  private readonly authRoutes = [
+    '/login',
+    '/registration',
+    '/reset-password',
+    '/verify-email',
+  ];
   private pushInitDone = false;
   
   private routeTitleMap: { [key: string]: string } = {
@@ -161,10 +167,20 @@ export class AppComponent {
     const url = this.router.url.split('?')[0].split('#')[0];
     const trimmed = url !== '/' && url.endsWith('/') ? url.slice(0, -1) : url;
     return (
+      // Auth screens, by route rather than by session state. isLoggedIn reads
+      // localStorage, which outlives the session — so a stale entry was drawing
+      // the app header over the login page, offering a menu and a chat button
+      // to someone who is not signed in.
+      this.authRoutes.some((r) => trimmed === r || trimmed.startsWith(r + '/')) ||
       trimmed === '/ai-assistant' ||
       trimmed.startsWith('/ai-assistant/') ||
       trimmed.startsWith('/messages/chat/') ||
-      trimmed === '/how-to-use'
+      trimmed === '/how-to-use' ||
+      // Onboarding owns the whole screen. It runs before the member has an app
+      // to navigate, so a nav bar and a menu button would offer them exits to
+      // places that are not ready for them yet.
+      trimmed === '/onboarding' ||
+      trimmed.startsWith('/onboarding/')
     );
   }
 

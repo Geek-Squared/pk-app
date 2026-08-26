@@ -1,4 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { IntakeService } from 'src/app/services/intake.service';
 import { CommonModule } from '@angular/common';
 import { IonicModule, NavController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -64,7 +66,11 @@ export class HowToUsePage {
     },
   ];
 
-  constructor(private navCtrl: NavController) {
+  constructor(
+    private navCtrl: NavController,
+    private afAuth: AngularFireAuth,
+    private intake: IntakeService
+  ) {
     addIcons({ sparkles, flash, book, chatbubbles, calendar, heartCircle });
   }
 
@@ -94,11 +100,21 @@ export class HowToUsePage {
     }
   }
 
-  finish(): void {
+  async finish(): Promise<void> {
     try {
       localStorage.setItem(HOW_TO_SEEN_KEY, 'true');
     } catch {
       // ignore storage errors
+    }
+    // Also record it against the account, so a member who changes device or
+    // clears site data is not walked through the app a second time.
+    try {
+      const user = await this.afAuth.currentUser;
+      if (user) {
+        await this.intake.markHowToSeen(user.uid);
+      }
+    } catch {
+      // Local flag is enough to move on; the server record is a convenience.
     }
     this.navCtrl.navigateRoot('/home');
   }

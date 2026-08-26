@@ -1,3 +1,12 @@
+// Section accent — see --pk-card-* in theme/variables.scss.
+// The hue rides on this page's icon chip only; buttons, links and focus
+// states stay on --pk-primary so blue remains the action colour.
+:host {
+  --pk-section-tint: var(--pk-card-amber-tint);
+  --pk-section-ink: var(--pk-card-amber-ink);
+  --pk-section-soft: var(--pk-card-amber-soft);
+}
+
 .chapters-container {
   padding-bottom: 4rem;
 }
@@ -245,11 +254,11 @@
 
   .action-chevron { font-size: 1.2rem; color: #c4c5d5; }
 
-  &.state-completed .status-icon-box { background: rgba(0, 96, 172, 0.08); color: #0060ac; }
+  &.state-completed .status-icon-box { background: var(--pk-section-tint); color: var(--pk-section-ink); }
   &.state-active {
     border: 2px solid rgba(0, 40, 142, 0.05);
     box-shadow: 0 10px 30px rgba(0, 40, 142, 0.08);
-    .status-icon-box { background: #00288e; color: #ffffff; }
+    .status-icon-box { background: var(--pk-section-ink); color: #ffffff; }
     h4 { font-weight: 800; }
     p { color: #00288e; font-weight: 600; opacity: 1; }
   }

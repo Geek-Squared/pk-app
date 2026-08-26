@@ -32,3 +32,12 @@ npm-debug.log*
 /platforms
 /plugins
 /www
+
+# Added during 002-onboarding-care-routing setup
+.env
+.env.*
+/build
+/out-tsc
+firestore-debug.log
+firebase-debug.log
+ui-debug.log

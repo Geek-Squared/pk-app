@@ -77,10 +77,13 @@
     align-items: center;
     justify-content: center;
     
-    &.adolescents { background: #d4e3ff; color: #003c70; }
-    &.parents { background: #ffdbce; color: #611e00; }
-    &.self-care { background: #dde1ff; color: #001453; }
-    &.skills { background: #eaeef2; color: #444653; }
+    // A fixed taxonomy, so hue-per-category works here the same way it does
+    // for the Home tiles. Coral is deliberately absent — it is reserved for
+    // urgency/crisis so it never reads as just another category.
+    &.adolescents { background: var(--pk-card-cyan-tint); color: var(--pk-card-cyan-ink); }
+    &.parents { background: var(--pk-card-amber-tint); color: var(--pk-card-amber-ink); }
+    &.self-care { background: var(--pk-card-purple-tint); color: var(--pk-card-purple-ink); }
+    &.skills { background: var(--pk-card-green-tint); color: var(--pk-card-green-ink); }
 
     .material-symbols-outlined { font-size: 2rem; }
   }
@@ -153,4 +156,25 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
   }
+}
+
+// Reopens the onboarding picker so a member can widen or narrow what they see.
+.explore-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pk-primary);
+  background: var(--pk-surface-container-lowest);
+  border: 1px solid var(--pk-outline-variant);
+  border-radius: 18px;
+
+  .material-symbols-outlined { font-size: 19px; }
+
+  &:active { transform: scale(0.99); }
 }

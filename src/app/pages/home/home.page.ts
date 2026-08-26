@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuController, Platform } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { HOW_TO_SEEN_KEY } from 'src/app/pages/how-to-use/how-to-use.page';
 import { FcmService } from 'src/app/services/fcm.service';
 import { WorkbookService } from 'src/app/services/workbook.service';
 import { UsersService } from 'src/app/services/users.service';
+import { ShareService } from 'src/app/services/share.service';
 import { Observable, of, switchMap } from 'rxjs';
 
 @Component({
@@ -26,7 +26,8 @@ export class HomePage implements OnInit {
     private fcmService: FcmService,
     private menuCtrl: MenuController,
     private usersService: UsersService,
-    private router: Router
+    private router: Router,
+    private shareService: ShareService
   ) {
     this.user$ = this.authService.afAuth.authState.pipe(
       switchMap(user => {
@@ -39,12 +40,22 @@ export class HomePage implements OnInit {
     );
   }
 
+  /**
+   * The button lives inside the card's routerLink, so without stopping the
+   * event the tap would navigate to /referrals instead of opening the sheet.
+   */
+  async shareApp(event: Event): Promise<void> {
+    event.stopPropagation();
+    event.preventDefault();
+    await this.shareService.shareApp();
+  }
+
   ngOnInit() {
-    // First-launch walkthrough: show the "How to use PK" guide once.
-    if (!localStorage.getItem(HOW_TO_SEEN_KEY)) {
-      this.router.navigateByUrl('/how-to-use');
-      return;
-    }
+    // The walkthrough is no longer triggered from here. It fired on a missing
+    // localStorage key, which meant every existing member met it on any new
+    // device or after clearing site data, and it ran before onboarding rather
+    // than after. Onboarding now routes genuinely new members to it once, on
+    // completion.
 
     // Trigger the push setup
     this.fcmService.initPush();

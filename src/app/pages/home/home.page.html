@@ -36,7 +36,7 @@
         </div>
 
         <!-- My Workbook -->
-        <div class="feature-card standard-variant" routerLink="/my-work-book" style="--card-inner-bg: var(--pk-secondary-container); --card-inner-text: var(--pk-on-secondary-container);">
+        <div class="feature-card standard-variant" routerLink="/my-work-book" style="--card-inner-bg: var(--pk-card-amber-tint); --card-inner-text: var(--pk-card-amber-ink);">
           <div class="card-icon-header">
             <div class="icon-box">
               <span class="material-symbols-outlined">auto_stories</span>
@@ -53,7 +53,7 @@
         </div>
 
         <!-- Messages -->
-        <div class="feature-card standard-variant" routerLink="/messages" style="--card-inner-bg: var(--pk-tertiary-container); --card-inner-text: var(--pk-on-tertiary-container);">
+        <div class="feature-card standard-variant" routerLink="/messages" style="--card-inner-bg: var(--pk-card-cyan-tint); --card-inner-text: var(--pk-card-cyan-ink);">
           <div class="card-icon-header">
             <div class="icon-box">
               <span class="material-symbols-outlined">forum</span>
@@ -70,10 +70,10 @@
         </div>
 
         <!-- Feedback -->
-        <div class="feature-card standard-variant" routerLink="/feedback" style="--card-inner-bg: var(--pk-secondary-fixed); --card-inner-text: var(--pk-secondary-dim);">
+        <div class="feature-card standard-variant" routerLink="/feedback" style="--card-inner-bg: var(--pk-card-green-tint); --card-inner-text: var(--pk-card-green-ink);">
           <div class="card-icon-header">
             <div class="icon-box">
-              <span class="material-symbols-outlined" style="color: #006666;">rate_review</span>
+              <span class="material-symbols-outlined">rate_review</span>
             </div>
           </div>
           <div class="card-text">
@@ -87,7 +87,7 @@
         </div>
 
         <!-- Referrals -->
-        <div class="feature-card standard-variant" routerLink="/referrals" style="--card-inner-bg: var(--pk-primary-fixed-dim); --card-inner-text: var(--pk-on-primary-fixed-variant);">
+        <div class="feature-card standard-variant" routerLink="/referrals" style="--card-inner-bg: var(--pk-card-purple-tint); --card-inner-text: var(--pk-card-purple-ink);">
           <div class="card-icon-header">
             <div class="icon-box">
               <span class="material-symbols-outlined">share</span>
@@ -97,14 +97,14 @@
             <h3>Referrals</h3>
             <p>Share the sanctuary with friends and family.</p>
           </div>
-          <button class="card-action-btn">
+          <button class="card-action-btn" (click)="shareApp($event)">
             <span>Share App</span>
-            <span class="material-symbols-outlined">chevron_right</span>
+            <span class="material-symbols-outlined">share</span>
           </button>
         </div>
 
         <!-- Bookings -->
-        <div class="feature-card standard-variant" routerLink="/bookings" style="--card-inner-bg: var(--pk-tertiary-fixed); --card-inner-text: var(--pk-on-tertiary-container);">
+        <div class="feature-card standard-variant" routerLink="/bookings" style="--card-inner-bg: var(--pk-card-teal-tint); --card-inner-text: var(--pk-card-teal-ink);">
           <div class="card-icon-header">
             <div class="icon-box">
               <span class="material-symbols-outlined">event</span>

@@ -1,0 +1,170 @@
+<ion-content [fullscreen]="true" class="onboarding-content">
+  <div class="onboarding-wrap">
+
+    <!-- Only present when editing from Interventions. First-run intake has no
+         way out, so it must not show a dismiss affordance. -->
+    <button type="button" class="close-edit" *ngIf="editMode" (click)="cancelEdit()" aria-label="Close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-row" *ngIf="!editMode">
+      <div class="pip" *ngFor="let s of steps; let i = index" [class.done]="i <= stepIndex()"></div>
+    </div>
+
+    <!-- Step 1 — identity -->
+    <section *ngIf="step === 'identity'" class="step">
+      <h1>Let's get to know you</h1>
+      <p class="lede">A few details so the programme can reach you.</p>
+
+      <label class="field">
+        <span>Full name</span>
+        <input type="text" [(ngModel)]="fullName" (ngModelChange)="touch()" autocomplete="name" />
+        <em class="err" *ngIf="errors['fullName']">{{ errors['fullName'] }}</em>
+      </label>
+
+      <label class="field">
+        <span>Age</span>
+        <input type="number" inputmode="numeric" [(ngModel)]="age" (ngModelChange)="touch()" />
+        <em class="err" *ngIf="errors['age']">{{ errors['age'] }}</em>
+      </label>
+
+      <label class="field">
+        <span>Phone number</span>
+        <input type="tel" inputmode="tel" [(ngModel)]="phoneNumber" (ngModelChange)="touch()" autocomplete="tel" />
+        <em class="err" *ngIf="errors['phoneNumber']">{{ errors['phoneNumber'] }}</em>
+      </label>
+
+      <label class="field">
+        <span>Email</span>
+        <input type="email" [value]="email" disabled />
+        <em class="hint">From the account you just verified.</em>
+      </label>
+    </section>
+
+    <!-- Step 2 — demographics -->
+    <section *ngIf="step === 'demographics'" class="step">
+      <h1>A little about you</h1>
+      <p class="lede">This helps the programme understand who it is supporting. Three questions, nothing more.</p>
+
+      <label class="field">
+        <span>Gender</span>
+        <select [(ngModel)]="gender" (ngModelChange)="touch()">
+          <option value="">Choose…</option>
+          <option *ngFor="let g of genderOptions" [value]="g">{{ g }}</option>
+        </select>
+        <em class="err" *ngIf="errors['gender']">{{ errors['gender'] }}</em>
+      </label>
+
+      <label class="field">
+        <span>Where you are based</span>
+        <select [(ngModel)]="region" (ngModelChange)="touch()">
+          <option value="">Choose…</option>
+          <option *ngFor="let r of regionOptions" [value]="r">{{ r }}</option>
+        </select>
+        <em class="err" *ngIf="errors['region']">{{ errors['region'] }}</em>
+      </label>
+
+      <label class="field">
+        <span>Preferred language</span>
+        <select [(ngModel)]="language" (ngModelChange)="touch()">
+          <option value="">Choose…</option>
+          <option *ngFor="let l of languageOptions" [value]="l">{{ l }}</option>
+        </select>
+        <em class="err" *ngIf="errors['language']">{{ errors['language'] }}</em>
+      </label>
+
+      <label class="consent">
+        <input type="checkbox" [(ngModel)]="consentGiven" />
+        <span>I agree to Positive Konnections storing these details. You can withdraw this at any time from your profile.</span>
+      </label>
+      <em class="err" *ngIf="errors['consent']">{{ errors['consent'] }}</em>
+    </section>
+
+    <!-- Step 3 — the pills -->
+    <section *ngIf="step === 'selection'" class="step">
+      <h1>{{ editMode ? 'Curated categories' : 'What would you like support with?' }}</h1>
+      <p class="lede">
+        {{ editMode
+          ? 'Add or remove areas. What you choose is what you will see in Interventions.'
+          : 'Choose as many as you like. You can change this later.' }}
+      </p>
+
+      <div class="pills">
+        <button
+          type="button"
+          class="pill"
+          *ngFor="let i of selectable$ | async"
+          [class.on]="isSelected(i.id)"
+          (click)="toggle(i.id)">
+          {{ i.onboardingLabel || i.name }}
+        </button>
+      </div>
+
+      <p class="lede subtle" *ngIf="(selectable$ | async)?.length === 0">
+        Nothing to choose from yet — you can continue and we'll suggest a starting point.
+      </p>
+    </section>
+
+    <!-- Step 4 — confirm -->
+    <section *ngIf="step === 'confirm'" class="step">
+      <h1>Does this look right?</h1>
+      <p class="lede">This is everything you have told us. Nothing else is stored.</p>
+
+      <dl class="summary">
+        <dt>Name</dt><dd>{{ fullName }}</dd>
+        <dt>Age</dt><dd>{{ age }}</dd>
+        <dt>Phone</dt><dd>{{ phoneNumber }}</dd>
+        <dt>Email</dt><dd>{{ email }}</dd>
+        <dt>Gender</dt><dd>{{ gender }}</dd>
+        <dt>Based in</dt><dd>{{ region }}</dd>
+        <dt>Language</dt><dd>{{ language }}</dd>
+      </dl>
+
+      <h2>You'll be working on</h2>
+      <div class="pills readonly">
+        <!-- The *ngIf sits on the pill itself, not on its text. Putting it on
+             the text rendered an empty pill for every unselected option. -->
+        <ng-container *ngFor="let i of selectable$ | async">
+          <span class="pill on" *ngIf="isSelected(i.id)">
+            {{ i.onboardingLabel || i.name }}
+          </span>
+        </ng-container>
+      </div>
+      <p class="lede subtle" *ngIf="selected.size === 0">
+        You didn't choose anything, so we'll start you with the programme's suggested set.
+      </p>
+    </section>
+
+    <!-- Actions -->
+    <div class="actions" *ngIf="!editMode">
+      <button type="button" class="ghost" *ngIf="stepIndex() > 0" (click)="back()" [disabled]="saving">
+        Back
+      </button>
+      <button type="button" class="primary" *ngIf="step !== 'confirm'" (click)="next()" [disabled]="saving">
+        {{ saving ? 'Saving…' : 'Continue' }}
+      </button>
+      <button type="button" class="primary" *ngIf="step === 'confirm'" (click)="finish()" [disabled]="saving">
+        {{ saving ? 'Finishing…' : 'Finish' }}
+      </button>
+    </div>
+
+    <div class="actions" *ngIf="editMode">
+      <button type="button" class="primary" (click)="saveSelections()" [disabled]="saving">
+        {{ saving ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+
+    <!-- Existing members only: they joined before this existed. -->
+    <button type="button" class="defer" *ngIf="canDefer && !editMode" (click)="deferForNow()">
+      I'll do this later
+    </button>
+
+    <!-- Always available, on every step. Never content-triggered. -->
+    <button type="button" class="crisis" (click)="talkToSomeone()">
+      <span class="material-symbols-outlined">support_agent</span>
+      Need to talk to someone now?
+    </button>
+
+  </div>
+</ion-content>
