@@ -100,6 +100,23 @@ A member who registered by phone can later add an email, and a member who regist
 
 ---
 
+### User Story 6 - The programme controls who can use phone sign-in, and can stop it (Priority: P1)
+
+Phone registration opens to a named cohort first. Staff choose who is in it, can add and remove people without a release, and can switch the whole thing off if SMS delivery or spend goes wrong.
+
+**Why this priority**: It is how the cost risk (FR-015 to FR-019) is actually contained on day one — a closed list means no SMS is ever sent to a number nobody chose. It is also the safest way to discover what delivery in Zimbabwe is really like, on twenty people rather than everyone.
+
+**Independent Test**: Add a number to the cohort and register with it successfully. Attempt to register with a number not on the list and confirm no SMS is sent and a clear message is shown. Disable phone registration entirely and confirm email registration still works.
+
+**Acceptance Scenarios**:
+
+1. **Given** a number on the cohort list, **When** it is submitted, **Then** a passcode is sent.
+2. **Given** a number not on the list, **When** it is submitted, **Then** **no SMS is sent**, no cost is incurred, and the person is told plainly that phone sign-in is not yet open to them.
+3. **Given** phone registration is switched off, **When** anyone opens registration, **Then** the email route works unchanged and phone is not offered.
+4. **Given** a staff member, **When** they add or remove a number, **Then** it takes effect without a release and the change is recorded.
+
+---
+
 ### User Story 5 - A member who loses their number is not locked out of their care (Priority: P1)
 
 A phone-only account has no password. If the number is lost, changed or stops receiving SMS, there must be a defined way back to the account that does not depend on that number.
@@ -163,7 +180,8 @@ A phone-only account has no password. If the number is lost, changed or stops re
 #### Cost and abuse
 
 - **FR-015**: Passcode requests MUST be rate-limited per number and per device, so that repeated requests cannot generate unbounded billable SMS.
-- **FR-016**: SMS delivery MUST be restricted to the regions the programme actually serves. Every other destination MUST be denied by default.
+- **FR-016**: SMS delivery MUST be restricted to **Zimbabwe (+263) only** (decided 2026-08-26). Every other destination MUST be denied at the platform level, not merely unused. A single permitted destination is the strongest available control here: toll fraud depends on reaching expensive destinations, and this closes that off entirely rather than rate-limiting it.
+- **FR-016a**: A member roaming or holding a non-Zimbabwean number MUST be given a clear reason and a route to human help, not a silent failure. This is a known and accepted consequence of FR-016.
 - **FR-017**: The platform's abuse protections for phone sign-in MUST be enabled before the feature is exposed to the public, not after.
 - **FR-018**: Verification volume and spend MUST be observable, with a threshold that raises an alert rather than being discovered on an invoice.
 - **FR-019**: The per-verification cost for the programme's actual destination countries MUST be established and accepted before launch. It MUST be taken from current published pricing at the time of the decision, not assumed.
@@ -179,6 +197,11 @@ A phone-only account has no password. If the number is lost, changed or stops re
 
 - **FR-024**: The feature MUST be releasable without altering any existing account. No migration of live accounts is required to ship it.
 - **FR-025**: Phone registration MUST be disableable without a code release, so that a delivery failure or a cost problem can be stopped quickly while email registration continues.
+- **FR-026**: Phone registration MUST launch to a limited cohort before general availability (decided 2026-08-26), and the cohort MUST be changeable without a code release.
+- **FR-027**: Eligibility MUST be decided **server-side, before an SMS is sent**. A client-side check would be both bypassable and pointless — the cost is incurred by the send, so a gate that runs after it protects nothing.
+- **FR-028**: The eligibility list MUST NOT be readable by clients. A list of the phone numbers of people in an HIV programme is itself sensitive; it must never be shipped to a device or exposed to an unauthenticated caller.
+- **FR-029**: An ineligible number MUST be told plainly that phone sign-in is not yet open to them, and offered the existing email route or a way to contact the programme — never left on a code screen waiting for an SMS that will not arrive.
+- **FR-030**: Staff MUST be able to add and remove numbers from the cohort from the admin portal, and every change MUST be recorded under FR-014.
 
 ### Key Entities
 
@@ -215,12 +238,15 @@ A phone-only account has no password. If the number is lost, changed or stops re
 - The uid remains the sole key for all programme data. **Verified, not assumed**: a sweep of both codebases for queries filtered on `email` returns nothing — every lookup is by uid. This is what keeps the feature contained; had a query keyed off email, this would be a migration rather than an addition.
 - Onboarding, care routing and intervention visibility are identity-method agnostic and need no change beyond provisioning reaching them.
 - `intakes.phoneNumber` is demographic data collected during onboarding and is **not** an authentication identifier. The two must not be conflated, and this feature does not make an intake number a sign-in method.
+- **The cohort gate cannot reuse the existing `config` collection.** Its rule is `allow read: if isSignedIn()`, and registration happens before an account exists — a pre-auth screen cannot read it. FR-027 pushes the decision server-side anyway: the natural shape is an unauthenticated callable that takes a number, checks it against a staff-managed list no client can read (FR-028), and only then triggers the passcode. Loosening the `config` rule to unauthenticated read is explicitly **not** the answer; it would put a list of programme members' phone numbers behind a public read.
+- The kill switch of FR-025 has the same pre-auth constraint and the same answer: it is decided by the server, or by remote configuration, never by a document a signed-out client has to read.
 - The client platform can present the passcode flow. Which mechanism — the web SDK's reCAPTCHA flow inside the Capacitor webview, or the native authentication plugin — is an implementation decision for the plan, with a bias toward the native path for a shipped app.
 
 ## Risks
 
 - **Number recycling is a real account-takeover path, and it is not fully solvable.** A reassigned number lets a stranger pass the only check protecting counselling history. Mitigation is partial by nature: FR-013's controlled change procedure, and re-verification for accounts dormant a long time. This risk is accepted, not eliminated, and should be stated plainly to whoever signs off.
-- **SMS is a metered, attacker-facing spend.** Unprotected phone auth is a known toll-fraud target: an attacker triggers verifications the programme pays for. FR-015 to FR-018 are the mitigation and are not optional extras.
+- **SMS is a metered, attacker-facing spend.** Unprotected phone auth is a known toll-fraud target: an attacker triggers verifications the programme pays for. FR-015 to FR-018 are the mitigation and are not optional extras. Two of the decisions above cut this down substantially — a single permitted destination (FR-016) removes the expensive-destination motive, and a closed cohort (FR-027) means no SMS is sent to a number nobody chose. Neither removes the need for rate limiting, because a number *on* the list can still be used to generate repeat sends.
+- **The cohort list is itself sensitive.** It is a list of phone numbers of people in an HIV programme. FR-028 keeps it server-side; the failure mode to design against is someone exposing it to make the pre-auth check convenient.
 - **Delivery is outside our control.** An undelivered SMS looks identical to a broken app to the person waiting for it, and for this population a failure to get in may mean not seeking support. The flow needs an honest fallback message and a route to human help, not a spinner.
 - **The "no email" assumption may be wider than the three known places.** Three were found by reading the auth path. A full sweep before implementation is the difference between a contained change and a long tail of small breakages.
 - **Two accounts for one person.** Until linking (US4) exists, someone who registers both ways has split history. Shipping US1 without at least detecting this makes cleanup harder later.
@@ -238,10 +264,13 @@ A phone-only account has no password. If the number is lost, changed or stops re
 
 ---
 
+## Decisions taken
+
+- **2026-08-26 — Zimbabwe only.** SMS is permitted to +263 and nowhere else (FR-016). Accepted consequence: a member roaming or on a foreign number cannot use phone sign-in (FR-016a).
+- **2026-08-26 — Cohort first.** Phone registration opens to a staff-managed list before general availability (User Story 6, FR-026 to FR-030), which also bounds the SMS spend on day one.
+
 ## Open questions for the programme
 
-1. **Which countries** must SMS reach? FR-016 needs the list, and FR-019's cost depends on it.
-2. **What is the acceptable monthly verification spend**, and who is alerted when it is approached?
-3. **Who may execute a recovery** under FR-013 — any administrator, or a named person?
-4. **How long must an account be dormant** before re-verification is required, given the recycling risk?
-5. **Should phone registration launch to everyone at once**, or to one intervention cohort first? FR-025 makes either possible.
+1. **What is the acceptable monthly verification spend**, and who is alerted when it is approached? (FR-018, FR-019.) Less pressing now that the cohort is closed — a known list caps the exposure — but still needed before general availability.
+2. **Who may execute a recovery** under FR-013 — any administrator, or a named person? This gates User Story 5, which is P1.
+3. **How long must an account be dormant** before re-verification is required, given the number-recycling risk? (FR-013, Risks.)
