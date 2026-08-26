@@ -476,6 +476,23 @@ ion-router-outlet:not(.has-header) {
   resize: vertical;
 }
 
+/* A field with a leading icon, as the auth screens use. */
+.pk-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  > ion-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 1.05rem;
+    color: #8a8b90;
+    pointer-events: none;
+  }
+
+  .pk-input { padding-left: 42px; }
+}
+
 /* Primary action. Navy, full width, 52px — the same pill on every form. */
 .pk-submit {
   width: 100%;
