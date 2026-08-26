@@ -266,6 +266,10 @@
   display: flex;
   gap: 10px;
   margin-top: 22px;
+  padding-top: 18px;
+  /* The hairline the design puts above the action bar. It cannot be a real
+     footer here, so it separates the actions in the flow instead. */
+  border-top: 1px solid rgba(0, 40, 142, 0.06);
 }
 
 .nav-back {
@@ -301,8 +305,6 @@
   box-shadow: 0 10px 24px rgba(0, 40, 142, 0.22);
 
   &:active { transform: scale(0.99); }
-
-  &.is-final { background: #045766; box-shadow: 0 10px 24px rgba(4, 87, 102, 0.22); }
 
   ion-icon { font-size: 1.05rem; }
 }
