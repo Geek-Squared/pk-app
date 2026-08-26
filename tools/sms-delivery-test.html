@@ -201,10 +201,17 @@ $('send').addEventListener('click', async () => {
 
   $('send').disabled = true;
   try {
-    if (!verifier) {
-      verifier = new RecaptchaVerifier(auth, 'recaptcha', { size: 'invisible' });
-      await verifier.render();
+    // A reCAPTCHA token is single-use. Reusing the verifier after ANY previous
+    // attempt — successful or failed — sends a spent token, and Firebase
+    // reports that as auth/invalid-app-credential, which reads like a config
+    // problem rather than a stale token. Fresh verifier every time.
+    if (verifier) {
+      try { verifier.clear(); } catch (_) { /* already gone */ }
+      $('recaptcha').innerHTML = '';
     }
+    verifier = new RecaptchaVerifier(auth, 'recaptcha', { size: 'invisible' });
+    await verifier.render();
+
     log(`Requesting passcode for ${e164} (${carrierOf(e164)})…`);
     confirmation = await signInWithPhoneNumber(auth, e164, verifier);
 
@@ -219,9 +226,19 @@ $('send').addEventListener('click', async () => {
       $('elapsed').textContent = `${((Date.now() - sentAt) / 1000).toFixed(0)}s`;
     }, 250);
   } catch (err) {
-    // The most useful failures here are auth/invalid-app-credential (reCAPTCHA
-    // or domain not authorised) and auth/billing-not-enabled.
     log(`FAILED to send: ${err?.code || ''} ${err?.message || err}`, 'bad');
+    if (err?.code === 'auth/invalid-app-credential') {
+      log('→ reCAPTCHA was rejected. Check Authentication → Settings → Authorized domains includes "localhost", and Fraud prevention → reCAPTCHA is not enforcing a key this page has no access to.', 'bad');
+    }
+    if (err?.code === 'auth/operation-not-allowed') {
+      log('→ The Phone provider is not enabled for this project.', 'bad');
+    }
+    // Burn the verifier: after a failure its token is spent either way.
+    if (verifier) {
+      try { verifier.clear(); } catch (_) { /* already gone */ }
+      $('recaptcha').innerHTML = '';
+      verifier = null;
+    }
     $('send').disabled = false;
   }
 });
