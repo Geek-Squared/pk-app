@@ -258,20 +258,14 @@
 }
 
 /* ---- navigation ---- */
-.question-footer {
-  --background: #f6fafe;
-  background: #f6fafe;
-
-  &::before { display: none; }
-}
-
-.footer-inner {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 14px 24px 22px;
-  border-top: 1px solid rgba(0, 40, 142, 0.06);
+/* Inline, not an ion-footer: the app's bottom nav is position:fixed at
+   z-index 100 and paints over a page-level footer. ion-content already
+   reserves 92px for it (global.scss, .has-bottom-nav), so nothing else is
+   needed to clear it. */
+.question-actions {
   display: flex;
   gap: 10px;
+  margin-top: 22px;
 }
 
 .nav-back {

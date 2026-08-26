@@ -93,6 +93,41 @@
       <span class="feedback-text">{{ validationFeedback }}</span>
     </div>
 
+    <!-- Actions live inside the content, not in an ion-footer: the app's bottom
+         nav is position:fixed at z-index 100 and draws straight over a page
+         footer. ion-content already carries 92px of bottom padding for it. -->
+    <div class="question-actions">
+      <button
+        type="button"
+        class="nav-back"
+        *ngIf="pager.index > 0"
+        (click)="goTo(pager.index - 1, question)"
+        aria-label="Previous question"
+      >
+        <ion-icon name="chevron-back"></ion-icon>
+      </button>
+
+      <button
+        type="button"
+        class="nav-next"
+        *ngIf="!checkPosition()"
+        (click)="goTo(pager.index + 1, question)"
+      >
+        Next question
+        <ion-icon name="chevron-forward"></ion-icon>
+      </button>
+
+      <button
+        type="button"
+        class="nav-next is-final"
+        *ngIf="checkPosition()"
+        (click)="saveQuestionResponses(question)"
+      >
+        Finish
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </div>
+
   </div>
 
   <div class="question-empty" *ngIf="questions?.length === 0">
@@ -101,37 +136,3 @@
     <p>This story has no questions attached.</p>
   </div>
 </ion-content>
-
-<ion-footer class="question-footer" *ngIf="filteredQuestions?.length && !completion">
-  <div class="footer-inner" *ngFor="let question of filteredQuestions">
-    <button
-      type="button"
-      class="nav-back"
-      *ngIf="pager.index > 0"
-      (click)="goTo(pager.index - 1, question)"
-      aria-label="Previous question"
-    >
-      <ion-icon name="chevron-back"></ion-icon>
-    </button>
-
-    <button
-      type="button"
-      class="nav-next"
-      *ngIf="!checkPosition()"
-      (click)="goTo(pager.index + 1, question)"
-    >
-      Next question
-      <ion-icon name="chevron-forward"></ion-icon>
-    </button>
-
-    <button
-      type="button"
-      class="nav-next is-final"
-      *ngIf="checkPosition()"
-      (click)="saveQuestionResponses(question)"
-    >
-      Finish
-      <ion-icon name="checkmark"></ion-icon>
-    </button>
-  </div>
-</ion-footer>
