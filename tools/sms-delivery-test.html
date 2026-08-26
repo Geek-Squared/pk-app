@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMS delivery test — T005</title>
+<style>
+  :root {
+    --ground: #f6fafe; --surface: #fff; --ink: #171c1f; --muted: #5a5b5f;
+    --navy: #00288e; --blue: #0060ac; --line: rgba(196,197,213,.4);
+    --warn-ink: #694c05; --warn-tint: #fdf3dc;
+    --ok-ink: #045766; --ok-tint: #dcf2f6;
+    --bad-ink: #901e1f; --bad-tint: #fbe3e3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font: 16px/1.55 ui-sans-serif, system-ui, sans-serif;
+    padding: 32px 20px 80px;
+  }
+  main { max-width: 620px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; color: var(--navy); margin: 0 0 6px; letter-spacing: -.02em; }
+  .sub { color: var(--muted); font-size: .92rem; margin: 0 0 22px; }
+  .banner {
+    background: var(--warn-tint); color: var(--warn-ink); border-radius: 12px;
+    padding: 14px 16px; font-size: .88rem; margin-bottom: 24px;
+  }
+  .banner b { display: block; margin-bottom: 4px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1rem; margin: 0 0 14px; color: var(--navy); }
+  label { display: block; font-size: .82rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+  input {
+    width: 100%; height: 48px; padding: 0 14px; font-size: 1rem; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 12px; background: var(--ground); color: var(--ink);
+  }
+  input:focus { outline: none; border-color: var(--blue); }
+  .row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  button {
+    flex: 1; min-width: 140px; height: 48px; border: 0; border-radius: 999px;
+    font: 700 .95rem inherit; color: #fff; background: var(--navy); cursor: pointer;
+  }
+  button.ghost { background: transparent; color: var(--blue); border: 1px solid var(--line); }
+  button.big { background: var(--ok-ink); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .canon { margin-top: 8px; font-size: .84rem; font-family: ui-monospace, Menlo, monospace; }
+  .canon.ok { color: var(--ok-ink); }
+  .canon.bad { color: var(--bad-ink); }
+  #elapsed { font-size: 2.6rem; font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; margin: 6px 0; }
+  #log { list-style: none; margin: 0; padding: 0; font-size: .86rem; font-family: ui-monospace, Menlo, monospace; }
+  #log li { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
+  #log li:last-child { border-bottom: 0; }
+  #log .t { color: var(--muted); flex: none; }
+  #log .ok { color: var(--ok-ink); } #log .bad { color: var(--bad-ink); }
+  table { width: 100%; border-collapse: collapse; font-size: .86rem; margin-top: 6px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; }
+  td { font-variant-numeric: tabular-nums; }
+  .hint { font-size: .82rem; color: var(--muted); margin: 10px 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>SMS delivery test</h1>
+  <p class="sub">Feature 004, task T005 — does a Firebase passcode actually reach a Zimbabwean handset, and how fast?</p>
+
+  <div class="banner">
+    <b>Throwaway tool. Delete after T005.</b>
+    Lives in <code>tools/</code>, which is not in the build's asset globs, so it cannot ship to hosting.
+    Every send costs real money — set SMS regions to Zimbabwe only in the console <em>before</em> the first one.
+  </div>
+
+  <div class="card">
+    <h2>1 · Send a passcode</h2>
+    <label for="phone">Zimbabwean mobile number</label>
+    <input id="phone" type="tel" placeholder="0771234567" autocomplete="off">
+    <div id="canon" class="canon"></div>
+    <div class="row">
+      <button id="send" disabled>Send passcode</button>
+    </div>
+    <p class="hint">Do not use a fictional test number — those never send an SMS, which is the whole point.</p>
+    <div id="recaptcha"></div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Time it</h2>
+    <div id="elapsed">—</div>
+    <p class="hint" id="timerHint">Press the moment the SMS lands on the handset. Time to delivery is the measurement that matters: a passcode arriving in four minutes is a failed passcode, because the person has already asked for another one.</p>
+    <div class="row">
+      <button id="arrived" class="big" disabled>It arrived — stop the clock</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3 · Confirm the code works</h2>
+    <label for="code">Passcode from the SMS</label>
+    <input id="code" type="text" inputmode="numeric" placeholder="123456" autocomplete="off">
+    <div class="row">
+      <button id="verify" disabled>Verify</button>
+      <button id="signout" class="ghost">Sign out</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <table id="results">
+      <thead><tr><th>Number</th><th>Carrier</th><th>Sent</th><th>Arrived</th><th>Verified</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="hint">Carrier is inferred from the prefix: 71 NetOne, 73 Telecel, 77/78 Econet. Copy this into <code>research.md</code> R3 when done.</p>
+  </div>
+
+  <div class="card">
+    <h2>Log</h2>
+    <ul id="log"></ul>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+import {
+  getAuth, signInWithPhoneNumber, RecaptchaVerifier, signOut
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+
+// Same project as the app. This is the public web config, already in the
+// repository and in every built client — it is not a secret.
+const app = initializeApp({
+  apiKey: 'AIzaSyAyQhv2xlj15JF7_o7DbBLRSB4XTXQL1FQ',
+  authDomain: 'positive-konnections-42d8a.firebaseapp.com',
+  projectId: 'positive-konnections-42d8a',
+  messagingSenderId: '803337097020',
+  appId: '1:803337097020:web:ba78819354d9754930d839',
+});
+const auth = getAuth(app);
+auth.useDeviceLanguage();
+
+// Mirrors functions/src/phone.ts. Kept in sync by hand deliberately: this file
+// is disposable and must not become something the real code depends on.
+const CANONICAL = /^\+2637\d{8}$/;
+function toE164(input) {
+  if (typeof input !== 'string') return null;
+  const trimmed = input.trim();
+  const hasPlus = trimmed.startsWith('+');
+  const digits = trimmed.replace(/\D/g, '');
+  if (!digits) return null;
+  let national;
+  if (digits.startsWith('263')) national = digits.slice(3);
+  else if (hasPlus) return null;
+  else if (digits.startsWith('0')) national = digits.slice(1);
+  else national = digits;
+  const candidate = `+263${national}`;
+  return CANONICAL.test(candidate) ? candidate : null;
+}
+
+const CARRIERS = { '71': 'NetOne', '73': 'Telecel', '77': 'Econet', '78': 'Econet' };
+const carrierOf = (e164) => CARRIERS[e164.slice(4, 6)] || 'unknown';
+
+const $ = (id) => document.getElementById(id);
+const logEl = $('log');
+
+function log(message, kind) {
+  const li = document.createElement('li');
+  const t = document.createElement('span');
+  t.className = 't';
+  t.textContent = new Date().toLocaleTimeString();
+  const m = document.createElement('span');
+  if (kind) m.className = kind;
+  m.textContent = message;
+  li.append(t, m);
+  logEl.prepend(li);
+}
+
+let confirmation = null;
+let sentAt = null;
+let tick = null;
+let current = null;
+
+// --- number entry -------------------------------------------------------
+$('phone').addEventListener('input', (e) => {
+  const canonical = toE164(e.target.value);
+  const out = $('canon');
+  if (!e.target.value.trim()) { out.textContent = ''; $('send').disabled = true; return; }
+  if (canonical) {
+    out.textContent = `${canonical}  ·  ${carrierOf(canonical)}`;
+    out.className = 'canon ok';
+    $('send').disabled = false;
+  } else {
+    out.textContent = 'Not a Zimbabwean mobile number — no SMS would be sent';
+    out.className = 'canon bad';
+    $('send').disabled = true;
+  }
+});
+
+// --- send ---------------------------------------------------------------
+let verifier = null;
+$('send').addEventListener('click', async () => {
+  const e164 = toE164($('phone').value);
+  if (!e164) return;
+
+  $('send').disabled = true;
+  try {
+    if (!verifier) {
+      verifier = new RecaptchaVerifier(auth, 'recaptcha', { size: 'invisible' });
+      await verifier.render();
+    }
+    log(`Requesting passcode for ${e164} (${carrierOf(e164)})…`);
+    confirmation = await signInWithPhoneNumber(auth, e164, verifier);
+
+    sentAt = Date.now();
+    current = { e164, carrier: carrierOf(e164), sent: new Date().toLocaleTimeString() };
+    log('Firebase accepted the request. Clock running.', 'ok');
+    $('arrived').disabled = false;
+    $('verify').disabled = false;
+
+    clearInterval(tick);
+    tick = setInterval(() => {
+      $('elapsed').textContent = `${((Date.now() - sentAt) / 1000).toFixed(0)}s`;
+    }, 250);
+  } catch (err) {
+    // The most useful failures here are auth/invalid-app-credential (reCAPTCHA
+    // or domain not authorised) and auth/billing-not-enabled.
+    log(`FAILED to send: ${err?.code || ''} ${err?.message || err}`, 'bad');
+    $('send').disabled = false;
+  }
+});
+
+// --- arrival ------------------------------------------------------------
+$('arrived').addEventListener('click', () => {
+  if (!sentAt) return;
+  clearInterval(tick);
+  const seconds = ((Date.now() - sentAt) / 1000).toFixed(1);
+  $('elapsed').textContent = `${seconds}s`;
+  log(`Delivered in ${seconds}s`, 'ok');
+  if (current) { current.arrived = `${seconds}s`; addRow(current); }
+  $('arrived').disabled = true;
+});
+
+// --- verify -------------------------------------------------------------
+$('verify').addEventListener('click', async () => {
+  if (!confirmation) return;
+  try {
+    const cred = await confirmation.confirm($('code').value.trim());
+    log(`Verified. uid ${cred.user.uid}, phone ${cred.user.phoneNumber}`, 'ok');
+    markVerified('yes');
+  } catch (err) {
+    log(`Code rejected: ${err?.code || ''} ${err?.message || err}`, 'bad');
+    markVerified('no');
+  }
+});
+
+$('signout').addEventListener('click', async () => {
+  await signOut(auth);
+  log('Signed out.');
+});
+
+// --- results ------------------------------------------------------------
+function addRow(row) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${row.e164}</td><td>${row.carrier}</td><td>${row.sent}</td><td>${row.arrived || '—'}</td><td class="v">—</td>`;
+  document.querySelector('#results tbody').prepend(tr);
+}
+function markVerified(value) {
+  const cell = document.querySelector('#results tbody tr .v');
+  if (cell) cell.textContent = value;
+}
+
+log('Ready. Enable the Phone provider and restrict SMS regions to Zimbabwe before sending.');
+</script>
+</body>
+</html>
